@@ -43,9 +43,12 @@
     "@cssw-rdf-convertor/core": "*",
     "@inquirer/prompts": "^7.3.1",
     "@swc/helpers": "~0.5.11",
+    "chalk": "^5.4.1",
+    "fuzzysort": "^3.1.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/node": "^22.13.1",
     "@types/yargs": "^17.0.33"
   }
 }
