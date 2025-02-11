@@ -1,6 +1,12 @@
-import { core } from '@cssw-rdf-convertor/core';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import { validate } from './validate.js';
 
-export function cli(): string {
-  core();
-  return 'cli';
+export function runCommands() {
+  yargs(hideBin(process.argv))
+    .usage('Usage: $0 <command> [options]')
+    .help()
+    .demandCommand(1)
+    .command(validate)
+    .parse();
 }
