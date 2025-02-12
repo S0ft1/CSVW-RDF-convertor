@@ -27,17 +27,22 @@ describe('readFileOrUrl', () => {
 
   it('should read local file', async () => {
     const requests = [
-      readFileOrUrl('C:/local/file.txt'),
       readFileOrUrl('./file.txt'),
       readFileOrUrl('file.txt'),
       readFileOrUrl('/file.txt'),
-      readFileOrUrl('file:/C:/local/file.txt'),
-      readFileOrUrl('file:C:/local/file.txt'),
-      readFileOrUrl('file:///C:/local/file.txt'),
-      // readFileOrUrl('file://folder/file.txt'),  // this throws on unix
-      // readFileOrUrl('file:///folder/file.txt'), // this throws on windows
-      // readFileOrUrl('file:/folder/file.txt'),   // this throws on windows
-    ];
+    ].concat(
+      process.platform === 'win32'
+        ? [
+            readFileOrUrl('C:/local/file.txt'),
+            readFileOrUrl('file:/C:/local/file.txt'),
+            readFileOrUrl('file:C:/local/file.txt'),
+            readFileOrUrl('file:///C:/local/file.txt'),
+          ]
+        : [
+            readFileOrUrl('file:///folder/file.txt'),
+            readFileOrUrl('file:/folder/file.txt'),
+          ]
+    );
     await Promise.all(requests);
     expect(global.fetch).not.toHaveBeenCalled();
     expect(fs.readFile).toHaveBeenCalledTimes(requests.length);
