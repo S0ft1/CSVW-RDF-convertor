@@ -1,15 +1,18 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
-import { getPathOverrides } from './rdf2csvw-interactive/get-path-overrides.js';
+import { getPathOverrides } from './interactive/get-path-overrides.js';
 import { readFileOrUrl } from '../utils/read-file-or-url.js';
+import { resolve } from 'node:path';
+import { getSchema } from './interactive/get-schema.js';
 
 export const rdf2csvw: CommandModule<
   CommonArgs,
   (Omit<CommonArgs, 'input'> & {
     offline?: boolean;
+    outDir: string;
   }) &
     (
-      | { interactive: true; input: string }
+      | { interactive?: boolean; input: string }
       | { interactive?: false; bufferSize: number }
     )
 > = {
@@ -22,6 +25,13 @@ export const rdf2csvw: CommandModule<
         'Interactive mode. Not available when reading streaming data from stdin.',
       type: 'boolean',
       implies: ['input'],
+    },
+    outDir: {
+      alias: 'o',
+      describe: 'Output directory',
+      type: 'string',
+      default: '.',
+      coerce: resolve,
     },
     bufferSize: {
       describe:
@@ -36,12 +46,12 @@ export const rdf2csvw: CommandModule<
     },
   },
   handler: async (args) => {
-    console.log('rdf2csvw', args);
     if (args.interactive) {
       const descriptor = JSON.parse(await readFileOrUrl(args.input));
       if (!args.pathOverrides) {
         args.pathOverrides = await getPathOverrides(descriptor);
       }
+      getSchema([]);
     }
   },
 };

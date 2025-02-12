@@ -39,6 +39,7 @@
     }
   },
   "dependencies": {
-    "@swc/helpers": "~0.5.11"
+    "@swc/helpers": "~0.5.11",
+    "mnemonist": "^0.40.2"
   }
 }
