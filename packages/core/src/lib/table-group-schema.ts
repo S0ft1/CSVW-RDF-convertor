@@ -1,5 +1,6 @@
 import { TableSchema } from './table-schema.js';
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export class TableGroupSchema {
   public tables = new Map<string, TableSchema>();
 
