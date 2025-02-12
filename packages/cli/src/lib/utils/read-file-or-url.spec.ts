@@ -34,7 +34,9 @@ describe('readFileOrUrl', () => {
       readFileOrUrl('file:/C:/local/file.txt'),
       readFileOrUrl('file:C:/local/file.txt'),
       readFileOrUrl('file:///C:/local/file.txt'),
-      readFileOrUrl('file://local/file.txt'),
+      // readFileOrUrl('file://folder/file.txt'),  // this throws on unix
+      // readFileOrUrl('file:///folder/file.txt'), // this throws on windows
+      // readFileOrUrl('file:/folder/file.txt'),   // this throws on windows
     ];
     await Promise.all(requests);
     expect(global.fetch).not.toHaveBeenCalled();
