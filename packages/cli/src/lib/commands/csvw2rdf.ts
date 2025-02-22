@@ -1,7 +1,6 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
-
-type RDFSerialization = 'jsonld' | 'nquads' | 'ntriples' | 'rdfxml' | 'turtle';
+import { RDFSerialization } from '@cssw-rdf-convertor/core';
 
 export const csvw2rdf: CommandModule<
   CommonArgs,
