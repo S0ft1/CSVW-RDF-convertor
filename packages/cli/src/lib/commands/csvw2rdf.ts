@@ -1,7 +1,6 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
-
-type RDFSerialization = 'jsonld' | 'nquads' | 'ntriples' | 'rdfxml' | 'turtle';
+import { CSVW2RDFConvertor, RDFSerialization } from '@cssw-rdf-convertor/core';
 
 export const csvw2rdf: CommandModule<
   CommonArgs,
@@ -35,6 +34,8 @@ export const csvw2rdf: CommandModule<
   handler: async (args) => {
     args.format = args.format ?? inferFormat(args.output);
     console.log('csvw2rdf', args);
+    const convertor = new CSVW2RDFConvertor(args.config, args.pathOverrides, args.offline);
+    await convertor.convert(args.input, args.output, args.format);
   },
 };
 
