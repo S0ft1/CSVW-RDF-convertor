@@ -3,7 +3,7 @@ import fuzzysort from 'fuzzysort';
 import chalk from 'chalk';
 
 export async function getPathOverrides(descriptor: object) {
-  const overrides: Record<string, string> = {};
+  let overrides: Record<string, string> = {};
   const urls = Array.from(allUrls(descriptor)).map((url) =>
     fuzzysort.prepare(url)
   );
@@ -28,8 +28,10 @@ export async function getPathOverrides(descriptor: object) {
           !(await confirm({
             message: 'Are these overrides correct?',
           }))
-        )
+        ) {
+          overrides = {};
           continue;
+        }
       }
       break;
     }
