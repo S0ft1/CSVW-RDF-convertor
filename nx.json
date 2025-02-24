@@ -14,6 +14,7 @@
     ],
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
+  "neverConnectToCloud": true,
   "nxCloudId": "67a9e63d4626b120dd8ff944",
   "plugins": [
     {
@@ -56,6 +57,15 @@
   "release": {
     "version": {
       "preVersionCommand": "npx nx run-many -t build"
+    }
+  },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": ["build", "lint", "test", "e2e"],
+        "useDaemonProcess": false
+      }
     }
   }
 }

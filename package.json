@@ -4,12 +4,14 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "@nx/eslint": "20.4.2",
     "@nx/eslint-plugin": "20.4.2",
-    "@nx/jest": "20.4.2",
+    "@nx/jest": "21.0.0-canary.20250206-8bd0bcd",
     "@nx/js": "20.4.2",
     "@swc-node/register": "~1.9.1",
     "@swc/cli": "~0.3.12",
