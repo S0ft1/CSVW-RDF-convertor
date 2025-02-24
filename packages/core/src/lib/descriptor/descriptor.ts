@@ -1,22 +1,12 @@
-import { Expanded } from './expanded.js';
+import { Expanded, MaybeExpanded, WithAdditionalProps } from './expanded.js';
 import { CsvwTableGroupDescription } from './table-group.js';
 import { CsvwTableDescription } from './table.js';
 import { CsvwTopLevelProperties } from './top-level-props.js';
 
-export type CompactedCsvwDescriptor = (
-  | CsvwTableDescription
-  | CsvwTableGroupDescription
-) &
-  CsvwTopLevelProperties;
+export type CompactedCsvwDescriptor =
+  | WithAdditionalProps<CsvwTableDescription & CsvwTopLevelProperties>
+  | WithAdditionalProps<CsvwTableGroupDescription & CsvwTopLevelProperties>;
 
-export type WithAdditionalProps<T> = {
-  [k in keyof T]: WithAdditionalProps<T[k]>;
-} & { [k: string]: unknown };
+export type CompactedExpandedCsvwDescriptor = Expanded<CompactedCsvwDescriptor>;
 
-export type WithoutContext<T> = {
-  [k in keyof T as k extends '@context' ? never : k]: WithoutContext<T[k]>;
-};
-
-export type CompactedExpandedCsvwDescriptor = Expanded<
-  WithoutContext<CompactedCsvwDescriptor>
->;
+export type AnyCsvwDescriptor = MaybeExpanded<CompactedCsvwDescriptor>;

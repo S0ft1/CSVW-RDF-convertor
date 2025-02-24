@@ -40,12 +40,14 @@
   },
   "dependencies": {
     "@swc/helpers": "~0.5.11",
-    "graphy": "^4.3.7",
+    "jsonld": "^8.3.3",
     "mnemonist": "^0.40.2",
     "n3": "^1.23.1",
     "quadstore": "^15.0.0"
   },
   "devDependencies": {
-    "@types/n3": "^1.21.1"
+    "@types/jsonld": "^1.5.15",
+    "@types/n3": "^1.21.1",
+    "@types/node": "^22.13.5"
   }
 }
