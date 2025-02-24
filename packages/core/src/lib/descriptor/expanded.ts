@@ -6,9 +6,10 @@ export type IsExactlyUnknown<T> = unknown extends T
     : false
   : false;
 
-export type AnyOf<T, Keys = keyof T> = {
-  [k in keyof T]: T[k];
-};
+export type AnyOf<T, Keys extends keyof T = keyof T> = Omit<T, Keys> &
+  {
+    [k in Keys]: Pick<T, Exclude<Keys, k>> & Required<Pick<T, k>>;
+  }[Keys];
 
 export type WithPrefix<IRI extends string, T extends string> = `${IRI}${T}`;
 

@@ -15,9 +15,9 @@ export interface CsvwColumnDescription {
    */
   titles?:
     | string
-    | unknown[]
+    | string[]
     | {
-        [k: string]: unknown;
+        [k: string]: string | string[];
       };
   /**
    * A boolean atomic property taking a single value which indicates whether the column is a virtual column not present in the original source.
