@@ -14,7 +14,7 @@ export type AnyOf<T, Keys extends keyof T = keyof T> = Omit<T, Keys> &
 type Primitive = string | number | null | undefined | boolean | bigint | symbol;
 type IsPrimitiveOrUnknown<T> = T extends Primitive ? true : IsExactlyUnknown<T>;
 
-type Expanded1Lvl<T> = IsPrimitiveOrUnknown<T> extends true
+type Expanded1Lvl<T, NS extends string> = IsPrimitiveOrUnknown<T> extends true
   ? T
   : {
       [k in keyof T as IsExactlyUnknown<T[k]> extends true
@@ -22,7 +22,7 @@ type Expanded1Lvl<T> = IsPrimitiveOrUnknown<T> extends true
         : k extends string
         ? k extends `@${string}`
           ? k
-          : `${typeof csvwNs}#${k}`
+          : `${NS}#${k}`
         : k]: T[k];
     };
 
@@ -40,30 +40,30 @@ export type WithAdditionalProps<T> = T extends [infer U]
       [k in Exclude<string, keyof T>]: unknown;
     };
 
-export type MaybeExpanded<T> = T extends [infer U]
-  ? [MaybeExpanded<U>]
+export type MaybeExpanded<T, NS extends string = typeof csvwNs> = T extends [infer U]
+  ? [MaybeExpanded<U, NS>]
   : T extends [infer U, infer T]
-  ? [MaybeExpanded<U>, MaybeExpanded<T>]
+  ? [MaybeExpanded<U, NS>, MaybeExpanded<T, NS>]
   : T extends (infer U)[]
-  ? MaybeExpanded<U>[]
+  ? MaybeExpanded<U, NS>[]
   : IsPrimitiveOrUnknown<T> extends true
   ? T
   :
       | {
-          [k in keyof T]: MaybeExpanded<T[k]>;
+          [k in keyof T]: MaybeExpanded<T[k], NS>;
         }
       | {
-          [k in keyof Expanded1Lvl<T>]: MaybeExpanded<Expanded1Lvl<T>[k]>;
+          [k in keyof Expanded1Lvl<T, NS>]: MaybeExpanded<Expanded1Lvl<T, NS>[k], NS>;
         };
 
-export type Expanded<T> = T extends [infer U]
-  ? [Expanded<U>]
+export type Expanded<T, NS extends string = typeof csvwNs> = T extends [infer U]
+  ? [Expanded<U, NS>]
   : T extends [infer U, infer T]
-  ? [Expanded<U>, Expanded<T>]
+  ? [Expanded<U, NS>, Expanded<T, NS>]
   : T extends (infer U)[]
-  ? Expanded<U>[]
+  ? Expanded<U, NS>[]
   : IsPrimitiveOrUnknown<T> extends true
   ? T
   : {
-      [k in keyof Expanded1Lvl<T>]: Expanded<Expanded1Lvl<T>[k]>;
+      [k in keyof Expanded1Lvl<T, NS>]: Expanded<Expanded1Lvl<T, NS>[k], NS>;
     };

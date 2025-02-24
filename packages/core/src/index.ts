@@ -1,7 +1,8 @@
 import { json } from 'stream/consumers';
-import { DescriptorBuilder } from './lib/core.js';
+import { DescriptorWrapper, normalizeDescriptor } from './lib/core.js';
+import { CSVW2RDFConvertor } from './lib/csvw2rdf-convertor.js';
 
-export * from './lib/core.js';
+
 const jsonLDTEST = `{
     "@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
     "@id": "http://example.org/tree-ops-ext",
@@ -82,7 +83,7 @@ const jsonLDTEST = `{
       "aboutUrl": "http://example.org/tree-ops-ext#gid-{GID}"
     }
   }`
-const d = new DescriptorBuilder();
-await d.BuildDescriptor(jsonLDTEST);
-console.log("xd");
-d.getTableSchema();
+
+const convertor: CSVW2RDFConvertor = new CSVW2RDFConvertor();
+const descriptor = await normalizeDescriptor(jsonLDTEST);
+await convertor.convert(descriptor);

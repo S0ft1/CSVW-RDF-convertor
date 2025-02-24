@@ -1,4 +1,12 @@
+import { DescriptorWrapper } from './core.js';
+import { Expanded } from './descriptor/expanded.js';
+import { CsvwTableGroupDescription } from './descriptor/table-group.js';
+import { CsvwTableDescription } from './descriptor/table.js';
 import { RDFSerialization } from './types/rdf-serialization.js';
+import { MemoryLevel } from 'memory-level';
+import { Quadstore, StoreOpts } from 'quadstore';
+import { DataFactory } from 'n3';
+import { Csvw2RdfOptions } from './conversion-options.js';
 
 export class CSVW2RDFConvertor {
   config?: unknown;
@@ -16,16 +24,23 @@ export class CSVW2RDFConvertor {
   }
 
   public async convert(
-    input?: string,
-    output?: string,
-    format?: RDFSerialization
+    input: DescriptorWrapper<Csvw2RdfOptions>,
   ) {
-    const uri = await this.getUri('foaf');
-    console.log(`foaf -> ${uri}`);
-    const prefix = await this.getPrefix('http://xmlns.com/foaf/0.1/');
-    console.log(`http://xmlns.com/foaf/0.1/ -> ${prefix}`);
-
-    throw new Error('Not implemented.');
+    const backend = new MemoryLevel() as any;
+    const { namedNode, literal, defaultGraph, quad } = DataFactory;
+    // different versions of RDF.js types in quadstore and n3
+    const store = new Quadstore({backend, dataFactory: DataFactory as unknown as StoreOpts['dataFactory']});
+    await store.open();
+    await store.put(quad(
+      namedNode('http://example.com/subject'),
+      namedNode('http://example.com/predicate'),
+      namedNode('http://example.com/object'),
+      defaultGraph(),
+    ));
+    console.log("xd");
+    const descr = input.getTables();
+    //throw new Error('Not implemented.');
+    
   }
 
   private getUri(prefix: string): Promise<string | null> {
