@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@swc/helpers": "~0.5.11",
+    "graphy": "^4.3.7",
     "mnemonist": "^0.40.2",
     "n3": "^1.23.1",
     "quadstore": "^15.0.0"
