@@ -1,6 +1,6 @@
 import { type Transformer } from 'stream/web';
-import { CsvwDialectDescription } from './descriptor/dialect-description.js';
-import { Expanded } from './descriptor/expanded.js';
+import { CsvwDialectDescription } from './types/descriptor/dialect-description.js';
+import { Expanded } from './types/descriptor/expanded.js';
 import { parse } from 'csv/browser/esm';
 
 export class CSVParser extends TransformStream<string, string[]> {

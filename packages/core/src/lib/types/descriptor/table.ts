@@ -1,11 +1,12 @@
 import { CsvwDialectDescription } from './dialect-description.js';
+import { CsvwInheritedProperties } from './inherited-properties.js';
 import { CsvwSchemaDescription } from './schema-description.js';
 import { CsvwTransformationDefinition } from './transformation-definition.js';
 
 /**
  * A table description is a JSON object that describes a table within a CSV file.
  */
-export interface CsvwTableDescription {
+export interface CsvwTableDescription extends CsvwInheritedProperties {
   /**
    * This link property gives the single URL of the CSV file that the table is held in, relative to the location of the metadata document.
    */

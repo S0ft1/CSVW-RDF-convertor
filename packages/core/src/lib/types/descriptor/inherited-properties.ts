@@ -1,4 +1,4 @@
-import { CsvwDatatype } from './datatype.js';
+import { CsvwBuiltinDatatype, CsvwDatatype } from './datatype.js';
 
 /**
  * Columns and cells may be assigned annotations based on properties on the description objects for groups of tables, tables, schemas, or columns. These properties are known as inherited properties and are listed below.
@@ -11,57 +11,7 @@ export interface CsvwInheritedProperties {
   /**
    * An atomic property that contains either a single string that is the main datatype of the values of the cell or a datatype description object.
    */
-  datatype?:
-    | (
-        | 'anyAtomicType'
-        | 'anyURI'
-        | 'base64Binary'
-        | 'boolean'
-        | 'date'
-        | 'dateTime'
-        | 'dateTimeStamp'
-        | 'decimal'
-        | 'integer'
-        | 'long'
-        | 'int'
-        | 'short'
-        | 'byte'
-        | 'nonNegativeInteger'
-        | 'positiveInteger'
-        | 'unsignedLong'
-        | 'unsignedInt'
-        | 'unsignedShort'
-        | 'unsignedByte'
-        | 'nonPositiveInteger'
-        | 'negativeInteger'
-        | 'double'
-        | 'duration'
-        | 'dayTimeDuration'
-        | 'yearMonthDuration'
-        | 'float'
-        | 'gDay'
-        | 'gMonth'
-        | 'gMonthDay'
-        | 'gYear'
-        | 'gYearMonth'
-        | 'hexBinary'
-        | 'QName'
-        | 'string'
-        | 'normalizedString'
-        | 'token'
-        | 'language'
-        | 'Name'
-        | 'NMTOKEN'
-        | 'xml'
-        | 'html'
-        | 'json'
-        | 'time'
-        | 'number'
-        | 'binary'
-        | 'datetime'
-        | 'any'
-      )
-    | CsvwDatatype;
+  datatype?: CsvwBuiltinDatatype | CsvwDatatype;
   /**
    * An atomic property holding a single string that is used to create a default value for the cell in cases where the original string value is an empty string.
    */

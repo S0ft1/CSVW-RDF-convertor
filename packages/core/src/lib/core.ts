@@ -1,63 +1,74 @@
 import jsonld from 'jsonld';
-import {CompactedExpandedCsvwDescriptor} from "./descriptor/descriptor.js";
-import { CsvwTableGroupDescription } from './descriptor/table-group.js';
-import { AnyCsvwDescriptor } from './descriptor/descriptor.js';
-import { csvwNs } from './descriptor/namespace.js';
-import { Expanded } from './descriptor/expanded.js';
-import { Csvw2RdfOptions, optionsNs } from './conversion-options.js';
+import { CompactedExpandedCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
+import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { csvwNs } from './types/descriptor/namespace.js';
+import { Expanded } from './types/descriptor/expanded.js';
+import { Csvw2RdfOptions } from './conversion-options.js';
+import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
+import { replaceUrl } from './utils/replace-url.js';
 
-export async function normalizeDescriptor<Options extends Csvw2RdfOptions>(
-  descriptor : string | AnyCsvwDescriptor,
-  options?: Options
-): Promise<DescriptorWrapper<Options>> {
-  let parsedDescriptor : AnyCsvwDescriptor;
+export async function normalizeDescriptor(
+  descriptor: string | AnyCsvwDescriptor,
+  options?: Csvw2RdfOptions
+): Promise<DescriptorWrapper> {
+  const completeOpts = setDefaults(options);
+  const docLoader = async (url: string) => {
+    url = replaceUrl(url, completeOpts.pathOverrides);
+    return {
+      document: JSON.parse(await completeOpts.resolveFn(url)),
+      documentUrl: url,
+    };
+  };
+
+  let parsedDescriptor: AnyCsvwDescriptor;
   if (typeof descriptor === 'string') {
     parsedDescriptor = JSON.parse(descriptor);
-  }
-  else{
+  } else {
     parsedDescriptor = descriptor;
   }
 
-  const [expanded, expandedOptions] = await Promise.all([
-    jsonld.expand(parsedDescriptor as jsonld.JsonLdDocument),
-    jsonld.expand({...options} as jsonld.JsonLdDocument)
-  ]);
-  const [compacted, compactedOptions]: [
-    CompactedExpandedCsvwDescriptor,
-    Expanded<Options, typeof optionsNs>
-  ] = await Promise.all([
-    jsonld.compact(expanded, {}) as Promise<CompactedExpandedCsvwDescriptor>,
-    jsonld.compact(expandedOptions, {}) as Promise<Expanded<Options, typeof optionsNs>>
-  ]);
-  return new DescriptorWrapper({
-    ...compacted,
-    ...compactedOptions
-  });
+  const expanded = await jsonld.expand(
+    parsedDescriptor as jsonld.JsonLdDocument,
+    { documentLoader: docLoader }
+  );
+  return new DescriptorWrapper(
+    (await jsonld.compact(expanded, {})) as CompactedExpandedCsvwDescriptor
+  );
 }
 
-function getCustomLoader(options: Csvw2RdfOptions) {
-
+function setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
+  options ??= {};
+  return {
+    pathOverrides: options.pathOverrides ?? [],
+    offline: options.offline ?? false,
+    resolveFn: options.resolveFn ?? defaultResolveFn,
+    resolveStreamFn: options.resolveStreamFn ?? defaultResolveStreamFn,
+  };
 }
 
 /** Class for manipulating the descriptor */
-export class DescriptorWrapper<Options> {
+export class DescriptorWrapper {
   public get isTableGroup(): boolean {
     return this._isTableGroup(this.descriptor);
   }
 
-  constructor(public descriptor: CompactedExpandedCsvwDescriptor & Expanded<Options, typeof optionsNs>) {}
+  constructor(public descriptor: CompactedExpandedCsvwDescriptor) {}
 
-  private _isTableGroup(x: CompactedExpandedCsvwDescriptor): x is Expanded<CsvwTableGroupDescription> {
+  private _isTableGroup(
+    x: CompactedExpandedCsvwDescriptor
+  ): x is Expanded<CsvwTableGroupDescription> {
     return 'http://www.w3.org/ns/csvw#tables' in x;
   }
 
   public *getTables() {
-    if (this._isTableGroup(this.descriptor)){
-      for (const element of this.descriptor['http://www.w3.org/ns/csvw#tables']) {
-        yield element;     
-      };
-    }
-    else {
+    if (this._isTableGroup(this.descriptor)) {
+      for (const element of this.descriptor[
+        'http://www.w3.org/ns/csvw#tables'
+      ]) {
+        yield element;
+      }
+    } else {
       yield this.descriptor;
     }
   }
@@ -67,7 +78,10 @@ export class DescriptorWrapper<Options> {
       if (key.startsWith(`${csvwNs}#`)) {
         continue;
       }
-      yield key as Exclude<Extract<keyof T, string>, `${typeof csvwNs}#${string}`>;
+      yield key as Exclude<
+        Extract<keyof T, string>,
+        `${typeof csvwNs}#${string}`
+      >;
     }
   }
 }
