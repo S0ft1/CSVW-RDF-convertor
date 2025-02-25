@@ -1,6 +1,8 @@
-export interface Csvw2RdfOptions {
-  pathOverrides: [string, string][]; // [oldPath, newPath]
-  offline: boolean;
-}
+import { ResolveFn, ResolveStreamFn } from './req-resolve.js';
 
-export const optionsNs = 'https://github.com/S0ft1/CSSW-RDF-convertor' as const;
+export interface Csvw2RdfOptions {
+  pathOverrides?: [string | RegExp, string][];
+  offline?: boolean;
+  resolveFn?: ResolveFn;
+  resolveStreamFn?: ResolveStreamFn;
+}
