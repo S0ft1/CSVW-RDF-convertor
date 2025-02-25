@@ -42,6 +42,7 @@
     "@swc/helpers": "~0.5.11",
     "csv": "^6.3.11",
     "jsonld": "^8.3.3",
+    "memory-level": "^3.0.0",
     "mnemonist": "^0.40.2",
     "n3": "^1.23.1",
     "quadstore": "^15.0.0"

@@ -5,7 +5,7 @@ import { CsvwTableDescription } from './types/descriptor/table.js';
 import { RDFSerialization } from './types/rdf-serialization.js';
 import { MemoryLevel } from 'memory-level';
 import { Quadstore, StoreOpts } from 'quadstore';
-import { DataFactory, Quad } from 'n3';
+import { BlankNode, DataFactory, NamedNode, Quad } from 'n3';
 import { Csvw2RdfOptions } from './conversion-options.js';
 import {
   CsvwBuiltinDatatype,
@@ -48,7 +48,7 @@ export class CSVW2RDFConvertor {
       defaultGraph(),
     ));*/
 
-    let groupNode;
+    let groupNode : NamedNode | BlankNode;
     //1
     if(input.isTableGroup){
       if(input.descriptor['@id'] === undefined){
@@ -58,12 +58,13 @@ export class CSVW2RDFConvertor {
         groupNode = namedNode(input.descriptor['@id']);
       }
     }
+    else{
+      groupNode = blankNode();
+    }
 
-    const descr = input.getTables();
-    const table = descr.next();
     //2
     await store.put(quad(
-      groupNode as any,
+      groupNode,
       namedNode('rdf:type'),
       namedNode('csvw:TableGroup'),
       defaultGraph(),
@@ -72,9 +73,39 @@ export class CSVW2RDFConvertor {
     //3
     //TODO: implement the third rule, for this utility functions will be created
 
-    
+    //4
+    for(const table of input.getTables()){
+      if(table['http://www.w3.org/ns/csvw#suppressOutput'] === false){
+        //4.1
+        const tableNode =  this.createNamedNodeByIdOrBlankNode(table);
+        //4.2
+        await store.put(quad(
+          groupNode,
+          namedNode('csvw:table'),
+          tableNode,
+          defaultGraph(),
+        ));
+        //4.3
+        await store.put(quad(
+          groupNode,
+          namedNode('csvw:type'),
+          tableNode,
+          defaultGraph(),
+        ));
+      }
+    }
     //throw new Error('Not implemented.');
     store.close();
+  }
+
+  private createNamedNodeByIdOrBlankNode(input : Expanded<CsvwTableGroupDescription> | Expanded<CsvwTableDescription>): any {
+    const { namedNode, blankNode, } = DataFactory;
+    if(input['@id'] === undefined){
+      return blankNode();
+    }
+    else {
+      return namedNode(input['@id']);
+    }
   }
 
   private async insertExternalTriples(
