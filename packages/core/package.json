@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@swc/helpers": "~0.5.11",
+    "csv": "^6.3.11",
     "jsonld": "^8.3.3",
     "mnemonist": "^0.40.2",
     "n3": "^1.23.1",
