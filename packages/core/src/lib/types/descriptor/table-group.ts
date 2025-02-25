@@ -1,4 +1,5 @@
 import { CsvwDialectDescription } from './dialect-description.js';
+import { CsvwInheritedProperties } from './inherited-properties.js';
 import { CsvwSchemaDescription } from './schema-description.js';
 import { CsvwTableDescription } from './table.js';
 import { CsvwTransformationDefinition } from './transformation-definition.js';
@@ -6,7 +7,7 @@ import { CsvwTransformationDefinition } from './transformation-definition.js';
 /**
  * A table group description is a JSON object that describes a group of tables.
  */
-export interface CsvwTableGroupDescription {
+export interface CsvwTableGroupDescription extends CsvwInheritedProperties {
   /**
    * An array property of table descriptions for the tables in the group, namely those listed in the tables annotation on the group of tables being described.
    */

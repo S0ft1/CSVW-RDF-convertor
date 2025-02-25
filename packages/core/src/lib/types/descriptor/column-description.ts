@@ -1,7 +1,9 @@
+import { CsvwInheritedProperties } from './inherited-properties.js';
+
 /**
  * A column description is a JSON object that describes a single column. The description provides additional human-readable documentation for a column, as well as additional information that may be used to validate the cells within the column, create a user interface for data entry, or inform conversion into other formats.
  */
-export interface CsvwColumnDescription {
+export interface CsvwColumnDescription extends CsvwInheritedProperties {
   /**
    * An atomic property that gives a single canonical name for the column.
    */

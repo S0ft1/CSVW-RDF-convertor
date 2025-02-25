@@ -1,9 +1,10 @@
 import { CsvwColumnDescription } from './column-description.js';
+import { CsvwInheritedProperties } from './inherited-properties.js';
 
 /**
  * A schema description is a JSON object that encodes the information about a schema, which describes the structure of a table.
  */
-export interface CsvwSchemaDescription {
+export interface CsvwSchemaDescription extends CsvwInheritedProperties {
   /**
    * An array property of column descriptions as described in section 5.6 Columns. These are matched to columns in tables that use the schema by position: the first column description in the array applies to the first column in the table, the second to the second and so on.
    */

@@ -1,12 +1,19 @@
 import { DescriptorWrapper } from './core.js';
-import { Expanded } from './descriptor/expanded.js';
-import { CsvwTableGroupDescription } from './descriptor/table-group.js';
-import { CsvwTableDescription } from './descriptor/table.js';
+import { Expanded } from './types/descriptor/expanded.js';
+import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
+import { CsvwTableDescription } from './types/descriptor/table.js';
 import { RDFSerialization } from './types/rdf-serialization.js';
 import { MemoryLevel } from 'memory-level';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { DataFactory } from 'n3';
 import { Csvw2RdfOptions } from './conversion-options.js';
+import {
+  CsvwBuiltinDatatype,
+  CsvwDatatype,
+} from './types/descriptor/datatype.js';
+import { commonPrefixes } from './utils/prefix.js';
+import { CsvwInheritedProperties } from './types/descriptor/inherited-properties.js';
+import { CsvwColumnDescription } from './types/descriptor/column-description.js';
 
 export class CSVW2RDFConvertor {
   config?: unknown;
@@ -23,24 +30,26 @@ export class CSVW2RDFConvertor {
     this.offline = offline;
   }
 
-  public async convert(
-    input: DescriptorWrapper<Csvw2RdfOptions>,
-  ) {
+  public async convert(input: DescriptorWrapper) {
     const backend = new MemoryLevel() as any;
     const { namedNode, literal, defaultGraph, quad } = DataFactory;
     // different versions of RDF.js types in quadstore and n3
-    const store = new Quadstore({backend, dataFactory: DataFactory as unknown as StoreOpts['dataFactory']});
+    const store = new Quadstore({
+      backend,
+      dataFactory: DataFactory as unknown as StoreOpts['dataFactory'],
+    });
     await store.open();
-    await store.put(quad(
-      namedNode('http://example.com/subject'),
-      namedNode('http://example.com/predicate'),
-      namedNode('http://example.com/object'),
-      defaultGraph(),
-    ));
-    console.log("xd");
+    await store.put(
+      quad(
+        namedNode('http://example.com/subject'),
+        namedNode('http://example.com/predicate'),
+        namedNode('http://example.com/object'),
+        defaultGraph()
+      )
+    );
+    console.log('xd');
     const descr = input.getTables();
     //throw new Error('Not implemented.');
-    
   }
 
   private getUri(prefix: string): Promise<string | null> {
@@ -62,6 +71,77 @@ export class CSVW2RDFConvertor {
         .catch(() => null)
     );
   }
+
+  private interpretDatatype(
+    value: string,
+    col: CsvwColumnDescription,
+    table: CsvwTableDescription,
+    tg: CsvwTableGroupDescription
+  ) {
+    const { literal } = DataFactory;
+    const dtOrBuiltin = this.inherit(
+      'datatype',
+      col,
+      table.tableSchema,
+      table,
+      tg
+    );
+    if (!dtOrBuiltin) {
+      throw new Error(`No datatype specified for ${this.debugCol(col, table)}`);
+    }
+    const dt =
+      typeof dtOrBuiltin === 'string' ? { base: dtOrBuiltin } : dtOrBuiltin;
+    let dtUri = dt['@id'];
+    const lang = this.inherit('lang', col, table.tableSchema, table, tg);
+    if (!dtUri) {
+      if (!dt.base) {
+        throw new Error('Datatype must contain either @id or base property');
+      } else if (dt.base in CSVW2RDFConvertor.dtUris) {
+        dtUri = CSVW2RDFConvertor.dtUris[dt.base];
+      } else if (dt.base === 'string') {
+        return lang
+          ? literal(value, lang)
+          : literal(value, commonPrefixes.xsd + 'string');
+      } else {
+        dtUri = commonPrefixes.xsd + dt.base;
+      }
+    }
+    return literal(value, dtUri);
+  }
+
+  private debugCol(col: CsvwColumnDescription, table: CsvwTableDescription) {
+    let res = (col.name || col['@id']) as string;
+    if (table) {
+      res += ` in table ${table.url}`;
+    }
+    return res;
+  }
+
+  /**
+   * get value of inherited property
+   * @param levels - levels of inheritance (current, parent, grandparent, ...)
+   */
+  private inherit<K extends keyof CsvwInheritedProperties>(
+    prop: K,
+    ...levels: (CsvwInheritedProperties | undefined)[]
+  ): CsvwInheritedProperties[K] {
+    for (const level of levels) {
+      if (level?.[prop] !== undefined) {
+        return level[prop];
+      }
+    }
+    return undefined;
+  }
+
+  private static dtUris: Partial<Record<CsvwBuiltinDatatype, string>> = {
+    xml: commonPrefixes.rdf + 'XMLLiteral',
+    html: commonPrefixes.rdf + 'HTML',
+    json: commonPrefixes.csvw + 'JSON',
+    number: commonPrefixes.xsd + 'double',
+    any: commonPrefixes.xsd + 'anyAtomicType',
+    binary: commonPrefixes.xsd + 'base64Binary',
+    datetime: commonPrefixes.xsd + 'dateTime',
+  };
 }
 
 interface PrefixCCResponse {

@@ -1,9 +1,9 @@
 import jsonld from 'jsonld';
-import { CompactedExpandedCsvwDescriptor } from './descriptor/descriptor.js';
-import { CsvwTableGroupDescription } from './descriptor/table-group.js';
-import { AnyCsvwDescriptor } from './descriptor/descriptor.js';
-import { csvwNs } from './descriptor/namespace.js';
-import { Expanded } from './descriptor/expanded.js';
+import { CompactedExpandedCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
+import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { csvwNs } from './types/descriptor/namespace.js';
+import { Expanded } from './types/descriptor/expanded.js';
 import { Csvw2RdfOptions } from './conversion-options.js';
 import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
 import { replaceUrl } from './utils/replace-url.js';
