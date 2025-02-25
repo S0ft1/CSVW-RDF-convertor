@@ -64,7 +64,10 @@ export class CSVW2RDFConvertor {
     //4
     for (const table of input.getTables()) {
       if (table['http://www.w3.org/ns/csvw#suppressOutput'] === false) {
+    for (const table of input.getTables()) {
+      if (table['http://www.w3.org/ns/csvw#suppressOutput'] === false) {
         //4.1
+        const tableNode = this.createNamedNodeByIdOrBlankNode(table);
         const tableNode = this.createNamedNodeByIdOrBlankNode(table);
         //4.2
         await this.emmitTriple(
@@ -164,15 +167,15 @@ export class CSVW2RDFConvertor {
 
   private interpretDatatype(
     value: string,
-    col: CsvwColumnDescription,
-    table: CsvwTableDescription,
-    tg: CsvwTableGroupDescription
+    col: Expanded<CsvwColumnDescription>,
+    table: Expanded<CsvwTableDescription>,
+    tg: Expanded<CsvwTableGroupDescription>
   ) {
     const { literal } = DataFactory;
     const dtOrBuiltin = this.inherit(
-      'datatype',
+      'http://www.w3.org/ns/csvw#datatype',
       col,
-      table.tableSchema,
+      table['http://www.w3.org/ns/csvw#tableSchema'],
       table,
       tg
     );
@@ -180,29 +183,42 @@ export class CSVW2RDFConvertor {
       throw new Error(`No datatype specified for ${this.debugCol(col, table)}`);
     }
     const dt =
-      typeof dtOrBuiltin === 'string' ? { base: dtOrBuiltin } : dtOrBuiltin;
+      typeof dtOrBuiltin === 'string'
+        ? { 'http://www.w3.org/ns/csvw#base': dtOrBuiltin }
+        : dtOrBuiltin;
     let dtUri = dt['@id'];
-    const lang = this.inherit('lang', col, table.tableSchema, table, tg);
+    const lang = this.inherit(
+      'http://www.w3.org/ns/csvw#lang',
+      col,
+      table['http://www.w3.org/ns/csvw#tableSchema'],
+      table,
+      tg
+    );
     if (!dtUri) {
-      if (!dt.base) {
+      if (!dt['http://www.w3.org/ns/csvw#base']) {
         throw new Error('Datatype must contain either @id or base property');
-      } else if (dt.base in CSVW2RDFConvertor.dtUris) {
-        dtUri = CSVW2RDFConvertor.dtUris[dt.base];
-      } else if (dt.base === 'string') {
+      } else if (
+        dt['http://www.w3.org/ns/csvw#base'] in CSVW2RDFConvertor.dtUris
+      ) {
+        dtUri = CSVW2RDFConvertor.dtUris[dt['http://www.w3.org/ns/csvw#base']];
+      } else if (dt['http://www.w3.org/ns/csvw#base'] === 'string') {
         return lang
           ? literal(value, lang)
           : literal(value, commonPrefixes.xsd + 'string');
       } else {
-        dtUri = commonPrefixes.xsd + dt.base;
+        dtUri = commonPrefixes.xsd + dt['http://www.w3.org/ns/csvw#base'];
       }
     }
     return literal(value, dtUri);
   }
 
-  private debugCol(col: CsvwColumnDescription, table: CsvwTableDescription) {
-    let res = (col.name || col['@id']) as string;
+  private debugCol(
+    col: Expanded<CsvwColumnDescription>,
+    table: Expanded<CsvwTableDescription>
+  ) {
+    let res = (col['http://www.w3.org/ns/csvw#name'] || col['@id']) as string;
     if (table) {
-      res += ` in table ${table.url}`;
+      res += ` in table ${table['http://www.w3.org/ns/csvw#url']}`;
     }
     return res;
   }
@@ -211,10 +227,10 @@ export class CSVW2RDFConvertor {
    * get value of inherited property
    * @param levels - levels of inheritance (current, parent, grandparent, ...)
    */
-  private inherit<K extends keyof CsvwInheritedProperties>(
+  private inherit<K extends keyof Expanded<CsvwInheritedProperties>>(
     prop: K,
-    ...levels: (CsvwInheritedProperties | undefined)[]
-  ): CsvwInheritedProperties[K] {
+    ...levels: (Expanded<CsvwInheritedProperties> | undefined)[]
+  ): Expanded<CsvwInheritedProperties>[K] {
     for (const level of levels) {
       if (level?.[prop] !== undefined) {
         return level[prop];
