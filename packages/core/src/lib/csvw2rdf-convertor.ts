@@ -20,11 +20,14 @@ import { CSVParser } from './csv-parser.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 export class CSVW2RDFConvertor {
-  public constructor(private options: Csvw2RdfOptions) {}
+  private options: Required<Csvw2RdfOptions>;
+  public constructor(options: Csvw2RdfOptions) {
+    this.options = setDefaults(options);
+  }
 
   public async convert(input: DescriptorWrapper) {
     const backend = new MemoryLevel() as any;
-    const { rdf, csvw } = commonPrefixes;
+    const { rdf, csvw, xsd } = commonPrefixes;
     // different versions of RDF.js types in quadstore and n3
     const store = new Quadstore({
       backend,
@@ -64,10 +67,7 @@ export class CSVW2RDFConvertor {
     //4
     for (const table of input.getTables()) {
       if (table['http://www.w3.org/ns/csvw#suppressOutput'] === false) {
-    for (const table of input.getTables()) {
-      if (table['http://www.w3.org/ns/csvw#suppressOutput'] === false) {
         //4.1
-        const tableNode = this.createNamedNodeByIdOrBlankNode(table);
         const tableNode = this.createNamedNodeByIdOrBlankNode(table);
         //4.2
         await this.emmitTriple(
@@ -99,7 +99,13 @@ export class CSVW2RDFConvertor {
             table['http://www.w3.org/ns/csvw#url']
           )
         ).pipeThrough(
-          new CSVParser(this.inherit('dialect', table, input.descriptor))
+          new CSVParser(
+            this.inherit(
+              'http://www.w3.org/ns/csvw#dialect' as any,
+              table,
+              input.descriptor
+            )
+          )
         )) {
           rowNum++;
           //4.6.1
@@ -122,15 +128,138 @@ export class CSVW2RDFConvertor {
           await this.emmitTriple(
             rowNode,
             namedNode(csvw + 'rownum'),
-            literal(rowNum.toString() + 'xsd:integer'),
+            literal(rowNum.toString(), xsd + 'integer'),
             store
           );
           //4.6.5
+          await this.emmitTriple(
+            rowNode,
+            namedNode(csvw + 'url'),
+            namedNode(
+              table['http://www.w3.org/ns/csvw#url#row'] + rowNum.toString()
+            ),
+            store
+          );
+          //4.6.6
+          const titles = this.toArray(
+            table['http://www.w3.org/ns/csvw#tableSchema']?.[
+              'http://www.w3.org/ns/csvw#rowTitles'
+            ]
+          );
+          const titlemap: Record<string, number> = {};
+          for (let i = 0; i < titles.length; i++) {
+            titlemap[
+              table['http://www.w3.org/ns/csvw#tableSchema']?.[
+                'http://www.w3.org/ns/csvw#columns'
+              ]?.[i]['http://www.w3.org/ns/csvw#name'] as string
+            ] = i;
+          }
+
+          for (const title of titles) {
+            const lang = this.inherit(
+              'http://www.w3.org/ns/csvw#lang',
+              table['http://www.w3.org/ns/csvw#tableSchema']?.[
+                'http://www.w3.org/ns/csvw#columns'
+              ]?.[titlemap[title]],
+              table['http://www.w3.org/ns/csvw#tableSchema'],
+              table,
+              input.isTableGroup ? input.descriptor : undefined
+            );
+            await this.emmitTriple(
+              rowNode,
+              namedNode(csvw + 'title'),
+              literal(title, lang),
+              store
+            );
+          }
+
+          //4.6.7
+          //TODO:
+
+          //4.6.8
+          const cellBlank: BlankNode = blankNode();
+          for (let i = 0; i < row.length; ++i) {
+            const col = table['http://www.w3.org/ns/csvw#tableSchema']?.[
+              'http://www.w3.org/ns/csvw#columns'
+            ]?.[i] as Expanded<CsvwColumnDescription>;
+
+            if (col['http://www.w3.org/ns/csvw#suppressOutput'] === false) {
+              //4.6.8.2
+              const subject =
+                col['http://www.w3.org/ns/csvw#aboutUrl'] === undefined
+                  ? cellBlank
+                  : namedNode(col['http://www.w3.org/ns/csvw#aboutUrl']);
+              await this.emmitTriple(
+                rowNode,
+                namedNode(csvw + 'describes'),
+                subject,
+                store
+              );
+              const predicate =
+                col['http://www.w3.org/ns/csvw#propertyUrl'] === undefined
+                  ? namedNode(
+                      table['http://www.w3.org/ns/csvw#url'] +
+                        '#' +
+                        col['http://www.w3.org/ns/csvw#name']
+                    )
+                  : namedNode(col['http://www.w3.org/ns/csvw#propertyUrl']);
+
+              if (col['http://www.w3.org/ns/csvw#valueUrl'] === undefined) {
+                if (col['http://www.w3.org/ns/csvw#separator'] !== undefined) {
+                  const splitted = row[i].split(
+                    col['http://www.w3.org/ns/csvw#separator']
+                  );
+                  const list = this.createRDFList(
+                    splitted,
+                    col['http://www.w3.org/ns/csvw#ordered'] === true
+                  );
+                  if (col['http://www.w3.org/ns/csvw#ordered'] === true) {
+                    //4.6.8.5/6
+                    await this.emmitTriple(subject, predicate, list, store);
+                  }
+                } else {
+                  //4.6.8.7
+                  await this.emmitTriple(
+                    subject,
+                    predicate,
+                    this.interpretDatatype(
+                      row[i],
+                      col,
+                      table,
+                      input.descriptor as Expanded<CsvwTableGroupDescription>
+                    ),
+                    store
+                  );
+                }
+              } else {
+                //4.6.8.4
+                await this.emmitTriple(
+                  subject,
+                  predicate,
+                  namedNode(col['http://www.w3.org/ns/csvw#valueUrl']),
+                  store
+                );
+              }
+            }
+          }
         }
       }
     }
     //throw new Error('Not implemented.');
     store.close();
+  }
+
+  private createRDFList(arr: string[], ordered: boolean): NamedNode | Literal {
+    //TODO: CREATE RDF LIST FROM STRING[]
+    //use function interpretDatatype for creating literals
+    return namedNode(arr[0]);
+  }
+
+  private toArray<T extends {}>(input: T | T[] | undefined): NonNullable<T>[] {
+    if (input === undefined) {
+      return [];
+    }
+    return Array.isArray(input) ? input : [input];
   }
 
   private async emmitTriple(
