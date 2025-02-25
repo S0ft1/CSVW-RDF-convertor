@@ -27,20 +27,45 @@ export class CSVW2RDFConvertor {
     input: DescriptorWrapper<Csvw2RdfOptions>,
   ) {
     const backend = new MemoryLevel() as any;
-    const { namedNode, literal, defaultGraph, quad } = DataFactory;
+    const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
     // different versions of RDF.js types in quadstore and n3
     const store = new Quadstore({backend, dataFactory: DataFactory as unknown as StoreOpts['dataFactory']});
     await store.open();
-    await store.put(quad(
+
+    /*await store.put(quad(
       namedNode('http://example.com/subject'),
       namedNode('http://example.com/predicate'),
       namedNode('http://example.com/object'),
       defaultGraph(),
-    ));
-    console.log("xd");
+    ));*/
+
+    let groupNode;
+    //1
+    if(input.isTableGroup){
+      if(input.descriptor['@id'] === undefined){
+        groupNode = blankNode();
+      }
+      else {
+        groupNode = namedNode(input.descriptor['@id']);
+      }
+    }
+
     const descr = input.getTables();
-    //throw new Error('Not implemented.');
+    const table = descr.next();
+    //2
+    await store.put(quad(
+      groupNode as any,
+      namedNode('rdf:type'),
+      namedNode('csvw:TableGroup'),
+      defaultGraph(),
+    ));
+
+    //3
+    //TODO: implement the third rule, for this utility functions will be created
+
     
+    //throw new Error('Not implemented.');
+    store.close();
   }
 
   private getUri(prefix: string): Promise<string | null> {
