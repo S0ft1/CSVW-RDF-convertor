@@ -5,7 +5,7 @@ import { CsvwTableDescription } from './types/descriptor/table.js';
 import { RDFSerialization } from './types/rdf-serialization.js';
 import { MemoryLevel } from 'memory-level';
 import { Quadstore, StoreOpts } from 'quadstore';
-import { BlankNode, DataFactory, NamedNode, Quad } from 'n3';
+import { BlankNode, DataFactory, Literal, NamedNode, Quad } from 'n3';
 import { Csvw2RdfOptions } from './conversion-options.js';
 import {
   CsvwBuiltinDatatype,
@@ -15,25 +15,16 @@ import { commonPrefixes } from './utils/prefix.js';
 import { CsvwInheritedProperties } from './types/descriptor/inherited-properties.js';
 import { CsvwColumnDescription } from './types/descriptor/column-description.js';
 import jsonld, { NodeObject } from 'jsonld';
+import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
+import { CSVParser } from './csv-parser.js';
 
+const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 export class CSVW2RDFConvertor {
-  config?: unknown;
-  pathOverrides?: Record<string, string>;
-  offline?: boolean;
-
-  public constructor(
-    config?: unknown,
-    pathOverrides?: Record<string, string>,
-    offline?: boolean
-  ) {
-    this.config = config;
-    this.pathOverrides = pathOverrides;
-    this.offline = offline;
-  }
+  public constructor(private options: Csvw2RdfOptions) {}
 
   public async convert(input: DescriptorWrapper) {
     const backend = new MemoryLevel() as any;
-    const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
+    const { rdf, csvw } = commonPrefixes;
     // different versions of RDF.js types in quadstore and n3
     const store = new Quadstore({
       backend,
@@ -48,62 +39,112 @@ export class CSVW2RDFConvertor {
       defaultGraph(),
     ));*/
 
-    let groupNode : NamedNode | BlankNode;
+    let groupNode: NamedNode | BlankNode;
     //1
-    if(input.isTableGroup){
-      if(input.descriptor['@id'] === undefined){
+    if (input.isTableGroup) {
+      if (input.descriptor['@id'] === undefined) {
         groupNode = blankNode();
-      }
-      else {
+      } else {
         groupNode = namedNode(input.descriptor['@id']);
       }
-    }
-    else{
+    } else {
       groupNode = blankNode();
     }
 
     //2
-    await store.put(quad(
+    await this.emmitTriple(
       groupNode,
-      namedNode('rdf:type'),
-      namedNode('csvw:TableGroup'),
-      defaultGraph(),
-    ));
-
+      namedNode(rdf + 'type'),
+      namedNode(csvw + 'TableGroup'),
+      store
+    );
     //3
     //TODO: implement the third rule, for this utility functions will be created
 
     //4
-    for(const table of input.getTables()){
-      if(table['http://www.w3.org/ns/csvw#suppressOutput'] === false){
+    for (const table of input.getTables()) {
+      if (table['http://www.w3.org/ns/csvw#suppressOutput'] === false) {
         //4.1
-        const tableNode =  this.createNamedNodeByIdOrBlankNode(table);
+        const tableNode = this.createNamedNodeByIdOrBlankNode(table);
         //4.2
-        await store.put(quad(
+        await this.emmitTriple(
           groupNode,
-          namedNode('csvw:table'),
+          namedNode(csvw + 'table'),
           tableNode,
-          defaultGraph(),
-        ));
+          store
+        );
         //4.3
-        await store.put(quad(
-          groupNode,
-          namedNode('csvw:type'),
+        await this.emmitTriple(
           tableNode,
-          defaultGraph(),
-        ));
+          namedNode(rdf + 'type'),
+          namedNode(csvw + 'Table'),
+          store
+        );
+        //4.4
+        await this.emmitTriple(
+          tableNode,
+          namedNode(csvw + 'url'),
+          literal(table['http://www.w3.org/ns/csvw#url']),
+          store
+        );
+        //4.5
+        //TODO: implementovat
+        //4.6
+        let rowNum = 0;
+        for await (const row of (
+          await this.options.resolveStreamFn(
+            table['http://www.w3.org/ns/csvw#url']
+          )
+        ).pipeThrough(
+          new CSVParser(this.inherit('dialect', table, input.descriptor))
+        )) {
+          rowNum++;
+          //4.6.1
+          const rowNode: BlankNode = blankNode();
+          //4.6.2
+          await this.emmitTriple(
+            tableNode,
+            namedNode(csvw + 'row'),
+            rowNode,
+            store
+          );
+          //4.6.3
+          await this.emmitTriple(
+            rowNode,
+            namedNode(rdf + 'type'),
+            namedNode(csvw + 'Row'),
+            store
+          );
+          //4.6.4
+          await this.emmitTriple(
+            rowNode,
+            namedNode(csvw + 'rownum'),
+            literal(rowNum.toString() + 'xsd:integer'),
+            store
+          );
+          //4.6.5
+        }
       }
     }
     //throw new Error('Not implemented.');
     store.close();
   }
 
-  private createNamedNodeByIdOrBlankNode(input : Expanded<CsvwTableGroupDescription> | Expanded<CsvwTableDescription>): any {
-    const { namedNode, blankNode, } = DataFactory;
-    if(input['@id'] === undefined){
+  private async emmitTriple(
+    first: NamedNode | BlankNode,
+    second: NamedNode,
+    third: NamedNode | BlankNode | Literal,
+    store: Quadstore
+  ): Promise<void> {
+    await store.put(quad(first, second, third, defaultGraph()));
+  }
+
+  private createNamedNodeByIdOrBlankNode(
+    input: Expanded<CsvwTableGroupDescription> | Expanded<CsvwTableDescription>
+  ) {
+    if (input['@id'] === undefined) {
       return blankNode();
-    }
-    else {
+    } else {
       return namedNode(input['@id']);
     }
   }
@@ -195,4 +236,14 @@ export class CSVW2RDFConvertor {
 
 interface PrefixCCResponse {
   [key: string]: string;
+}
+
+function setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
+  options ??= {};
+  return {
+    pathOverrides: options.pathOverrides ?? [],
+    offline: options.offline ?? false,
+    resolveFn: options.resolveFn ?? defaultResolveFn,
+    resolveStreamFn: options.resolveStreamFn ?? defaultResolveStreamFn,
+  };
 }
