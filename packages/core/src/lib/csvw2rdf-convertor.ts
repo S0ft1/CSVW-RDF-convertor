@@ -11,6 +11,8 @@ import { CsvwInheritedProperties } from './types/descriptor/inherited-properties
 import { CsvwColumnDescription } from './types/descriptor/column-description.js';
 import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
 import { CSVParser } from './csv-parser.js';
+import { coerceArray } from './utils/coerce.js';
+import { CsvwDialectDescription } from './types/descriptor/dialect-description.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -52,151 +54,10 @@ export class CSVW2RDFConvertor {
     //4
     for (const table of input.getTables()) {
       if (table.suppressOutput) continue;
-      //4.1
-      const tableNode = this.createNode(table);
-      //4.2
+      const tableNode = await this.convertTable(table, input);
+
+      // 4.2
       await this.emitTriple(groupNode, namedNode(csvw + 'table'), tableNode);
-      //4.3
-      await this.emitTriple(
-        tableNode,
-        namedNode(rdf + 'type'),
-        namedNode(csvw + 'Table')
-      );
-      //4.4
-      await this.emitTriple(
-        tableNode,
-        namedNode(csvw + 'url'),
-        literal(table.url)
-      );
-      //4.5
-      //TODO: implementovat
-      //4.6
-      let rowNum = 0;
-      const csvStream = await this.options.resolveCsvStreamFn(
-        table.url,
-        input.descriptor['@id'] ?? this.options.baseIRI
-      );
-
-      for await (const row of csvStream.pipeThrough(
-        new CSVParser(table.dialect ?? input.descriptor.dialect ?? {})
-      )) {
-        rowNum++;
-        //4.6.1
-        const rowNode: BlankNode = blankNode();
-        //4.6.2
-        await this.emitTriple(tableNode, namedNode(csvw + 'row'), rowNode);
-        //4.6.3
-        await this.emitTriple(
-          rowNode,
-          namedNode(rdf + 'type'),
-          namedNode(csvw + 'Row')
-        );
-        //4.6.4
-        await this.emitTriple(
-          rowNode,
-          namedNode(csvw + 'rownum'),
-          literal(rowNum.toString(), xsd + 'integer')
-        );
-        //4.6.5
-        await this.emitTriple(
-          rowNode,
-          namedNode(csvw + 'url'),
-          namedNode(table.url + '#' + rowNum.toString())
-        );
-        //4.6.6
-        const titles = this.toArray(table.tableSchema?.rowTitles);
-        const titlemap: Record<string, number> = {};
-        for (let i = 0; i < titles.length; i++) {
-          titlemap[table.tableSchema?.columns?.[i].name as string] = i;
-        }
-
-        for (const title of titles) {
-          const lang = this.inherit(
-            'lang',
-            table.tableSchema?.columns?.[titlemap[title]],
-            table.tableSchema,
-            table,
-            input.isTableGroup ? input.descriptor : undefined
-          );
-          await this.emitTriple(
-            rowNode,
-            namedNode(csvw + 'title'),
-            literal(title, lang)
-          );
-        }
-
-        //4.6.7
-        //TODO:
-
-        //4.6.8
-        const cellBlank: BlankNode = blankNode();
-        for (let i = 0; i < row.length; ++i) {
-          const col = table.tableSchema?.columns?.[i] as CsvwColumnDescription;
-
-          if (col.suppressOutput === false) {
-            //4.6.8.2
-            const subject =
-              col.aboutUrl === undefined ? cellBlank : namedNode(col.aboutUrl);
-            await this.emitTriple(
-              rowNode,
-              namedNode(csvw + 'describes'),
-              subject
-            );
-            const predicate =
-              col.propertyUrl === undefined
-                ? namedNode(table.url + '#' + col.name)
-                : namedNode(col.propertyUrl);
-
-            if (col.valueUrl === undefined) {
-              if (col.separator !== undefined) {
-                const parts = row[i].split(col.separator);
-                if (col.ordered === true) {
-                  //4.6.8.5/6
-                  const list = await this.createRDFList(
-                    parts,
-                    col,
-                    table,
-                    input.descriptor as CsvwTableGroupDescription
-                  );
-                  await this.emitTriple(subject, predicate, list);
-                } else {
-                  for (const val of parts) {
-                    await this.emitTriple(
-                      subject,
-                      predicate,
-                      this.interpretDatatype(
-                        val,
-                        col,
-                        table,
-                        input.descriptor as CsvwTableGroupDescription
-                      )
-                    );
-                  }
-                }
-              } else {
-                //4.6.8.7
-                await this.emitTriple(
-                  subject,
-                  predicate,
-                  this.interpretDatatype(
-                    row[i],
-                    col,
-                    table,
-                    input.descriptor as CsvwTableGroupDescription
-                  )
-                );
-              }
-            } else {
-              //4.6.8.4
-              await this.emitTriple(
-                subject,
-                predicate,
-                namedNode(col.valueUrl)
-              );
-            }
-          }
-        }
-      }
     }
 
     const writer = new N3.Writer(process.stdout, {
@@ -206,6 +67,199 @@ export class CSVW2RDFConvertor {
     writer.addQuads((await this.store.get({})).items);
     writer.end();
     await this.store.close();
+  }
+
+  private async convertTable(
+    table: CsvwTableDescription,
+    input: DescriptorWrapper
+  ) {
+    //4.1
+    const tableNode = this.createNode(table);
+    //4.2 is done in the caller
+    //4.3
+    await this.emitTriple(
+      tableNode,
+      namedNode(rdf + 'type'),
+      namedNode(csvw + 'Table')
+    );
+    //4.4
+    await this.emitTriple(
+      tableNode,
+      namedNode(csvw + 'url'),
+      literal(table.url)
+    );
+    //4.5
+    //TODO: implementovat
+    //4.6
+    let rowNum = 0;
+    const csvStream = (
+      await this.options.resolveCsvStreamFn(
+        table.url,
+        input.descriptor['@id'] ?? this.options.baseIRI
+      )
+    ).pipeThrough(
+      new CSVParser(table.dialect ?? input.descriptor.dialect ?? {})
+    );
+    const iter = csvStream[Symbol.asyncIterator]();
+    await this.processCsvHeader(
+      iter,
+      table,
+      table.dialect ?? input.descriptor.dialect ?? {}
+    );
+
+    for await (const row of iter) {
+      const rowNode = await this.convertTableRow(row, ++rowNum, table, input);
+      await this.emitTriple(tableNode, namedNode(csvw + 'row'), rowNode);
+    }
+    return tableNode;
+  }
+
+  private async processCsvHeader(
+    stream: AsyncIterator<string[]>,
+    table: CsvwTableDescription,
+    dialect: CsvwDialectDescription
+  ) {
+    const headerRowCount =
+      dialect.headerRowCount ?? (dialect.header ?? false ? 1 : 0);
+    if (table.tableSchema === undefined) table.tableSchema = {};
+    if (table.tableSchema.columns === undefined) table.tableSchema.columns = [];
+    for (let i = 0; i < headerRowCount; ++i) {
+      const header = await stream.next();
+      if (header.done) {
+        throw new Error('CSV stream ended before header was read');
+      }
+      const vals = header.value.slice(dialect.skipColumns ?? 0);
+      for (let j = 0; j < vals.length; ++j) {
+        if (!vals[j]) continue;
+        let col = table.tableSchema.columns[j];
+        if (!col) {
+          col = {};
+          table.tableSchema.columns[j] = col;
+        }
+        if (col.titles === undefined) col.titles = [vals[j]];
+        else if (Array.isArray(col.titles)) col.titles.push(vals[j]);
+        else if (typeof col.titles === 'string') {
+          col.titles = [col.titles, vals[j]];
+        } else {
+          col.titles['en'] = vals[j];
+        }
+      }
+    }
+  }
+
+  private async convertTableRow(
+    row: string[],
+    rowNum: number,
+    table: CsvwTableDescription,
+    input: DescriptorWrapper
+  ) {
+    //4.6.1
+    const rowNode: BlankNode = blankNode();
+    //4.6.2 done by caller
+    //4.6.3
+    await this.emitTriple(
+      rowNode,
+      namedNode(rdf + 'type'),
+      namedNode(csvw + 'Row')
+    );
+    //4.6.4
+    await this.emitTriple(
+      rowNode,
+      namedNode(csvw + 'rownum'),
+      literal(rowNum.toString(), xsd + 'integer')
+    );
+    //4.6.5
+    await this.emitTriple(
+      rowNode,
+      namedNode(csvw + 'url'),
+      namedNode(table.url + '#' + rowNum.toString())
+    );
+    //4.6.6
+    const titles = coerceArray(table.tableSchema?.rowTitles);
+    const titlemap: Record<string, number> = {};
+    for (let i = 0; i < titles.length; i++) {
+      titlemap[table.tableSchema?.columns?.[i].name as string] = i;
+    }
+
+    for (const title of titles) {
+      const lang = this.inherit(
+        'lang',
+        table.tableSchema?.columns?.[titlemap[title]],
+        table.tableSchema,
+        table,
+        input.isTableGroup ? input.descriptor : undefined
+      );
+      await this.emitTriple(
+        rowNode,
+        namedNode(csvw + 'title'),
+        literal(title, lang)
+      );
+    }
+
+    //4.6.7
+    //TODO:
+
+    //4.6.8
+    const cellBlank: BlankNode = blankNode();
+    for (let i = 0; i < row.length; ++i) {
+      const col = table.tableSchema?.columns?.[i] as CsvwColumnDescription;
+
+      if (col.suppressOutput) continue;
+
+      //4.6.8.2
+      const subject =
+        col.aboutUrl === undefined ? cellBlank : namedNode(col.aboutUrl);
+      await this.emitTriple(rowNode, namedNode(csvw + 'describes'), subject);
+      const predicate =
+        col.propertyUrl === undefined
+          ? namedNode(table.url + '#' + col.name)
+          : namedNode(col.propertyUrl);
+
+      if (col.valueUrl === undefined) {
+        if (col.separator !== undefined) {
+          const parts = row[i].split(col.separator);
+          if (col.ordered === true) {
+            //4.6.8.5/6
+            const list = await this.createRDFList(
+              parts,
+              col,
+              table,
+              input.descriptor as CsvwTableGroupDescription
+            );
+            await this.emitTriple(subject, predicate, list);
+          } else {
+            for (const val of parts) {
+              await this.emitTriple(
+                subject,
+                predicate,
+                this.interpretDatatype(
+                  val,
+                  col,
+                  table,
+                  input.descriptor as CsvwTableGroupDescription
+                )
+              );
+            }
+          }
+        } else {
+          //4.6.8.7
+          await this.emitTriple(
+            subject,
+            predicate,
+            this.interpretDatatype(
+              row[i],
+              col,
+              table,
+              input.descriptor as CsvwTableGroupDescription
+            )
+          );
+        }
+      } else {
+        //4.6.8.4
+        await this.emitTriple(subject, predicate, namedNode(col.valueUrl));
+      }
+    }
+    return rowNode;
   }
 
   private async createRDFList(
@@ -240,13 +294,6 @@ export class CSVW2RDFConvertor {
     return head;
   }
 
-  private toArray<T extends {}>(input: T | T[] | undefined): NonNullable<T>[] {
-    if (input === undefined) {
-      return [];
-    }
-    return Array.isArray(input) ? input : [input];
-  }
-
   private async emitTriple(
     first: NamedNode | BlankNode,
     second: NamedNode,
@@ -269,7 +316,6 @@ export class CSVW2RDFConvertor {
     table: CsvwTableDescription,
     tg: CsvwTableGroupDescription
   ) {
-    const { literal } = DataFactory;
     const dtOrBuiltin = this.inherit(
       'datatype',
       col,
@@ -278,7 +324,11 @@ export class CSVW2RDFConvertor {
       tg
     );
     if (!dtOrBuiltin) {
-      throw new Error(`No datatype specified for ${this.debugCol(col, table)}`);
+      throw new Error(
+        `No datatype specified for ${col.name || col['@id']} in table ${
+          table.url
+        }`
+      );
     }
     const dt =
       typeof dtOrBuiltin === 'string' ? { base: dtOrBuiltin } : dtOrBuiltin;
@@ -298,14 +348,6 @@ export class CSVW2RDFConvertor {
       }
     }
     return literal(value, dtUri);
-  }
-
-  private debugCol(col: CsvwColumnDescription, table: CsvwTableDescription) {
-    let res = (col.name || col['@id']) as string;
-    if (table) {
-      res += ` in table ${table.url}`;
-    }
-    return res;
   }
 
   /**
