@@ -152,7 +152,12 @@ export class CSVW2RDFConvertor {
                 const parts = row[i].split(col.separator);
                 if (col.ordered === true) {
                   //4.6.8.5/6
-                  const list = this.createRDFList(parts);
+                  const list = await this.createRDFList(
+                    parts,
+                    col,
+                    table,
+                    input.descriptor as CsvwTableGroupDescription
+                  );
                   await this.emitTriple(subject, predicate, list);
                 } else {
                   for (const val of parts) {
@@ -203,10 +208,36 @@ export class CSVW2RDFConvertor {
     await this.store.close();
   }
 
-  private createRDFList(arr: string[]): NamedNode | Literal {
-    //TODO: CREATE RDF LIST FROM STRING[]
-    //use function interpretDatatype for creating literals
-    return namedNode(arr[0]);
+  private async createRDFList(
+    parts: string[],
+    col: CsvwColumnDescription,
+    table: CsvwTableDescription,
+    tg: CsvwTableGroupDescription
+  ): Promise<BlankNode> {
+    const head = blankNode();
+    let current = head;
+
+    for (const part of parts) {
+      await this.emitTriple(
+        current,
+        namedNode(rdf + 'type'),
+        namedNode(rdf + 'List')
+      );
+      await this.emitTriple(
+        current,
+        namedNode(rdf + 'first'),
+        this.interpretDatatype(part, col, table, tg)
+      );
+      const next = blankNode();
+      await this.emitTriple(current, namedNode(rdf + 'rest'), next);
+      current = next;
+    }
+    await this.emitTriple(
+      current,
+      namedNode(rdf + 'rest'),
+      namedNode(rdf + 'nil')
+    );
+    return head;
   }
 
   private toArray<T extends {}>(input: T | T[] | undefined): NonNullable<T>[] {
