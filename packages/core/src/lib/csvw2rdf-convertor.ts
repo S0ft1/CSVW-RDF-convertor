@@ -209,13 +209,26 @@ export class CSVW2RDFConvertor {
                   const splitted = row[i].split(
                     col['http://www.w3.org/ns/csvw#separator']
                   );
-                  const list = this.createRDFList(
-                    splitted,
-                    col['http://www.w3.org/ns/csvw#ordered'] === true
-                  );
                   if (col['http://www.w3.org/ns/csvw#ordered'] === true) {
-                    //4.6.8.5/6
+                    const list = this.createRDFList(
+                      splitted,
+                      col['http://www.w3.org/ns/csvw#ordered'] === true
+                    );
                     await this.emmitTriple(subject, predicate, list, store);
+                  } else {
+                    for (const val of splitted) {
+                      await this.emmitTriple(
+                        subject,
+                        predicate,
+                        this.interpretDatatype(
+                          val,
+                          col,
+                          table,
+                          input.descriptor as Expanded<CsvwTableGroupDescription>
+                        ),
+                        store
+                      );
+                    }
                   }
                 } else {
                   //4.6.8.7
@@ -245,7 +258,6 @@ export class CSVW2RDFConvertor {
         }
       }
     }
-    //throw new Error('Not implemented.');
     store.close();
   }
 
