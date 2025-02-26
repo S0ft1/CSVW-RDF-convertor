@@ -16,7 +16,8 @@ export class CSVParser extends TransformStream<string, string[]> {
       cast: false,
       comment: dialect['http://www.w3.org/ns/csvw#commentPrefix'] ?? '#',
       delimiter: dialect['http://www.w3.org/ns/csvw#delimiter'] ?? ',',
-      escape: dialect['http://www.w3.org/ns/csvw#doubleQuote'] ? '"' : '\\',
+      escape:
+        dialect['http://www.w3.org/ns/csvw#doubleQuote'] ?? true ? '"' : '\\',
       encoding:
         (dialect['http://www.w3.org/ns/csvw#encoding'] as BufferEncoding) ??
         'utf-8',
@@ -39,7 +40,7 @@ export class CSVParser extends TransformStream<string, string[]> {
 
   private static createTransformer(
     dialect: Expanded<CsvwDialectDescription>
-  ): Transformer {
+  ): Transformer<string, string[]> {
     const parser = this.initCSVParser(dialect);
     return {
       start(controller) {

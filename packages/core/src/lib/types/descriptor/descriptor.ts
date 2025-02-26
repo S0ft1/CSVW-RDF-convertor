@@ -4,9 +4,13 @@ import { CsvwTableDescription } from './table.js';
 import { CsvwTopLevelProperties } from './top-level-props.js';
 
 export type CompactedCsvwDescriptor =
-  | WithAdditionalProps<CsvwTableDescription & CsvwTopLevelProperties>
-  | WithAdditionalProps<CsvwTableGroupDescription & CsvwTopLevelProperties>;
+  | (CsvwTableDescription & CsvwTopLevelProperties)
+  | (CsvwTableGroupDescription & CsvwTopLevelProperties);
 
-export type CompactedExpandedCsvwDescriptor = Expanded<CompactedCsvwDescriptor>;
+export type CompactedExpandedCsvwDescriptor = Expanded<
+  WithAdditionalProps<CompactedCsvwDescriptor>
+>;
 
-export type AnyCsvwDescriptor = MaybeExpanded<CompactedCsvwDescriptor>;
+export type AnyCsvwDescriptor = MaybeExpanded<
+  WithAdditionalProps<CompactedCsvwDescriptor>
+>;
