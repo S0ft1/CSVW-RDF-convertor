@@ -149,11 +149,24 @@ export class CSVW2RDFConvertor {
 
             if (col.valueUrl === undefined) {
               if (col.separator !== undefined) {
-                const splitted = row[i].split(col.separator);
-                const list = this.createRDFList(splitted, col.ordered === true);
+                const parts = row[i].split(col.separator);
                 if (col.ordered === true) {
                   //4.6.8.5/6
+                  const list = this.createRDFList(parts);
                   await this.emitTriple(subject, predicate, list);
+                } else {
+                  for (const val of parts) {
+                    await this.emitTriple(
+                      subject,
+                      predicate,
+                      this.interpretDatatype(
+                        val,
+                        col,
+                        table,
+                        input.descriptor as CsvwTableGroupDescription
+                      )
+                    );
+                  }
                 }
               } else {
                 //4.6.8.7
@@ -190,7 +203,7 @@ export class CSVW2RDFConvertor {
     await this.store.close();
   }
 
-  private createRDFList(arr: string[], ordered: boolean): NamedNode | Literal {
+  private createRDFList(arr: string[]): NamedNode | Literal {
     //TODO: CREATE RDF LIST FROM STRING[]
     //use function interpretDatatype for creating literals
     return namedNode(arr[0]);
