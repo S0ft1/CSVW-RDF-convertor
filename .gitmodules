@@ -1,0 +1,3 @@
+[submodule "csvw"]
+	path = csvw
+	url = https://github.com/w3c/csvw.git
