@@ -18,4 +18,5 @@ export default {
   transformIgnorePatterns: ['node_modules/(?!quadstore|csv)'],
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: 'test-output/jest/coverage',
+  setupFilesAfterEnv: [ 'jest-rdf' ]
 };
