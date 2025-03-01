@@ -10,16 +10,13 @@ async function getLinkedContext(resp: Response) {
   const linkHeader = resp.headers.get('link');
   const contentType = resp.headers.get('content-type');
   if (linkHeader && contentType !== 'application/ld+json') {
-    // only 1 related link header permitted
+    // If there is more than one valid metadata file linked to through multiple Link headers, then implementations MUST use the metadata file referenced by the last Link header.
     const linkHeaders = parseLinkHeader(linkHeader, resp.url);
     const linkedContext = linkHeaders.get(
       'http://www.w3.org/ns/json-ld#context'
     );
     if (linkedContext) {
-      if (linkedContext.length > 1) {
-        throw new Error('Multiple linked contexts found: ' + linkedContext);
-      }
-      return linkedContext[0];
+      return linkedContext[linkedContext.length - 1];
     }
   }
   return undefined;
