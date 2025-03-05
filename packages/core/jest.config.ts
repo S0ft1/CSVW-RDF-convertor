@@ -13,10 +13,15 @@ export default {
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
-    '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
+    '^.+\\.[mc]?[tj]s$': ['@swc/jest', swcJestConfig],
   },
-  transformIgnorePatterns: ['node_modules/(?!quadstore|csv)'],
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: 'test-output/jest/coverage',
-  setupFilesAfterEnv: [ 'jest-rdf' ]
+  setupFilesAfterEnv: ['jest-rdf'],
+  extensionsToTreatAsEsm: ['.ts'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
 };

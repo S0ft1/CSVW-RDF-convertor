@@ -4,36 +4,27 @@ import { Expanded } from './types/descriptor/expanded.js';
 import { parse } from 'csv/browser/esm';
 
 export class CSVParser extends TransformStream<string, string[]> {
-  constructor(dialect: Expanded<CsvwDialectDescription>) {
+  constructor(dialect: CsvwDialectDescription) {
     super(CSVParser.createTransformer(dialect));
   }
 
-  private static initCSVParser(dialect: Expanded<CsvwDialectDescription>) {
-    const trim =
-      dialect['http://www.w3.org/ns/csvw#trim'] ??
-      (dialect['http://www.w3.org/ns/csvw#skipInitialSpace'] ? 'start' : false);
+  private static initCSVParser(dialect: CsvwDialectDescription) {
+    const trim = dialect.trim ?? (dialect.skipInitialSpace ? 'start' : false);
     return parse({
       cast: false,
-      comment: dialect['http://www.w3.org/ns/csvw#commentPrefix'] ?? '#',
-      delimiter: dialect['http://www.w3.org/ns/csvw#delimiter'] ?? ',',
-      escape:
-        dialect['http://www.w3.org/ns/csvw#doubleQuote'] ?? true ? '"' : '\\',
-      encoding:
-        (dialect['http://www.w3.org/ns/csvw#encoding'] as BufferEncoding) ??
-        'utf-8',
+      comment: dialect.commentPrefix ?? '#',
+      delimiter: dialect.delimiter ?? ',',
+      escape: dialect.doubleQuote ?? true ? '"' : '\\',
+      encoding: (dialect.encoding as BufferEncoding) ?? 'utf-8',
       columns: undefined,
-      from_line: dialect['http://www.w3.org/ns/csvw#skipRows'] ?? 1,
-      record_delimiter: dialect[
-        'http://www.w3.org/ns/csvw#lineTerminators'
-      ] ?? ['\r\n', '\n'],
-      quote: dialect['http://www.w3.org/ns/csvw#quoteChar'] ?? '"',
-      skip_empty_lines:
-        dialect['http://www.w3.org/ns/csvw#skipBlankRows'] ?? false,
+      from_line: dialect.skipRows ?? 1,
+      record_delimiter: dialect.lineTerminators ?? ['\r\n', '\n'],
+      quote: dialect.quoteChar ?? '"',
+      skip_empty_lines: dialect.skipBlankRows ?? false,
       ltrim: ['start', 'true', true].includes(trim),
       rtrim: ['end', 'true', true].includes(trim),
-      on_record: dialect['http://www.w3.org/ns/csvw#skipColumns']
-        ? (record) =>
-            record.slice(dialect['http://www.w3.org/ns/csvw#skipColumns'])
+      on_record: dialect.skipColumns
+        ? (record) => record.slice(dialect.skipColumns)
         : undefined,
     });
   }

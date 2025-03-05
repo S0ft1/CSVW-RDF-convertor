@@ -1,0 +1,14 @@
+{
+  "jest.jestCommandLine": "npx jest",
+  "jest.virtualFolders": [
+    { "name": "cli", "rootPath": "packages/cli" },
+    { "name": "core", "rootPath": "packages/core" }
+  ],
+  "jest.runMode": {
+    "type": "on-demand"
+  },
+  "jest.nodeEnv": {
+    "TS_NODE_COMPILER_OPTIONS": "{\"moduleResolution\":\"node10\"}",
+    "NODE_OPTIONS": "--experimental-vm-modules"
+  }
+}
