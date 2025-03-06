@@ -18,7 +18,7 @@ const manifest = JSON.parse(
 ) as Manifest;
 
 describe('CSVW -> RDF Official tests', () => {
-  manifest.entries.slice(0, 1).forEach((entry) => {
+  manifest.entries.forEach((entry) => {
     // TODO: take noProv and minimal entry options into account
     test(entry.name, async () => {
       try {
