@@ -11,6 +11,7 @@ import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
 import { replaceUrl } from './utils/replace-url.js';
 import { Quad, Quadstore } from 'quadstore';
 import { BlankNode, DataFactory, NamedNode } from 'n3';
+import { RemoteDocument } from 'jsonld/jsonld-spec.js';
 
 export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
@@ -41,18 +42,27 @@ export async function normalizeDescriptor(
   );
   const compactedExpanded = (await jsonld.compact(
     expanded,
-    {}
+    {},
+    { documentLoader: docLoader }
   )) as CompactedExpandedCsvwDescriptor;
   const [internal, idMap] = await splitExternalProps(compactedExpanded, store);
 
   return new DescriptorWrapper(
-    (await compactCsvwNs(internal)) as unknown as CompactedCsvwDescriptor,
+    (await compactCsvwNs(
+      internal,
+      docLoader
+    )) as unknown as CompactedCsvwDescriptor,
     idMap
   );
 }
 
-async function compactCsvwNs(descriptor: any) {
-  const compacted = await jsonld.compact(descriptor, csvwNs as any);
+async function compactCsvwNs(
+  descriptor: any,
+  docLoader: (url: string) => Promise<RemoteDocument>
+) {
+  const compacted = await jsonld.compact(descriptor, csvwNs as any, {
+    documentLoader: docLoader,
+  });
   shortenProps(compacted);
   return compacted;
 }
