@@ -2,10 +2,11 @@ import { Manifest, EntryType } from './types/manifest';
 import { CSVW2RDFConvertor } from '../src/lib/csvw2rdf-convertor.js';
 import { Csvw2RdfOptions } from '../src/lib/conversion-options.js';
 import { normalizeDescriptor } from '../src/lib/core.js';
-import { defaultResolveFn } from '../src/lib/req-resolve.js';
 
 import { createReadStream, existsSync, readFileSync } from 'fs';
 import { readFile } from 'fs/promises';
+import { pathToFileURL, fileURLToPath } from 'url';
+import { isAbsolute } from 'path';
 import { Quadstore } from 'quadstore';
 import { MemoryLevel } from 'memory-level';
 import { DataFactory, StreamParser } from 'n3';
@@ -35,15 +36,18 @@ describe('CSVW -> RDF Official tests', () => {
 
         // TODO: Is path overriding correct?
         const options: Csvw2RdfOptions = {
+          pathOverrides: [
+            [
+              'http://www.w3.org/ns/csvw',
+              pathToFileURL('../../csvw/ns/csvw.jsonld').href,
+            ],
+          ],
           resolveJsonldFn: async (url: string, base: string) => {
-            if (url == 'http://www.w3.org/ns/csvw') {
-              return await readFile('../../csvw/ns/csvw.jsonld', 'utf-8');
-            } else {
-              return defaultResolveFn(url, base);
-            }
+            const parsed = URL.parse(url) ?? URL.parse(url, base);
+            if (!parsed) throw new Error('Invalid URL: ' + url);
+            return await readFileOrFetchUrl(parsed.href);
           },
         };
-        /*const options: Csvw2RdfOptions = { pathOverrides: [['http://www.w3.org/ns/csvw', '../../csvw/ns/csvw.jsonld']] };*/
         const descriptor = await readFile(
           resolveMetadataLocation(
             entry.action,
@@ -87,6 +91,18 @@ describe('CSVW -> RDF Official tests', () => {
     });
   });
 });
+
+async function readFileOrFetchUrl(path: string): Promise<string> {
+  if (!isAbsolute(path) && URL.canParse(path)) {
+    if (path.startsWith('file:')) {
+      return readFile(fileURLToPath(path), 'utf-8');
+    }
+    const response = await fetch(path);
+    return response.text();
+  }
+
+  return await readFile(path, 'utf-8');
+}
 
 function resolveMetadataLocation(
   actionPath: string,
