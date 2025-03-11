@@ -45,7 +45,8 @@
     "memory-level": "^3.0.0",
     "mnemonist": "^0.40.2",
     "n3": "^1.23.1",
-    "quadstore": "^15.0.0"
+    "quadstore": "^15.0.0",
+    "url-template": "^3.1.1"
   },
   "devDependencies": {
     "@types/jsonld": "^1.5.15",

@@ -13,9 +13,16 @@ import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
 import { CSVParser } from './csv-parser.js';
 import { coerceArray } from './utils/coerce.js';
 import { CsvwDialectDescription } from './types/descriptor/dialect-description.js';
+import { parseTemplate, Template } from 'url-template';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
+
+interface Templates {
+  about: Record<string, Template>;
+  property: Record<string, Template>;
+  value: Record<string, Template>;
+}
 
 export class CSVW2RDFConvertor {
   private options: Required<Csvw2RdfOptions>;
@@ -75,6 +82,11 @@ export class CSVW2RDFConvertor {
   ) {
     //4.1
     const tableNode = this.createNode(table);
+    table.url =
+      (
+        URL.parse(table.url) ??
+        URL.parse(table.url, this.options.baseIRI || input.descriptor['@id'])
+      )?.href ?? table.url;
     //4.2 is done in the caller
     //4.3
     await this.emitTriple(
@@ -92,26 +104,67 @@ export class CSVW2RDFConvertor {
     //TODO: implementovat
     //4.6
     let rowNum = 0;
-    const csvStream = (
-      await this.options.resolveCsvStreamFn(
-        table.url,
-        input.descriptor['@id'] ?? this.options.baseIRI
-      )
-    ).pipeThrough(
-      new CSVParser(table.dialect ?? input.descriptor.dialect ?? {})
-    );
+    const csvStream = // table.url is already absolute
+      (await this.options.resolveCsvStreamFn(table.url, table.url)).pipeThrough(
+        new CSVParser(table.dialect ?? input.descriptor.dialect ?? {})
+      );
     const iter = csvStream[Symbol.asyncIterator]();
     await this.processCsvHeader(
       iter,
       table,
       table.dialect ?? input.descriptor.dialect ?? {}
     );
+    const templates = this.prepareTemplates(table, input);
+    const rowsOffset = this.getSrcRowsOffset(
+      table.dialect ?? input.descriptor.dialect ?? {}
+    );
 
     for await (const row of iter) {
-      const rowNode = await this.convertTableRow(row, ++rowNum, table, input);
+      const rowNode = await this.convertTableRow(
+        row,
+        ++rowNum,
+        rowsOffset,
+        templates,
+        table,
+        input
+      );
       await this.emitTriple(tableNode, namedNode(csvw + 'row'), rowNode);
     }
     return tableNode;
+  }
+
+  private getSrcRowsOffset(dialect: CsvwDialectDescription) {
+    const headerRows =
+      dialect.headerRowCount ?? (dialect.header ?? true ? 1 : 0);
+    return headerRows + (dialect.skipRows ?? 0);
+  }
+
+  private prepareTemplates(
+    table: CsvwTableDescription,
+    input: DescriptorWrapper
+  ): Templates {
+    const templates: Templates = {
+      about: {},
+      property: {},
+      value: {},
+    };
+    const tg = input.isTableGroup ? input.descriptor : undefined;
+    const types = ['about', 'property', 'value'] as const;
+    for (const col of table.tableSchema?.columns ?? []) {
+      for (const type of types) {
+        const template = this.inherit(
+          `${type}Url`,
+          col,
+          table.tableSchema,
+          table,
+          tg
+        );
+        if (template === undefined) continue;
+        templates[type][col.name as string] = parseTemplate(template);
+      }
+    }
+
+    return templates;
   }
 
   private async processCsvHeader(
@@ -120,7 +173,7 @@ export class CSVW2RDFConvertor {
     dialect: CsvwDialectDescription
   ) {
     const headerRowCount =
-      dialect.headerRowCount ?? (dialect.header ?? false ? 1 : 0);
+      dialect.headerRowCount ?? (dialect.header ?? true ? 1 : 0);
     if (table.tableSchema === undefined) table.tableSchema = {};
     if (table.tableSchema.columns === undefined) table.tableSchema.columns = [];
     for (let i = 0; i < headerRowCount; ++i) {
@@ -150,6 +203,8 @@ export class CSVW2RDFConvertor {
   private async convertTableRow(
     row: string[],
     rowNum: number,
+    rowsOffset: number,
+    templates: Templates,
     table: CsvwTableDescription,
     input: DescriptorWrapper
   ) {
@@ -199,18 +254,43 @@ export class CSVW2RDFConvertor {
     //4.6.7
     //TODO:
 
+    const colsOffset =
+      (table.dialect ?? input.descriptor.dialect ?? {}).skipColumns ?? 0;
+
     //4.6.8
     const defaultCellSubj = blankNode();
     for (let i = 0; i < row.length; ++i) {
       const col = table.tableSchema?.columns?.[i] as CsvwColumnDescription;
       if (col.suppressOutput) continue;
+
+      const tableSep = this.inherit(
+        'separator',
+        table.tableSchema,
+        table,
+        input.descriptor
+      );
+      const values = Object.fromEntries(
+        table.tableSchema?.columns?.map((col, i) => {
+          const sep = col.separator ?? tableSep;
+          return [
+            col.name as string,
+            sep ? row[i].replaceAll(sep, ',') : row[i],
+          ];
+        }) ?? []
+      );
       await this.convertRowCell(
         col,
-        row[i],
+        row,
+        values,
         defaultCellSubj,
         rowNode,
         input,
-        table
+        table,
+        templates,
+        rowNum,
+        rowsOffset,
+        i,
+        colsOffset
       );
     }
     return rowNode;
@@ -218,27 +298,54 @@ export class CSVW2RDFConvertor {
 
   private async convertRowCell(
     col: CsvwColumnDescription,
-    value: string,
+    row: string[],
+    values: Record<string, string>,
     defaultSubj: BlankNode,
     rowNode: BlankNode,
     input: DescriptorWrapper,
-    table: CsvwTableDescription
+    table: CsvwTableDescription,
+    templates: Templates,
+    rowNum: number,
+    rowsOffset: number,
+    colNum: number,
+    colsOffset: number
   ) {
-    //4.6.8.2
+    //4.6.8.1
     const subject =
-      col.aboutUrl === undefined ? defaultSubj : namedNode(col.aboutUrl);
+      templates.about[col.name as string] === undefined
+        ? defaultSubj
+        : this.templateUri(
+            templates.about[col.name as string],
+            colNum,
+            colNum + colsOffset,
+            rowNum,
+            rowNum + rowsOffset,
+            col.name as string,
+            values,
+            table.url
+          );
+    //4.6.8.2
     await this.emitTriple(rowNode, namedNode(csvw + 'describes'), subject);
     const predicate =
-      col.propertyUrl === undefined
+      templates.property[col.name as string] === undefined
         ? namedNode(table.url + '#' + col.name)
-        : namedNode(col.propertyUrl);
+        : this.templateUri(
+            templates.property[col.name as string],
+            colNum,
+            colNum + colsOffset,
+            rowNum,
+            rowNum + rowsOffset,
+            col.name as string,
+            values,
+            table.url
+          );
     const tg = input.isTableGroup
       ? (input.descriptor as CsvwTableGroupDescription)
       : undefined;
 
-    if (col.valueUrl === undefined) {
+    if (templates.value[col.name as string] === undefined) {
       if (col.separator !== undefined) {
-        const parts = value.split(col.separator);
+        const parts = row[colNum].split(col.separator);
         if (col.ordered === true) {
           //4.6.8.5/6
           const list = await this.createRDFList(parts, col, table, tg);
@@ -257,12 +364,25 @@ export class CSVW2RDFConvertor {
         await this.emitTriple(
           subject,
           predicate,
-          this.interpretDatatype(value, col, table, tg)
+          this.interpretDatatype(row[colNum], col, table, tg)
         );
       }
     } else {
       //4.6.8.4
-      await this.emitTriple(subject, predicate, namedNode(col.valueUrl));
+      await this.emitTriple(
+        subject,
+        predicate,
+        this.templateUri(
+          templates.value[col.name as string],
+          colNum,
+          colNum + colsOffset,
+          rowNum,
+          rowNum + rowsOffset,
+          col.name as string,
+          values,
+          table.url
+        )
+      );
     }
   }
 
@@ -389,6 +509,32 @@ export class CSVW2RDFConvertor {
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveFn,
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
       baseIRI: options.baseIRI ?? '',
+      templateIRIs: options.templateIRIs ?? false,
     };
+  }
+
+  private templateUri(
+    template: Template,
+    col: number,
+    srcCol: number,
+    row: number,
+    srcRow: number,
+    colName: string,
+    colVals: Record<string, any>,
+    baseIRI: string
+  ) {
+    let uri = template.expand({
+      ...colVals,
+      _column: col,
+      _sourceColumn: srcCol,
+      _row: row,
+      _sourceRow: srcRow,
+      _name: decodeURIComponent(colName),
+    });
+    uri = (URL.parse(uri) ?? URL.parse(uri, baseIRI))?.href ?? uri;
+    if (this.options.templateIRIs) {
+      uri = decodeURI(uri);
+    }
+    return namedNode(uri);
   }
 }

@@ -92,6 +92,7 @@ function setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
     resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveFn,
     resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
     baseIRI: options.baseIRI ?? '',
+    templateIRIs: options.templateIRIs ?? false,
   };
 }
 
