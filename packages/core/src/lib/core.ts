@@ -10,12 +10,11 @@ import { Csvw2RdfOptions } from './conversion-options.js';
 import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
 import { replaceUrl } from './utils/replace-url.js';
 import { Quad, Quadstore } from 'quadstore';
-import { BlankNode, DataFactory, NamedNode } from 'n3';
+import { BlankNode, NamedNode } from 'n3';
 import { RemoteDocument } from 'jsonld/jsonld-spec.js';
 
 export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
-  store: Quadstore,
   options?: Csvw2RdfOptions
 ): Promise<DescriptorWrapper> {
   const completeOpts = setDefaults(options);
@@ -45,7 +44,7 @@ export async function normalizeDescriptor(
     {},
     { documentLoader: docLoader }
   )) as CompactedExpandedCsvwDescriptor;
-  const [internal, idMap] = await splitExternalProps(compactedExpanded, store);
+  const [internal, idMap] = await splitExternalProps(compactedExpanded);
 
   return new DescriptorWrapper(
     (await compactCsvwNs(
@@ -99,41 +98,47 @@ function setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
 let externalSubjCounter = 0;
 async function splitExternalProps(
   object: any,
-  store: Quadstore,
-  idMap: Map<any, string> = new Map()
-): Promise<[any, Map<any, string>]> {
+  quadMap: Map<string, Quad[]> = new Map()
+): Promise<[any, Map<string, Quad[]>]> {
   if (typeof object !== 'object' || object === null) {
-    return [object, idMap];
+    return [object, quadMap];
   }
   if (Array.isArray(object)) {
     const result = [];
     for (const item of object) {
-      result.push((await splitExternalProps(item, store, idMap))[0]);
+      result.push((await splitExternalProps(item, quadMap))[0]);
     }
-    return [result, idMap];
+    return [result, quadMap];
   }
   const internal: NodeObject = {};
   const external: NodeObject = {};
 
   for (const key in object) {
     if (key.startsWith(csvwNs + '#')) {
-      internal[key] = (await splitExternalProps(object[key], store, idMap))[0];
+      if (key === csvwNs + '#notes') {
+        for (const note of object[key]) {
+          for (const noteKey in note) {
+            external[noteKey] = note[noteKey];
+          }
+        }
+      } else {
+        internal[key] = (await splitExternalProps(object[key], quadMap))[0];
+      }
     } else if (key.startsWith('@')) {
-      internal[key] = (await splitExternalProps(object[key], store, idMap))[0];
+      internal[key] = (await splitExternalProps(object[key], quadMap))[0];
       external[key] = object[key];
     } else {
       external[key] = object[key];
     }
   }
 
-  if ('@value' in internal) return [internal, idMap];
-  if ('@list' in internal) return [internal, idMap];
-  const externalId = `_:extsubj${externalSubjCounter++}`;
-  external['@id'] = externalId;
-  idMap.set(internal, externalId);
-  const rdf = (await jsonld.toRDF(external)) as Quad[];
-  await store.multiPut(rdf);
-  return [internal, idMap];
+  if (!('@list' in internal || '@value' in internal || '@set' in internal)) {
+    const externalId = `https://github.com/S0ft1/CSSW-RDF-convertor/externalsubj/${externalSubjCounter++}`;
+    internal[csvwNs + '#notes'] = externalId;
+    external['@id'] = externalId;
+    quadMap.set(externalId, (await jsonld.toRDF(external)) as Quad[]);
+  }
+  return [internal, quadMap];
 }
 
 /** Class for manipulating the descriptor */
@@ -144,7 +149,7 @@ export class DescriptorWrapper {
 
   constructor(
     public descriptor: CompactedCsvwDescriptor,
-    private externalPropsSubjs: Map<any, string>
+    private externalProps: Map<string, Quad[]>
   ) {}
 
   private _isTableGroup(
@@ -164,18 +169,16 @@ export class DescriptorWrapper {
   }
 
   public async setupExternalProps(
-    source: Record<string, any>,
+    sourceId: string,
     newSubj: NamedNode | BlankNode,
     store: Quadstore
   ) {
-    const sourceId = this.externalPropsSubjs.get(source);
-    if (!sourceId) return;
-    const quads = await store.get({ subject: DataFactory.namedNode(sourceId) });
-    for (const quad of quads.items) {
-      await store.put(
-        DataFactory.quad(newSubj, quad.predicate, quad.object, quad.graph)
-      );
+    const quads = this.externalProps.get(sourceId) as Quad[];
+    for (const quad of quads) {
+      if (quad.subject.value === sourceId) {
+        quad.subject = newSubj;
+      }
+      await store.put(quad);
     }
-    await store.multiDel(quads.items);
   }
 }

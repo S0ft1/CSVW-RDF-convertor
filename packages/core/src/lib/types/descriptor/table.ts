@@ -18,7 +18,7 @@ export interface CsvwTableDescription extends CsvwInheritedProperties {
   /**
    * An array property that provides an array of objects representing arbitrary annotations on the annotated group of tables.
    */
-  notes?: unknown[];
+  notes?: unknown[] | unknown;
   /**
    * A boolean atomic property. If true, suppresses any output that would be generated when converting this table.
    */

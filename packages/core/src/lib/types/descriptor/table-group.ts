@@ -19,7 +19,7 @@ export interface CsvwTableGroupDescription extends CsvwInheritedProperties {
   /**
    * An array property that provides an array of objects representing arbitrary annotations on the annotated group of tables.
    */
-  notes?: unknown[];
+  notes?: unknown[] | unknown;
   /**
    * An atomic property that must have a single string value that is one of "rtl", "ltr", or "auto". Indicates whether the tables in the group should be displayed with the first column on the right, on the left, or based on the first character in the table that has a specific direction.
    */

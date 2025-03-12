@@ -1,9 +1,8 @@
 import { DescriptorWrapper } from './core.js';
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
-import { MemoryLevel } from 'memory-level';
 import { Quadstore, StoreOpts } from 'quadstore';
-import N3, { BlankNode, DataFactory, Literal, NamedNode } from 'n3';
+import { BlankNode, DataFactory, Literal, NamedNode } from 'n3';
 import { Csvw2RdfOptions } from './conversion-options.js';
 import { CsvwBuiltinDatatype } from './types/descriptor/datatype.js';
 import { commonPrefixes } from './utils/prefix.js';
@@ -14,6 +13,8 @@ import { CSVParser } from './csv-parser.js';
 import { coerceArray } from './utils/coerce.js';
 import { CsvwDialectDescription } from './types/descriptor/dialect-description.js';
 import { parseTemplate, Template } from 'url-template';
+import { MemoryLevel } from 'memory-level';
+import { Stream } from '@rdfjs/types';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -41,7 +42,7 @@ export class CSVW2RDFConvertor {
     await this.store.open();
   }
 
-  public async convert(input: DescriptorWrapper) {
+  public async convert(input: DescriptorWrapper): Promise<Stream> {
     await this.openStore();
 
     // 1
@@ -56,7 +57,13 @@ export class CSVW2RDFConvertor {
       namedNode(csvw + 'TableGroup')
     );
     //3
-    //TODO: implement the third rule, for this utility functions will be created
+    if (input.isTableGroup) {
+      await input.setupExternalProps(
+        input.descriptor.notes as string,
+        groupNode,
+        this.store
+      );
+    }
 
     //4
     for (const table of input.getTables()) {
@@ -67,13 +74,9 @@ export class CSVW2RDFConvertor {
       await this.emitTriple(groupNode, namedNode(csvw + 'table'), tableNode);
     }
 
-    const writer = new N3.Writer(process.stdout, {
-      end: false,
-      prefixes: commonPrefixes,
-    });
-    writer.addQuads((await this.store.get({})).items);
-    writer.end();
-    await this.store.close();
+    const outStream = this.store.match();
+    outStream.once('end', () => this.store.close());
+    return outStream;
   }
 
   private async convertTable(
@@ -101,7 +104,11 @@ export class CSVW2RDFConvertor {
       namedNode(table.url)
     );
     //4.5
-    //TODO: implementovat
+    await input.setupExternalProps(
+      table.notes as string,
+      tableNode,
+      this.store
+    );
     //4.6
     let rowNum = 0;
     const csvStream = // table.url is already absolute
@@ -252,7 +259,7 @@ export class CSVW2RDFConvertor {
     }
 
     //4.6.7
-    //TODO:
+    // implementation dependent, based on notes on the table, we skip this
 
     const colsOffset =
       (table.dialect ?? input.descriptor.dialect ?? {}).skipColumns ?? 0;
