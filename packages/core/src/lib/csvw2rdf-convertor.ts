@@ -381,11 +381,13 @@ export class CSVW2RDFConvertor {
         }
       } else {
         //4.6.8.7
-        await this.emitTriple(
-          subject,
-          predicate,
-          this.interpretDatatype(row[colNum], col, table, tg)
-        );
+        if (col.required !== false || row[colNum] !== '') {
+          await this.emitTriple(
+            subject,
+            predicate,
+            this.interpretDatatype(row[colNum], col, table, tg)
+          );
+        }
       }
     } else {
       //4.6.8.4
@@ -483,14 +485,13 @@ export class CSVW2RDFConvertor {
         throw new Error('Datatype must contain either @id or base property');
       } else if (dt.base in CSVW2RDFConvertor.dtUris) {
         dtUri = CSVW2RDFConvertor.dtUris[dt.base];
-      } else if (dt.base === 'string') {
-        return lang
-          ? literal(value, lang)
-          : literal(value, namedNode(xsd + 'string'));
       } else {
         dtUri = xsd + dt.base;
       }
+    } else {
+      dtUri = this.expandIri(dtUri);
     }
+    if (dtUri === xsd + 'string' && lang) return literal(value, lang);
     if (dtUri === xsd + 'anyURI') return namedNode(value);
     return literal(value, namedNode(dtUri as string));
   }
@@ -534,6 +535,18 @@ export class CSVW2RDFConvertor {
     };
   }
 
+  private expandIri(iri: string): string {
+    const i = iri.indexOf(':');
+    if (i === -1) return iri;
+    const prefix = iri.slice(0, i);
+    if (prefix in commonPrefixes) {
+      return (
+        commonPrefixes[prefix as keyof typeof commonPrefixes] + iri.slice(i + 1)
+      );
+    }
+    return iri;
+  }
+
   private templateUri(
     template: Template,
     col: number,
@@ -552,6 +565,7 @@ export class CSVW2RDFConvertor {
       _sourceRow: srcRow,
       _name: decodeURIComponent(colName),
     });
+    uri = this.expandIri(uri);
     uri = (URL.parse(uri) ?? URL.parse(uri, baseIRI))?.href ?? uri;
     if (this.options.templateIRIs) {
       uri = decodeURI(uri);
