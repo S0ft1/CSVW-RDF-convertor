@@ -20,5 +20,5 @@ npm i
 npx nx build cli
 node packages/cli/dist/index.js
 # example: convert local csvw to rdf
-node packages/cli/dist/index.js -i local-descriptor.json -o output.ttl
+node packages/cli/dist/index.js c2r -i local-descriptor.json -o output.ttl
 ```
