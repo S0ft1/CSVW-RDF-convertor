@@ -92,6 +92,7 @@ function setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
     resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
     baseIRI: options.baseIRI ?? '',
     templateIRIs: options.templateIRIs ?? false,
+    minimal: options.minimal ?? false,
   };
 }
 

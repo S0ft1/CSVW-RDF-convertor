@@ -5,6 +5,7 @@ export interface Csvw2RdfOptions {
   offline?: boolean;
   baseIRI?: string;
   templateIRIs?: boolean;
+  minimal?: boolean;
   resolveJsonldFn?: ResolveJsonldFn;
   resolveCsvStreamFn?: ResolveCsvStreamFn;
 }

@@ -49,20 +49,21 @@ export class CSVW2RDFConvertor {
     const groupNode = this.createNode(
       input.isTableGroup ? input.descriptor : {}
     );
-
-    //2
-    await this.emitTriple(
-      groupNode,
-      namedNode(rdf + 'type'),
-      namedNode(csvw + 'TableGroup')
-    );
-    //3
-    if (input.isTableGroup) {
-      await input.setupExternalProps(
-        input.descriptor.notes as string,
+    if (!this.options.minimal) {
+      //2
+      await this.emitTriple(
         groupNode,
-        this.store
+        namedNode(rdf + 'type'),
+        namedNode(csvw + 'TableGroup')
       );
+      //3
+      if (input.isTableGroup) {
+        await input.setupExternalProps(
+          input.descriptor.notes as string,
+          groupNode,
+          this.store
+        );
+      }
     }
 
     //4
@@ -71,7 +72,9 @@ export class CSVW2RDFConvertor {
       const tableNode = await this.convertTable(table, input);
 
       // 4.2
-      await this.emitTriple(groupNode, namedNode(csvw + 'table'), tableNode);
+      if (!this.options.minimal) {
+        await this.emitTriple(groupNode, namedNode(csvw + 'table'), tableNode);
+      }
     }
 
     const outStream = this.store.match();
@@ -91,24 +94,27 @@ export class CSVW2RDFConvertor {
         URL.parse(table.url, this.options.baseIRI || input.descriptor['@id'])
       )?.href ?? table.url;
     //4.2 is done in the caller
-    //4.3
-    await this.emitTriple(
-      tableNode,
-      namedNode(rdf + 'type'),
-      namedNode(csvw + 'Table')
-    );
-    //4.4
-    await this.emitTriple(
-      tableNode,
-      namedNode(csvw + 'url'),
-      namedNode(table.url)
-    );
-    //4.5
-    await input.setupExternalProps(
-      table.notes as string,
-      tableNode,
-      this.store
-    );
+
+    if (!this.options.minimal) {
+      //4.3
+      await this.emitTriple(
+        tableNode,
+        namedNode(rdf + 'type'),
+        namedNode(csvw + 'Table')
+      );
+      //4.4
+      await this.emitTriple(
+        tableNode,
+        namedNode(csvw + 'url'),
+        namedNode(table.url)
+      );
+      //4.5
+      await input.setupExternalProps(
+        table.notes as string,
+        tableNode,
+        this.store
+      );
+    }
     //4.6
     let rowNum = 0;
     const csvStream = // table.url is already absolute
@@ -135,7 +141,9 @@ export class CSVW2RDFConvertor {
         table,
         input
       );
-      await this.emitTriple(tableNode, namedNode(csvw + 'row'), rowNode);
+      if (!this.options.minimal) {
+        await this.emitTriple(tableNode, namedNode(csvw + 'row'), rowNode);
+      }
     }
     return tableNode;
   }
@@ -218,48 +226,51 @@ export class CSVW2RDFConvertor {
     //4.6.1
     const rowNode: BlankNode = blankNode();
     //4.6.2 done by caller
-    //4.6.3
-    await this.emitTriple(
-      rowNode,
-      namedNode(rdf + 'type'),
-      namedNode(csvw + 'Row')
-    );
-    //4.6.4
-    await this.emitTriple(
-      rowNode,
-      namedNode(csvw + 'rownum'),
-      literal(rowNum.toString(), namedNode(xsd + 'integer'))
-    );
-    //4.6.5
-    await this.emitTriple(
-      rowNode,
-      namedNode(csvw + 'url'),
-      namedNode(table.url + '#' + rowNum.toString())
-    );
-    //4.6.6
-    const titles = coerceArray(table.tableSchema?.rowTitles);
-    const titlemap: Record<string, number> = {};
-    for (let i = 0; i < titles.length; i++) {
-      titlemap[table.tableSchema?.columns?.[i].name as string] = i;
-    }
 
-    for (const title of titles) {
-      const lang = this.inherit(
-        'lang',
-        table.tableSchema?.columns?.[titlemap[title]],
-        table.tableSchema,
-        table,
-        input.isTableGroup ? input.descriptor : undefined
-      );
+    if (!this.options.minimal) {
+      //4.6.3
       await this.emitTriple(
         rowNode,
-        namedNode(csvw + 'title'),
-        literal(title, lang)
+        namedNode(rdf + 'type'),
+        namedNode(csvw + 'Row')
       );
-    }
+      //4.6.4
+      await this.emitTriple(
+        rowNode,
+        namedNode(csvw + 'rownum'),
+        literal(rowNum.toString(), namedNode(xsd + 'integer'))
+      );
+      //4.6.5
+      await this.emitTriple(
+        rowNode,
+        namedNode(csvw + 'url'),
+        namedNode(table.url + '#' + rowNum.toString())
+      );
+      //4.6.6
+      const titles = coerceArray(table.tableSchema?.rowTitles);
+      const titlemap: Record<string, number> = {};
+      for (let i = 0; i < titles.length; i++) {
+        titlemap[table.tableSchema?.columns?.[i].name as string] = i;
+      }
 
-    //4.6.7
-    // implementation dependent, based on notes on the table, we skip this
+      for (const title of titles) {
+        const lang = this.inherit(
+          'lang',
+          table.tableSchema?.columns?.[titlemap[title]],
+          table.tableSchema,
+          table,
+          input.isTableGroup ? input.descriptor : undefined
+        );
+        await this.emitTriple(
+          rowNode,
+          namedNode(csvw + 'title'),
+          literal(title, lang)
+        );
+      }
+
+      //4.6.7
+      // implementation dependent, based on notes on the table, we skip this
+    }
 
     const colsOffset =
       (table.dialect ?? input.descriptor.dialect ?? {}).skipColumns ?? 0;
@@ -331,8 +342,10 @@ export class CSVW2RDFConvertor {
             values,
             table.url
           );
-    //4.6.8.2
-    await this.emitTriple(rowNode, namedNode(csvw + 'describes'), subject);
+    if (!this.options.minimal) {
+      //4.6.8.2
+      await this.emitTriple(rowNode, namedNode(csvw + 'describes'), subject);
+    }
     const predicate =
       templates.property[col.name as string] === undefined
         ? namedNode(table.url + '#' + col.name)
@@ -517,6 +530,7 @@ export class CSVW2RDFConvertor {
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
       baseIRI: options.baseIRI ?? '',
       templateIRIs: options.templateIRIs ?? false,
+      minimal: options.minimal ?? false,
     };
   }
 
