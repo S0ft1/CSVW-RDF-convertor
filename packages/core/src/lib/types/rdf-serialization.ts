@@ -1,1 +1,7 @@
-export type RDFSerialization = 'jsonld' | 'nquads' | 'ntriples' | 'rdfxml' | 'turtle';
+export type RDFSerialization =
+  | 'jsonld'
+  | 'nquads'
+  | 'ntriples'
+  | 'rdfxml'
+  | 'turtle'
+  | 'trig';

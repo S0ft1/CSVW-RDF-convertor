@@ -1,6 +1,21 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
-import { CSVW2RDFConvertor, RDFSerialization } from '@cssw-rdf-convertor/core';
+import {
+  commonPrefixes,
+  CSVW2RDFConvertor,
+  Csvw2RdfOptions,
+  defaultResolveFn,
+  defaultResolveStreamFn,
+  normalizeDescriptor,
+  RDFSerialization,
+} from '@cssw-rdf-convertor/core';
+import { readFileOrUrl } from '../utils/read-file-or-url.js';
+import N3 from 'n3';
+import fs from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { isAbsolute } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Readable } from 'node:stream';
 
 export const csvw2rdf: CommandModule<
   CommonArgs,
@@ -8,6 +23,9 @@ export const csvw2rdf: CommandModule<
     format?: RDFSerialization;
     output?: string;
     offline?: boolean;
+    minimal?: boolean;
+    templateIris?: boolean;
+    baseIri?: string;
   }
 > = {
   command: 'csvw2rdf',
@@ -16,7 +34,7 @@ export const csvw2rdf: CommandModule<
   builder: {
     format: {
       describe: 'Output RDF serialization',
-      choices: ['jsonld', 'nquads', 'ntriples', 'rdfxml', 'turtle'],
+      choices: ['nquads', 'ntriples', 'turtle', 'trig'],
       defaultDescription:
         'Tries to infer the format from the output file extension, otherwise defaults to turtle',
     },
@@ -27,16 +45,81 @@ export const csvw2rdf: CommandModule<
       defaultDescription: 'Prints to stdout',
     },
     offline: {
-      describe: 'Do not fetch remote context files',
+      describe: 'Do not fetch remote context files (does not work yet)',
       type: 'boolean',
+    },
+    minimal: {
+      describe: 'Use minimal output',
+      type: 'boolean',
+    },
+    templateIris: {
+      describe: 'Use template IRIs instead of URIs',
+      type: 'boolean',
+    },
+    baseIri: {
+      describe: 'Base IRI for the output RDF',
+      type: 'string',
     },
   },
   handler: async (args) => {
     args.format = args.format ?? inferFormat(args.output);
-    console.log('csvw2rdf', args);
-    const convertor = new CSVW2RDFConvertor(args.config, args.pathOverrides, args.offline);
-    await convertor.convert(args.input, args.output, args.format);
+    const options: Csvw2RdfOptions = {
+      baseIRI: args.baseIri,
+      minimal: args.minimal,
+      templateIRIs: args.templateIris,
+      pathOverrides: Object.entries(args.pathOverrides ?? {}),
+      resolveJsonldFn: (url, base) => {
+        // C:/foo can be parsed as a valid URL
+        if (!isAbsolute(url) && URL.canParse(url)) {
+          if (url.startsWith('file:')) {
+            return readFile(fileURLToPath(url), 'utf-8');
+          }
+          return defaultResolveFn(url, base);
+        }
+        return readFile(url, 'utf-8');
+      },
+      resolveCsvStreamFn: (url, base) => {
+        // C:/foo can be parsed as a valid URL
+        if (!isAbsolute(url) && URL.canParse(url)) {
+          if (url.startsWith('file:')) {
+            return Promise.resolve(
+              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+            );
+          }
+          return defaultResolveStreamFn(url, base);
+        }
+        return Promise.resolve(
+          Readable.toWeb(fs.createReadStream(url, 'utf-8'))
+        );
+      },
+    };
+    if (args.input === undefined)
+      throw new Error('stdin input not supported yet');
+    const wrapper = await normalizeDescriptor(
+      await readFileOrUrl(args.input),
+      options
+    );
+    const convertor = new CSVW2RDFConvertor(options);
+    const stream = await convertor.convert(wrapper);
+    const writer = new N3.StreamWriter({
+      prefixes: commonPrefixes,
+      format: n3Formats[args.format],
+    });
+    const outputStream = args.output
+      ? fs.createWriteStream(args.output)
+      : process.stdout;
+    writer.import(stream);
+    writer.pipe(outputStream);
   },
+};
+
+const n3Formats: Record<RDFSerialization, string> = {
+  jsonld: 'text/turtle',
+  nquads: 'application/n-quads',
+  ntriples: 'application/n-triples',
+  rdfxml: 'text/turtle',
+  trig: 'application/trig',
+  turtle: 'text/turtle',
 };
 
 function inferFormat(output?: string): RDFSerialization {
@@ -51,6 +134,8 @@ function inferFormat(output?: string): RDFSerialization {
       return 'ntriples';
     case 'xml':
       return 'rdfxml';
+    case 'trig':
+      return 'trig';
     case 'ttl':
     default:
       return 'turtle';
