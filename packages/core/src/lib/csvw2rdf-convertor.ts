@@ -175,6 +175,11 @@ export class CSVW2RDFConvertor {
     return headerRows + (dialect.skipRows ?? 0);
   }
 
+  /**
+   * Prepares templates for the conversion.
+   * @param {CsvwTableDescription} table - The table to be converted.
+   * @param {DescriptorWrapper} input - Input descriptor.
+   */
   private prepareTemplates(
     table: CsvwTableDescription,
     input: DescriptorWrapper
@@ -246,9 +251,10 @@ export class CSVW2RDFConvertor {
    * Converts table row to RDF by row number.
    * @param {string[]} row - The row to be converted.
    * @param {number} rowNum - The row number.
+   * @param {number} rowsOffset - The offset of the rows.
+   * @param {Templates} templates - Templates for the conversion.
    * @param {CsvwTableDescription} table - The table description.
    * @param {DescriptorWrapper} input - The input descriptor.
-   * @returns
    */
   private async convertTableRow(
     row: string[],
@@ -351,12 +357,18 @@ export class CSVW2RDFConvertor {
 
   /**
    * Converts a cell of a row to RDF.
-   * @param {CsvwColumnDescription} col - The column description
-   * @param {string} value - The value of the cell
-   * @param {BlankNode} defaultSubj - The default subject
+   * @param {CsvwColumnDescription} col - Column description
+   * @param {string[]} row - The row to be converted.
+   * @param {Record<string, string>} values - Values of the row
+   * @param {BlankNode} defaultSubj - Default subject
    * @param {BlankNode} rowNode - The row node
-   * @param {DescriptorWrapper} input - The input descriptor
-   * @param {CsvwTableDescription} table - The table description
+   * @param {DescriptorWrapper} input - The input descriptor.
+   * @param {CsvwTableDescription} table - The table description.
+   * @param {Templates} templates - Templates for the conversion.
+   * @param {number} rowNum - The row number.
+   * @param {number} rowsOffset - The offset of the rows.
+   * @param {number} colNum - The column number.
+   * @param {number} colsOffset - The offset of the columns.
    */
   private async convertRowCell(
     col: CsvwColumnDescription,
@@ -602,6 +614,11 @@ export class CSVW2RDFConvertor {
     };
   }
 
+  /**
+   * Expands an IRI based on the common prefixes.
+   * @param iri - IRI to be expanded
+   * @returns Expanded IRI
+   */
   private expandIri(iri: string): string {
     const i = iri.indexOf(':');
     if (i === -1) return iri;
@@ -614,6 +631,18 @@ export class CSVW2RDFConvertor {
     return iri;
   }
 
+  /**
+   * Expands a template URI.
+   * @param template - Template to be expanded
+   * @param col - Column number
+   * @param srcCol - Source column number
+   * @param row - Row number
+   * @param srcRow - Source row number
+   * @param colName - Column name
+   * @param colVals - Column values
+   * @param baseIRI - Base IRI
+   * @returns Expanded URI node
+   */
   private templateUri(
     template: Template,
     col: number,
