@@ -1,6 +1,7 @@
 import { DescriptorWrapper } from './core.js';
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
+import { MemoryLevel } from 'memory-level';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { BlankNode, DataFactory, Literal, NamedNode } from 'n3';
 import { Csvw2RdfOptions } from './conversion-options.js';
@@ -25,13 +26,23 @@ interface Templates {
   value: Record<string, Template>;
 }
 
+/** Class responsible for converting from CSVW to RDF.*/
 export class CSVW2RDFConvertor {
   private options: Required<Csvw2RdfOptions>;
   private store: Quadstore;
+
+  /**
+   * Creates a new instance of the convertor.
+   * @param {Csvw2RdfOptions} options - Options for the convertor.
+   *@constructor
+   */
   public constructor(options?: Csvw2RdfOptions) {
     this.options = this.setDefaults(options);
   }
 
+  /**
+   * Creates and opens a new quadstore in the current instance of CSVW2RDFConvertor.
+   */
   private async openStore() {
     const backend = new MemoryLevel() as any;
     // different versions of RDF.js types in quadstore and n3
@@ -42,6 +53,11 @@ export class CSVW2RDFConvertor {
     await this.store.open();
   }
 
+  /**
+   * Main method for converting a CSVW descriptor to RDF.
+   * Viz https://w3c.github.io/csvw/csv2rdf/#json-ld-to-rdf
+   * @param {DescriptorWrapper} input - The descriptor to be converted.
+   */
   public async convert(input: DescriptorWrapper): Promise<Stream> {
     await this.openStore();
 
@@ -82,6 +98,11 @@ export class CSVW2RDFConvertor {
     return outStream;
   }
 
+  /**
+   * Converts a table to RDF.
+   * @param {CsvwTableDescription} table - The table to be converted.
+   * @param {DescriptorWrapper} input - Input descriptor.
+   */
   private async convertTable(
     table: CsvwTableDescription,
     input: DescriptorWrapper
@@ -96,6 +117,7 @@ export class CSVW2RDFConvertor {
     //4.2 is done in the caller
 
     if (!this.options.minimal) {
+      //4.2 is done in the caller
       //4.3
       await this.emitTriple(
         tableNode,
@@ -147,7 +169,6 @@ export class CSVW2RDFConvertor {
     }
     return tableNode;
   }
-
   private getSrcRowsOffset(dialect: CsvwDialectDescription) {
     const headerRows =
       dialect.headerRowCount ?? (dialect.header ?? true ? 1 : 0);
@@ -182,6 +203,12 @@ export class CSVW2RDFConvertor {
     return templates;
   }
 
+  /**
+   * Processes the header of a CSV file.
+   * @param {AsyncIterator<string[]>} stream  - Input stream
+   * @param {CsvwTableDescription} table - Table description
+   * @param {CsvwDialectDescription} dialect - Dialect description
+   */
   private async processCsvHeader(
     stream: AsyncIterator<string[]>,
     table: CsvwTableDescription,
@@ -215,6 +242,14 @@ export class CSVW2RDFConvertor {
     }
   }
 
+  /**
+   * Converts table row to RDF by row number.
+   * @param {string[]} row - The row to be converted.
+   * @param {number} rowNum - The row number.
+   * @param {CsvwTableDescription} table - The table description.
+   * @param {DescriptorWrapper} input - The input descriptor.
+   * @returns
+   */
   private async convertTableRow(
     row: string[],
     rowNum: number,
@@ -314,6 +349,15 @@ export class CSVW2RDFConvertor {
     return rowNode;
   }
 
+  /**
+   * Converts a cell of a row to RDF.
+   * @param {CsvwColumnDescription} col - The column description
+   * @param {string} value - The value of the cell
+   * @param {BlankNode} defaultSubj - The default subject
+   * @param {BlankNode} rowNode - The row node
+   * @param {DescriptorWrapper} input - The input descriptor
+   * @param {CsvwTableDescription} table - The table description
+   */
   private async convertRowCell(
     col: CsvwColumnDescription,
     row: string[],
@@ -407,7 +451,14 @@ export class CSVW2RDFConvertor {
       );
     }
   }
-
+  /**
+   * Creates an RDF list https://ontola.io/blog/ordered-data-in-rdf based on rules provided at https://w3c.github.io/csvw/csv2rdf/#json-ld-to-rdf.
+   * @param {string[]} parts  - Values of the list
+   * @param {CsvwColumnDescription} col - Column description
+   * @param {CsvwTableDescription} table - Table description
+   * @param {CsvwTableGroupDescription | undefined} tg - Table group description
+   * @returns The head of the rdf list
+   */
   private async createRDFList(
     parts: string[],
     col: CsvwColumnDescription,
@@ -440,6 +491,9 @@ export class CSVW2RDFConvertor {
     return head;
   }
 
+  /**
+   * Emits a triple to this instance's quadstore.
+   */
   private async emitTriple(
     first: NamedNode | BlankNode,
     second: NamedNode,
@@ -456,6 +510,14 @@ export class CSVW2RDFConvertor {
     }
   }
 
+  /**
+   * Inteprets the datatype of a value based on the description.
+   * @param {string} value - string value to be interpreted
+   * @param {CsvwColumnDescription} col - Column description
+   * @param {CsvwTableDescription} table - Table description
+   * @param {CsvwTableGroupDescription | undefined} tg - Table group description, could be undefined if there is no table group
+   * @returns Correctly build RDF literal
+   */
   private interpretDatatype(
     value: string,
     col: CsvwColumnDescription,
@@ -522,6 +584,11 @@ export class CSVW2RDFConvertor {
     datetime: xsd + 'dateTime',
   };
 
+  /**
+   * Sets default values to options if no value is provided.
+   * @param options
+   * @returns Corrected options
+   */
   private setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
     options ??= {};
     return {
