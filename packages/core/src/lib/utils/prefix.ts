@@ -54,6 +54,11 @@ export const commonPrefixes = {
   xsd: 'http://www.w3.org/2001/XMLSchema#',
 } as const;
 
+/**
+ * Looks up URI of the RDF namespace using {@link https://prefix.cc} service.
+ * @param prefix - Prefix of the namespace
+ * @returns URI of the namespace if found, otherwise null
+ */
 export function getUri(prefix: string): Promise<string | null> {
   return (
     fetch(`https://prefix.cc/${prefix}.file.json`)
@@ -64,6 +69,11 @@ export function getUri(prefix: string): Promise<string | null> {
   );
 }
 
+/**
+ * Looks up prefix of the namespace using {@link https://prefix.cc} service.
+ * @param uri - URI of the RDF namespace
+ * @returns Prefix of the namespace if found, otherwise null
+ */
 export function getPrefix(uri: string): Promise<string | null> {
   return (
     fetch(`https://prefix.cc/reverse?uri=${uri}&format=json`)
