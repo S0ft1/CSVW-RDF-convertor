@@ -1,20 +1,26 @@
-import { DescriptorWrapper } from './core.js';
+import { DescriptorWrapper, normalizeDescriptor } from './core.js';
+import { Csvw2RdfOptions } from './conversion-options.js';
+import {
+  defaultResolveFn,
+  defaultResolveStreamFn,
+  getLinkedContext,
+} from './req-resolve.js';
+import { CSVParser } from './csv-parser.js';
+
+import { commonPrefixes } from './utils/prefix.js';
+import { coerceArray } from './utils/coerce.js';
+
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
+import { CsvwBuiltinDatatype } from './types/descriptor/datatype.js';
+import { CsvwInheritedProperties } from './types/descriptor/inherited-properties.js';
+import { CsvwColumnDescription } from './types/descriptor/column-description.js';
+import { CsvwDialectDescription } from './types/descriptor/dialect-description.js';
+
 import { MemoryLevel } from 'memory-level';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { BlankNode, DataFactory, Literal, NamedNode } from 'n3';
-import { Csvw2RdfOptions } from './conversion-options.js';
-import { CsvwBuiltinDatatype } from './types/descriptor/datatype.js';
-import { commonPrefixes } from './utils/prefix.js';
-import { CsvwInheritedProperties } from './types/descriptor/inherited-properties.js';
-import { CsvwColumnDescription } from './types/descriptor/column-description.js';
-import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
-import { CSVParser } from './csv-parser.js';
-import { coerceArray } from './utils/coerce.js';
-import { CsvwDialectDescription } from './types/descriptor/dialect-description.js';
 import { parseTemplate, Template } from 'url-template';
-import { MemoryLevel } from 'memory-level';
 import { Stream } from '@rdfjs/types';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
@@ -26,7 +32,7 @@ interface Templates {
   value: Record<string, Template>;
 }
 
-/** Class responsible for converting from CSVW to RDF.*/
+/** Class responsible for converting from CSVW to RDF. */
 export class CSVW2RDFConvertor {
   private options: Required<Csvw2RdfOptions>;
   private store: Quadstore;
@@ -41,29 +47,31 @@ export class CSVW2RDFConvertor {
   }
 
   /**
-   * Creates and opens a new quadstore in the current instance of CSVW2RDFConvertor.
+   * Main method for converting a CSVW to RDF,
+   * see {@link https://w3c.github.io/csvw/csv2rdf/#json-ld-to-rdf} for more information.
+   * @param input CSV file or its descriptor to be converted
+   * @param metadata optional user specified metadata descriptor
+   * @returns RDF stream
    */
-  private async openStore() {
-    const backend = new MemoryLevel() as any;
-    // different versions of RDF.js types in quadstore and n3
-    this.store = new Quadstore({
-      backend,
-      dataFactory: DataFactory as unknown as StoreOpts['dataFactory'],
-    });
-    await this.store.open();
-  }
+  public async convert(
+    input: string | URL,
+    metadata?: string | URL
+  ): Promise<Stream> {
+    if (typeof input === 'string') input = new URL(input);
+    if (typeof metadata === 'string') metadata = new URL(metadata);
 
-  /**
-   * Main method for converting a CSVW descriptor to RDF.
-   * Viz https://w3c.github.io/csvw/csv2rdf/#json-ld-to-rdf
-   * @param {DescriptorWrapper} input - The descriptor to be converted.
-   */
-  public async convert(input: DescriptorWrapper): Promise<Stream> {
+    const wrapper = await this.resolveMetadataLocation(input, metadata)
+      // TODO: Should not we come up with better resolveJsonldFn API?
+      .then((loc) =>
+        this.options.resolveJsonldFn(loc.toString(), this.options.baseIRI)
+      )
+      .then((text) => normalizeDescriptor(text, this.options));
+
     await this.openStore();
 
     // 1
     const groupNode = this.createNode(
-      input.isTableGroup ? input.descriptor : {}
+      wrapper.isTableGroup ? wrapper.descriptor : {}
     );
     if (!this.options.minimal) {
       //2
@@ -73,9 +81,9 @@ export class CSVW2RDFConvertor {
         namedNode(csvw + 'TableGroup')
       );
       //3
-      if (input.isTableGroup) {
-        await input.setupExternalProps(
-          input.descriptor.notes as string,
+      if (wrapper.isTableGroup) {
+        await wrapper.setupExternalProps(
+          wrapper.descriptor.notes as string,
           groupNode,
           this.store
         );
@@ -83,9 +91,9 @@ export class CSVW2RDFConvertor {
     }
 
     //4
-    for (const table of input.getTables()) {
+    for (const table of wrapper.getTables()) {
       if (table.suppressOutput) continue;
-      const tableNode = await this.convertTable(table, input);
+      const tableNode = await this.convertTable(table, wrapper);
 
       // 4.2
       if (!this.options.minimal) {
@@ -96,6 +104,84 @@ export class CSVW2RDFConvertor {
     const outStream = this.store.match();
     outStream.once('end', () => this.store.close());
     return outStream;
+  }
+
+  /**
+   * Locates metadata for tabular data,
+   * see {@link https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/#locating-metadata} for more information.
+   * @param inputUrl CSV file or its descriptor to be converted
+   * @param metadataUrl optional user specified metadata
+   * @returns URL of metadata file for the given CSV file
+   */
+  private async resolveMetadataLocation(
+    inputUrl: URL,
+    metadataUrl: URL | undefined
+  ): Promise<URL> {
+    // metadata supplied by the user of the implementation that is processing the tabular data.
+    // TODO: What about directly specified columns e.g. by using command line argument --datatypes:string,float,string,string?
+    if (metadataUrl) return metadataUrl;
+
+    // metadata in a document linked to using a Link header associated with the tabular data file.
+    // TODO: Should I use fetch function directly or some resolveFn functions?
+    const response = await fetch(inputUrl, { method: 'HEAD' });
+    const linked = await getLinkedContext(response);
+    if (linked) return new URL(linked);
+
+    // metadata located through default paths which may be overridden by a site-wide location configuration.
+    const cleanUrl = new URL(inputUrl);
+    cleanUrl.hash = '';
+    cleanUrl.search = '';
+
+    for (const template of await this.getWellKnownUris(inputUrl)) {
+      const resolvedUrl = new URL(
+        template.expand({ url: cleanUrl.toString() }),
+        inputUrl
+      );
+      // TODO: Should I use fetch function directly or some resolveFn functions?
+      const response = await fetch(resolvedUrl, { method: 'HEAD' });
+      if (response.ok) return resolvedUrl;
+    }
+
+    // TODO: Should we support embedded metadata as well?
+
+    throw new Error(
+      `Metadata file location could not be resolved for input: ${inputUrl}`
+    );
+  }
+
+  /**
+   * Retrieves URI templates from well-known URI file.
+   * @param url /.well-known/csvm is resolved relative to this url
+   * @returns URI templates of metadata locations
+   */
+  private async getWellKnownUris(url: URL): Promise<Template[]> {
+    // TODO: Should I use fetch function directly or some resolveFn functions?
+    const response = await fetch(new URL('/.well-known/csvm', url));
+    if (response.ok)
+      return response.text().then((text) =>
+        text
+          .split('\n')
+          .filter((template) => template.trim() !== '')
+          .map((template: string) => parseTemplate(template))
+      );
+    else
+      return [
+        parseTemplate('{+url}-metadata.json'),
+        parseTemplate('csv-metadata.json'),
+      ];
+  }
+
+  /**
+   * Creates and opens a new quadstore in the current instance of CSVW2RDFConvertor.
+   */
+  private async openStore() {
+    const backend = new MemoryLevel() as any;
+    // different versions of RDF.js types in quadstore and n3
+    this.store = new Quadstore({
+      backend,
+      dataFactory: DataFactory as unknown as StoreOpts['dataFactory'],
+    });
+    await this.store.open();
   }
 
   /**

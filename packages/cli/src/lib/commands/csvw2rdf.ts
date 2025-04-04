@@ -6,10 +6,8 @@ import {
   Csvw2RdfOptions,
   defaultResolveFn,
   defaultResolveStreamFn,
-  normalizeDescriptor,
   RDFSerialization,
 } from '@cssw-rdf-convertor/core';
-import { readFileOrUrl } from '../utils/read-file-or-url.js';
 import N3 from 'n3';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -95,12 +93,8 @@ export const csvw2rdf: CommandModule<
     };
     if (args.input === undefined)
       throw new Error('stdin input not supported yet');
-    const wrapper = await normalizeDescriptor(
-      await readFileOrUrl(args.input),
-      options
-    );
     const convertor = new CSVW2RDFConvertor(options);
-    const stream = await convertor.convert(wrapper);
+    const stream = await convertor.convert(args.input);
     const writer = new N3.StreamWriter({
       prefixes: commonPrefixes,
       format: n3Formats[args.format],

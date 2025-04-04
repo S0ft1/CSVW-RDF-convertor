@@ -6,7 +6,7 @@ export type ResolveCsvStreamFn = (
   base: string
 ) => Promise<ReadableStream<string>>;
 
-async function getLinkedContext(resp: Response) {
+export async function getLinkedContext(resp: Response) {
   const linkHeader = resp.headers.get('link');
   const contentType = resp.headers.get('content-type');
   if (linkHeader && contentType !== 'application/ld+json') {
@@ -50,6 +50,7 @@ export async function defaultResolveFn(
   const resp = await fetch(toAbsolute(url, base), {
     headers: { Accept: 'application/ld+json' },
   });
+  // TODO: Do we want to fetch linked context here?
   const linkedContext = await getLinkedContext(resp);
   if (linkedContext) {
     return defaultResolveFn(linkedContext, base);
