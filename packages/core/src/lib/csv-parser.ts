@@ -17,7 +17,7 @@ export class CSVParser extends TransformStream<string, string[]> {
       escape: dialect.doubleQuote ?? true ? '"' : '\\',
       encoding: (dialect.encoding as BufferEncoding) ?? 'utf-8',
       columns: undefined,
-      from_line: dialect.skipRows ?? 1,
+      from_line: (dialect.skipRows ?? 0) + 1,
       record_delimiter: dialect.lineTerminators ?? ['\r\n', '\n'],
       quote: dialect.quoteChar ?? '"',
       skip_empty_lines: dialect.skipBlankRows ?? false,
@@ -39,6 +39,7 @@ export class CSVParser extends TransformStream<string, string[]> {
           let record;
           while ((record = parser.read())) {
             controller.enqueue(record);
+            record = parser.read();
           }
         });
         parser.on('error', (error) => {
@@ -50,6 +51,9 @@ export class CSVParser extends TransformStream<string, string[]> {
       },
       transform(chunk) {
         parser.write(chunk);
+      },
+      flush() {
+        parser.end();
       },
     };
   }

@@ -41,6 +41,7 @@
   "dependencies": {
     "@swc/helpers": "~0.5.11",
     "csv": "^6.3.11",
+    "date-fns": "^4.1.0",
     "jsonld": "^8.3.3",
     "memory-level": "^3.0.0",
     "mnemonist": "^0.40.2",
@@ -52,6 +53,7 @@
     "@types/jsonld": "^1.5.15",
     "@types/n3": "^1.21.1",
     "@types/node": "^22.13.5",
+    "jest-fetch-mock": "^3.0.3",
     "jest-rdf": "^2.0.0"
   }
 }

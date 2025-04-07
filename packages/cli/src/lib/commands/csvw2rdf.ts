@@ -11,7 +11,7 @@ import {
 import N3 from 'n3';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { isAbsolute } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 
@@ -68,7 +68,10 @@ export const csvw2rdf: CommandModule<
       pathOverrides: Object.entries(args.pathOverrides ?? {}),
       resolveJsonldFn: (url, base) => {
         // C:/foo can be parsed as a valid URL
-        if (!isAbsolute(url) && URL.canParse(url)) {
+        if (
+          !isAbsolute(url) &&
+          (URL.canParse(url) || URL.canParse(url, base))
+        ) {
           if (url.startsWith('file:')) {
             return readFile(fileURLToPath(url), 'utf-8');
           }
@@ -78,7 +81,10 @@ export const csvw2rdf: CommandModule<
       },
       resolveCsvStreamFn: (url, base) => {
         // C:/foo can be parsed as a valid URL
-        if (!isAbsolute(url) && URL.canParse(url)) {
+        if (
+          !isAbsolute(url) &&
+          (URL.canParse(url) || URL.canParse(url, base))
+        ) {
           if (url.startsWith('file:')) {
             return Promise.resolve(
               Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
@@ -87,14 +93,16 @@ export const csvw2rdf: CommandModule<
           return defaultResolveStreamFn(url, base);
         }
         return Promise.resolve(
-          Readable.toWeb(fs.createReadStream(url, 'utf-8'))
+          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
         );
       },
     };
     if (args.input === undefined)
       throw new Error('stdin input not supported yet');
     const convertor = new CSVW2RDFConvertor(options);
-    const stream = await convertor.convert(args.input);
+    const stream = await convertor.convert(
+      (await options.resolveJsonldFn?.(args.input, '')) ?? ''
+    );
     const writer = new N3.StreamWriter({
       prefixes: commonPrefixes,
       format: n3Formats[args.format],

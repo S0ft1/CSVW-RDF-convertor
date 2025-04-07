@@ -17,7 +17,7 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: 'test-output/jest/coverage',
-  setupFilesAfterEnv: ['jest-rdf'],
+  setupFilesAfterEnv: ['<rootDir>/test/setup-tests.ts'],
   extensionsToTreatAsEsm: ['.ts'],
   globals: {
     'ts-jest': {

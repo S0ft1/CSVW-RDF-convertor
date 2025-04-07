@@ -10,7 +10,7 @@ import { Csvw2RdfOptions } from './conversion-options.js';
 import { replaceUrl } from './utils/replace-url.js';
 import { Quad, Quadstore } from 'quadstore';
 import { BlankNode, NamedNode } from 'n3';
-import { RemoteDocument } from 'jsonld/jsonld-spec.js';
+import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
 
 /**
  * Normalize the JSON-LD descriptor to a specific format.
@@ -41,12 +41,14 @@ export async function normalizeDescriptor(
     parsedDescriptor as jsonld.JsonLdDocument,
     { documentLoader: docLoader }
   );
+  await loadReferencedSubdescriptors(expanded, docLoader, options);
   const compactedExpanded = (await jsonld.compact(
     expanded,
     {},
     { documentLoader: docLoader }
   )) as CompactedExpandedCsvwDescriptor;
-  const [internal, idMap] = await splitExternalProps(compactedExpanded);
+  const [internal, idMap]: [CompactedCsvwDescriptor, Map<string, Quad[]>] =
+    await splitExternalProps(compactedExpanded);
 
   return new DescriptorWrapper(
     (await compactCsvwNs(
@@ -55,6 +57,46 @@ export async function normalizeDescriptor(
     )) as unknown as CompactedCsvwDescriptor,
     idMap
   );
+}
+
+/**
+ * The descriptor can include references to other descriptors.
+ * This function loads these referenced descriptors and replaces the references in the original descriptor.
+ * @param descriptor descriptor as parsed expanded JSON-LD
+ */
+async function loadReferencedSubdescriptors(
+  descriptor: JsonLdArray,
+  docLoader: (url: string) => Promise<{
+    document: any;
+    documentUrl: string;
+  }>,
+  options: Required<Csvw2RdfOptions>
+) {
+  const root = descriptor[0];
+  const objects = [root];
+  if (csvwNs + '#table' in root) {
+    objects.push(...(root[csvwNs + '#table'] as JsonLdArray));
+  }
+
+  for (const object of objects) {
+    for (const key of ['#tableSchema', '#dialect']) {
+      if (csvwNs + key in object) {
+        const refContainer = (object[csvwNs + key] as JsonLdArray)[0];
+        if ('@id' in refContainer && Object.keys(refContainer).length === 1) {
+          // is a reference
+          const doc = await options.resolveJsonldFn(
+            replaceUrl(refContainer['@id'] as string, options.pathOverrides),
+            options.baseIRI
+          );
+          const subdescriptor = await jsonld.expand(
+            { '@context': csvwNs, [csvwNs + key]: JSON.parse(doc) },
+            { documentLoader: docLoader }
+          );
+          object[csvwNs + key] = subdescriptor[0][csvwNs + key];
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -121,11 +163,11 @@ async function splitExternalProps(
 
   for (const key in object) {
     if (key.startsWith(csvwNs + '#')) {
-      if (key === csvwNs + '#notes') {
-        for (const note of object[key]) {
-          for (const noteKey in note) {
-            external[noteKey] = note[noteKey];
-          }
+      if (key === csvwNs + '#note') {
+        for (const note of Array.isArray(object[key])
+          ? object[key]
+          : [object[key]]) {
+          external[csvwNs + '#note'] = note;
         }
       } else {
         internal[key] = (await splitExternalProps(object[key], quadMap))[0];
@@ -140,7 +182,7 @@ async function splitExternalProps(
 
   if (!('@list' in internal || '@value' in internal || '@set' in internal)) {
     const externalId = `https://github.com/S0ft1/CSSW-RDF-convertor/externalsubj/${externalSubjCounter++}`;
-    internal[csvwNs + '#notes'] = externalId;
+    internal[csvwNs + '#note'] = externalId;
     external['@id'] = externalId;
     quadMap.set(externalId, (await jsonld.toRDF(external)) as Quad[]);
   }
