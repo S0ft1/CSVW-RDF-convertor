@@ -4,7 +4,7 @@ import {
   commonPrefixes,
   CSVW2RDFConvertor,
   Csvw2RdfOptions,
-  defaultResolveFn,
+  defaultResolveJsonldFn,
   defaultResolveStreamFn,
   RDFSerialization,
 } from '@cssw-rdf-convertor/core';
@@ -72,7 +72,7 @@ export const csvw2rdf: CommandModule<
           if (url.startsWith('file:')) {
             return readFile(fileURLToPath(url), 'utf-8');
           }
-          return defaultResolveFn(url, base);
+          return defaultResolveJsonldFn(url, base);
         }
         return readFile(url, 'utf-8');
       },

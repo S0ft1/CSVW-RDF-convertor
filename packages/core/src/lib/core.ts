@@ -7,23 +7,25 @@ import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { csvwNs } from './types/descriptor/namespace.js';
 import { Csvw2RdfOptions } from './conversion-options.js';
-import { defaultResolveFn, defaultResolveStreamFn } from './req-resolve.js';
 import { replaceUrl } from './utils/replace-url.js';
 import { Quad, Quadstore } from 'quadstore';
 import { BlankNode, NamedNode } from 'n3';
 import { RemoteDocument } from 'jsonld/jsonld-spec.js';
 
+/**
+ * Normalize the JSON-LD descriptor to a specific format.
+ * @param descriptor descriptor either as parsed or stringified JSON
+ * @param options options for the conversion
+ * @returns wrapper containing the normalized descriptor
+ */
 export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
-  options?: Csvw2RdfOptions
+  options: Required<Csvw2RdfOptions>
 ): Promise<DescriptorWrapper> {
-  const completeOpts = setDefaults(options);
   const docLoader = async (url: string) => {
-    url = replaceUrl(url, completeOpts.pathOverrides);
+    url = replaceUrl(url, options.pathOverrides);
     return {
-      document: JSON.parse(
-        await completeOpts.resolveJsonldFn(url, completeOpts.baseIRI)
-      ),
+      document: JSON.parse(await options.resolveJsonldFn(url, options.baseIRI)),
       documentUrl: url,
     };
   };
@@ -55,6 +57,11 @@ export async function normalizeDescriptor(
   );
 }
 
+/**
+ * Compacts the descriptor to remove the `csvw:` prefix from the properties.
+ * @param descriptor descriptor as parsed JSON
+ * @param docLoader loader function for the `jsonld` library
+ */
 async function compactCsvwNs(
   descriptor: any,
   docLoader: (url: string) => Promise<RemoteDocument>
@@ -66,6 +73,10 @@ async function compactCsvwNs(
   return compacted;
 }
 
+/**
+ * Removes the `csvw:` prefix from properties of `descriptor` recursively in place.
+ * @param descriptor any object to be shortened
+ */
 function shortenProps(descriptor: any) {
   if (typeof descriptor !== 'object' || descriptor === null) return;
   if (Array.isArray(descriptor)) {
@@ -83,20 +94,14 @@ function shortenProps(descriptor: any) {
   }
 }
 
-function setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
-  options ??= {};
-  return {
-    pathOverrides: options.pathOverrides ?? [],
-    offline: options.offline ?? false,
-    resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveFn,
-    resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
-    baseIRI: options.baseIRI ?? '',
-    templateIRIs: options.templateIRIs ?? false,
-    minimal: options.minimal ?? false,
-  };
-}
-
 let externalSubjCounter = 0;
+/**
+ * removes non-csvw properties and csvw:notes from `object` and stores them in `quadMap` as RDF quads with temporary subject.
+ * The temporary subject id is stored in the csvw:notes property of the object.
+ * @param object object to be split
+ * @param quadMap map to store the RDF quads with temporary subject
+ * @returns the object without non-csvw properties and the map of RDF quads
+ */
 async function splitExternalProps(
   object: any,
   quadMap: Map<string, Quad[]> = new Map()
@@ -144,12 +149,14 @@ async function splitExternalProps(
 
 /** Class for manipulating the descriptor */
 export class DescriptorWrapper {
+  /** does the descriptor describe table group or table? */
   public get isTableGroup(): boolean {
     return this._isTableGroup(this.descriptor);
   }
 
   constructor(
     public descriptor: CompactedCsvwDescriptor,
+    /** extra non-csvw properties from the original descriptor */
     private externalProps: Map<string, Quad[]>
   ) {}
 
@@ -159,6 +166,7 @@ export class DescriptorWrapper {
     return 'tables' in x;
   }
 
+  /** iterator over referenced tables */
   public *getTables() {
     if (this._isTableGroup(this.descriptor)) {
       for (const element of this.descriptor.tables) {
@@ -169,6 +177,15 @@ export class DescriptorWrapper {
     }
   }
 
+  /**
+   * The CSVW descriptor can include extra non-csvw properties at various levels. The inner descriptor
+   * does not include these properties, but they are stored separately as RDF quads with temporary subject.
+   * The descriptor contains reference to this subject in a `notes` property.
+   * This function retrieves these properties and inserts them into the RDF graph with a proper subject.
+   * @param sourceId temporary subject id for the external properties
+   * @param newSubj subject for the external properties
+   * @param store store to insert the external properties into
+   */
   public async setupExternalProps(
     sourceId: string,
     newSubj: NamedNode | BlankNode,

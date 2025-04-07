@@ -1,6 +1,7 @@
 import { MultiMap } from 'mnemonist';
 
 export type ResolveJsonldFn = (url: string, base: string) => Promise<string>;
+export type ResolveWkfFn = (url: string, base: string) => Promise<string>;
 export type ResolveCsvStreamFn = (
   url: string,
   base: string
@@ -43,17 +44,16 @@ function parseLinkHeader(
   return res;
 }
 
-export async function defaultResolveFn(
+export async function defaultResolveJsonldFn(
   url: string,
   base: string
 ): Promise<string> {
   const resp = await fetch(toAbsolute(url, base), {
     headers: { Accept: 'application/ld+json' },
   });
-  // TODO: Do we want to fetch linked context here?
   const linkedContext = await getLinkedContext(resp);
   if (linkedContext) {
-    return defaultResolveFn(linkedContext, base);
+    return defaultResolveJsonldFn(linkedContext, base);
   }
   const res = await resp.text();
   return res;
@@ -71,4 +71,13 @@ function toAbsolute(url: string, base: string) {
   const parsed = URL.parse(url) ?? URL.parse(url, base);
   if (!parsed) throw new Error('Invalid URL: ' + url);
   return parsed.href;
+}
+
+export async function defaultResolveTextFn(
+  url: string,
+  base: string
+): Promise<string> {
+  const resp = await fetch(toAbsolute(url, base));
+  const res = await resp.text();
+  return res;
 }

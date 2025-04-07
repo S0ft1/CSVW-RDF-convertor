@@ -7,7 +7,8 @@
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "types": [],
+    "lib": ["ES2022", "DOM", "DOM.AsyncIterable"]
   },
   "include": ["src/**/*.ts"],
   "references": [],

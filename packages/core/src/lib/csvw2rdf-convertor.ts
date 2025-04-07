@@ -1,9 +1,9 @@
 import { DescriptorWrapper, normalizeDescriptor } from './core.js';
 import { Csvw2RdfOptions } from './conversion-options.js';
 import {
-  defaultResolveFn,
+  defaultResolveJsonldFn,
   defaultResolveStreamFn,
-  getLinkedContext,
+  defaultResolveTextFn,
 } from './req-resolve.js';
 import { CSVParser } from './csv-parser.js';
 
@@ -22,6 +22,8 @@ import { Quadstore, StoreOpts } from 'quadstore';
 import { BlankNode, DataFactory, Literal, NamedNode } from 'n3';
 import { parseTemplate, Template } from 'url-template';
 import { Stream } from '@rdfjs/types';
+import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { replaceUrl } from './utils/replace-url.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -49,29 +51,45 @@ export class CSVW2RDFConvertor {
   /**
    * Main method for converting a CSVW to RDF,
    * see {@link https://w3c.github.io/csvw/csv2rdf/#json-ld-to-rdf} for more information.
-   * @param input CSV file or its descriptor to be converted
-   * @param metadata optional user specified metadata descriptor
+   * @param descriptor descriptor either as parsed or stringified JSON
    * @returns RDF stream
    */
   public async convert(
-    input: string | URL,
-    metadata?: string | URL
+    descriptor: string | AnyCsvwDescriptor
   ): Promise<Stream> {
-    if (typeof input === 'string') input = new URL(input);
-    if (typeof metadata === 'string') metadata = new URL(metadata);
+    const wrapper = await normalizeDescriptor(descriptor, this.options);
+    return this.convertInner(wrapper);
+  }
 
-    const wrapper = await this.resolveMetadataLocation(input, metadata)
-      // TODO: Should not we come up with better resolveJsonldFn API?
-      .then((loc) =>
-        this.options.resolveJsonldFn(loc.toString(), this.options.baseIRI)
-      )
-      .then((text) => normalizeDescriptor(text, this.options));
+  /**
+   * Convert CSVW to RDF from a CSV file URL. The descriptor will be resolved according to
+   * {@link https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/#locating-metadata}.
+   * see {@link https://w3c.github.io/csvw/csv2rdf/#json-ld-to-rdf} for more information.
+   * @param url url of the CSV file
+   * @returns RDF stream
+   */
+  public async convertFromCsvUrl(url: string) {
+    const json = await this.resolveMetadata(url);
+    const wrapper = await normalizeDescriptor(json, this.options);
+    const tablesWithoutUrl = Array.from(wrapper.getTables()).filter(
+      (table) => !table.url
+    );
+    if (tablesWithoutUrl.length > 1) {
+      throw new Error('Multiple tables without URL found in the descriptor');
+    }
+    if (tablesWithoutUrl.length === 1) {
+      tablesWithoutUrl[0].url = url;
+    }
 
+    return this.convertInner(wrapper);
+  }
+
+  private async convertInner(input: DescriptorWrapper) {
     await this.openStore();
 
     // 1
     const groupNode = this.createNode(
-      wrapper.isTableGroup ? wrapper.descriptor : {}
+      input.isTableGroup ? input.descriptor : {}
     );
     if (!this.options.minimal) {
       //2
@@ -81,9 +99,9 @@ export class CSVW2RDFConvertor {
         namedNode(csvw + 'TableGroup')
       );
       //3
-      if (wrapper.isTableGroup) {
-        await wrapper.setupExternalProps(
-          wrapper.descriptor.notes as string,
+      if (input.isTableGroup) {
+        await input.setupExternalProps(
+          input.descriptor.notes as string,
           groupNode,
           this.store
         );
@@ -91,9 +109,9 @@ export class CSVW2RDFConvertor {
     }
 
     //4
-    for (const table of wrapper.getTables()) {
+    for (const table of input.getTables()) {
       if (table.suppressOutput) continue;
-      const tableNode = await this.convertTable(table, wrapper);
+      const tableNode = await this.convertTable(table, input);
 
       // 4.2
       if (!this.options.minimal) {
@@ -109,43 +127,50 @@ export class CSVW2RDFConvertor {
   /**
    * Locates metadata for tabular data,
    * see {@link https://www.w3.org/TR/2015/REC-tabular-data-model-20151217/#locating-metadata} for more information.
-   * @param inputUrl CSV file or its descriptor to be converted
-   * @param metadataUrl optional user specified metadata
+   * @param csvUrl CSV file url
    * @returns URL of metadata file for the given CSV file
    */
-  private async resolveMetadataLocation(
-    inputUrl: URL,
-    metadataUrl: URL | undefined
-  ): Promise<URL> {
-    // metadata supplied by the user of the implementation that is processing the tabular data.
-    // TODO: What about directly specified columns e.g. by using command line argument --datatypes:string,float,string,string?
-    if (metadataUrl) return metadataUrl;
+  private async resolveMetadata(csvUrl: string): Promise<AnyCsvwDescriptor> {
+    csvUrl = replaceUrl(csvUrl, this.options.pathOverrides);
 
     // metadata in a document linked to using a Link header associated with the tabular data file.
-    // TODO: Should I use fetch function directly or some resolveFn functions?
-    const response = await fetch(inputUrl, { method: 'HEAD' });
-    const linked = await getLinkedContext(response);
-    if (linked) return new URL(linked);
+    try {
+      // TODO: Maybe reconsider this resolveJsonldFn API?
+      const descriptor = await this.options.resolveJsonldFn(
+        csvUrl,
+        this.options.baseIRI
+      );
+      return JSON.parse(descriptor);
+    } catch {
+      // that apparently didn't work, let's move on
+    }
 
     // metadata located through default paths which may be overridden by a site-wide location configuration.
-    const cleanUrl = new URL(inputUrl);
+    const cleanUrl = new URL(csvUrl);
     cleanUrl.hash = '';
     cleanUrl.search = '';
 
-    for (const template of await this.getWellKnownUris(inputUrl)) {
-      const resolvedUrl = new URL(
+    for (const template of await this.getWellKnownUris(csvUrl)) {
+      let resolvedUrl = new URL(
         template.expand({ url: cleanUrl.toString() }),
-        inputUrl
-      );
-      // TODO: Should I use fetch function directly or some resolveFn functions?
-      const response = await fetch(resolvedUrl, { method: 'HEAD' });
-      if (response.ok) return resolvedUrl;
+        csvUrl
+      ).href;
+      resolvedUrl = replaceUrl(resolvedUrl, this.options.pathOverrides);
+      try {
+        const descriptor = await this.options.resolveJsonldFn(
+          resolvedUrl,
+          this.options.baseIRI
+        );
+        return JSON.parse(descriptor);
+      } catch {
+        // that didn't work either
+      }
     }
 
     // TODO: Should we support embedded metadata as well?
 
     throw new Error(
-      `Metadata file location could not be resolved for input: ${inputUrl}`
+      `Metadata file location could not be resolved for input: ${csvUrl}`
     );
   }
 
@@ -154,21 +179,19 @@ export class CSVW2RDFConvertor {
    * @param url /.well-known/csvm is resolved relative to this url
    * @returns URI templates of metadata locations
    */
-  private async getWellKnownUris(url: URL): Promise<Template[]> {
-    // TODO: Should I use fetch function directly or some resolveFn functions?
-    const response = await fetch(new URL('/.well-known/csvm', url));
-    if (response.ok)
-      return response.text().then((text) =>
-        text
-          .split('\n')
-          .filter((template) => template.trim() !== '')
-          .map((template: string) => parseTemplate(template))
-      );
-    else
+  private async getWellKnownUris(url: string): Promise<Template[]> {
+    try {
+      const text = await this.options.resolveWkfFn('/.well-known/csvm', url);
+      return text
+        .split('\n')
+        .filter((template) => template.trim())
+        .map((template: string) => parseTemplate(template));
+    } catch {
       return [
         parseTemplate('{+url}-metadata.json'),
         parseTemplate('csv-metadata.json'),
       ];
+    }
   }
 
   /**
@@ -692,8 +715,9 @@ export class CSVW2RDFConvertor {
     return {
       pathOverrides: options.pathOverrides ?? [],
       offline: options.offline ?? false,
-      resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveFn,
+      resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
+      resolveWkfFn: options.resolveWkfFn ?? defaultResolveTextFn,
       baseIRI: options.baseIRI ?? '',
       templateIRIs: options.templateIRIs ?? false,
       minimal: options.minimal ?? false,
