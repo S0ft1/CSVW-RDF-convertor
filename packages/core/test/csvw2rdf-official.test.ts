@@ -27,7 +27,7 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.resetMocks();
   });
 
-  for (const entry of manifest.entries.slice(25, 26)) {
+  for (const entry of manifest.entries.slice()) {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [

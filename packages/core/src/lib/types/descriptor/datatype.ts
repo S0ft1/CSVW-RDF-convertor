@@ -58,7 +58,7 @@ export interface CsvwDatatype {
   /**
    * An atomic property that contains either a single string or an object that defines the format of a value of this type, used when parsing a string value as described in Parsing Cells in [tabular-data-model].
    */
-  format?: string | CsvwNumberFormat;
+  format?: string | CsvwNumberFormat | RegExp;
   /**
    * A numeric atomic property that contains a single integer that is the exact length of the value.
    */
