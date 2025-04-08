@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@swc/helpers": "~0.5.11",
+    "bcp47-validate": "^1.0.0",
     "csv": "^6.3.11",
     "date-fns": "^4.1.0",
     "jsonld": "^8.3.3",

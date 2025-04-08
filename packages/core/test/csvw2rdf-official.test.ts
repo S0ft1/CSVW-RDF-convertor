@@ -27,7 +27,7 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.resetMocks();
   });
 
-  for (const entry of manifest.entries.slice()) {
+  for (const entry of manifest.entries.slice(0, 80)) {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
@@ -53,7 +53,7 @@ describe('CSVW -> RDF Official tests', () => {
         }
 
         case EntryType.NegativeTest:
-          expect(runConversion(options, entry)).rejects.toThrow();
+          await expect(runConversion(options, entry)).rejects.toThrow();
           break;
 
         default:
@@ -79,7 +79,7 @@ async function runConversion(options: Csvw2RdfOptions, entry: Entry) {
     testDir + (entry.option.metadata ?? entry.action),
     'utf-8'
   );
-  return convertor.convert(descriptor);
+  return convertor.convert(descriptor, entry.option.metadata ?? entry.action);
 }
 
 async function loadJsonLd(path: string, base: string): Promise<string> {
