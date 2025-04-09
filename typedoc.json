@@ -1,0 +1,9 @@
+{
+    "entryPoints": ["packages/*"],
+    "entryPointStrategy": "packages",
+    "packageOptions": {
+        "entryPoints": ["src"],
+        "entryPointStrategy": "expand",
+        "skipErrorChecking": true
+    }
+}

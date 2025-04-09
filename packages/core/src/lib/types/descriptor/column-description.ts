@@ -26,11 +26,11 @@ export interface CsvwColumnDescription extends CsvwInheritedProperties {
    */
   virtual?: boolean;
   /**
-   * If included, @id is a link property that identifies the columns, as defined in [tabular-data-model], and potentially appearing across separate tables, described by this column description. It must not start with _:.
+   * If included, \@id is a link property that identifies the columns, as defined in [tabular-data-model], and potentially appearing across separate tables, described by this column description. It must not start with _:.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "Column". Publishers may include this to provide additional information to JSON-LD based toolchains.
+   * If included, \@type is an atomic property that must be set to "Column". Publishers may include this to provide additional information to JSON-LD based toolchains.
    */
   '@type'?: 'Column';
 }

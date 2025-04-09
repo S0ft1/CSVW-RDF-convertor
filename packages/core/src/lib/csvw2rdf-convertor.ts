@@ -54,7 +54,6 @@ export class CSVW2RDFConvertor {
   /**
    * Creates a new instance of the convertor.
    * @param {Csvw2RdfOptions} options - Options for the convertor.
-   *@constructor
    */
   public constructor(options?: Csvw2RdfOptions) {
     this.options = this.setDefaults(options);

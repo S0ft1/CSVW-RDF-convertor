@@ -22,11 +22,11 @@ export interface CsvwSchemaDescription extends CsvwInheritedProperties {
    */
   rowTitles?: string | string[];
   /**
-   * If included, @id is a link property that identifies the schema described by this schema description. It must not start with _:.
+   * If included, \@id is a link property that identifies the schema described by this schema description. It must not start with _:.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "Schema".
+   * If included, \@type is an atomic property that must be set to "Schema".
    */
   '@type'?: 'Schema';
 }

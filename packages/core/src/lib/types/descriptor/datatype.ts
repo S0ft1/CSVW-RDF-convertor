@@ -96,11 +96,11 @@ export interface CsvwDatatype {
    */
   maxExclusive?: number | string;
   /**
-   * If included, @id is a link property that identifies the datatype described by this datatype description. It must not start with _: and it must not be the URL of a built-in datatype.
+   * If included, \@id is a link property that identifies the datatype described by this datatype description. It must not start with _: and it must not be the URL of a built-in datatype.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "Datatype".
+   * If included, \@type is an atomic property that must be set to "Datatype".
    */
   '@type'?: 'Datatype';
 }
