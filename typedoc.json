@@ -1,9 +1,11 @@
 {
     "entryPoints": ["packages/*"],
     "entryPointStrategy": "packages",
+    "excludePrivate": false,
     "packageOptions": {
         "entryPoints": ["src"],
         "entryPointStrategy": "expand",
-        "skipErrorChecking": true
+        "skipErrorChecking": true,
+        "excludePrivate": false
     }
 }
