@@ -1,5 +1,6 @@
 {
     "$schema": "https://typedoc.org/schema.json",
     "includeVersion": false,
-    "out": "docs"
+    "out": "docs",
+    "exclude": ["**/*.spec.ts"]
 }
