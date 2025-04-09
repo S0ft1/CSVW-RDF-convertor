@@ -15,7 +15,7 @@ permissions:
   id-token: write
 
 jobs:
-  setup:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,17 +37,12 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - uses: nrwl/nx-set-shas@v4
 
-  test:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - run: npx nx affected -t lint test build
 
   docs:
-    needs: setup
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -58,7 +53,12 @@ jobs:
       group: "docs"
       cancel-in-progress: false
     steps:
-      - uses: actions/configure-pages@v5
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - run: npx typedoc
+
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
       - uses: actions/deploy-pages@v4
