@@ -30,6 +30,12 @@ import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { replaceUrl } from './utils/replace-url.js';
 import { format, parse } from 'date-fns';
 import { parseNumber } from './utils/parse-number.js';
+import { validate as bcp47Validate } from 'bcp47-validate';
+import {
+  CsvwForeignKeyDefinition,
+  CsvwSchemaDescription,
+} from './types/descriptor/schema-description.js';
+import { CsvwTransformationDefinition } from './types/descriptor/transformation-definition.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -58,12 +64,18 @@ export class CSVW2RDFConvertor {
    * Main method for converting a CSVW to RDF,
    * see {@link https://w3c.github.io/csvw/csv2rdf/#json-ld-to-rdf} for more information.
    * @param descriptor descriptor either as parsed or stringified JSON
+   * @param originalUrl original URL of the descriptor
    * @returns RDF stream
    */
   public async convert(
-    descriptor: string | AnyCsvwDescriptor
+    descriptor: string | AnyCsvwDescriptor,
+    originalUrl?: string
   ): Promise<Stream> {
-    const wrapper = await normalizeDescriptor(descriptor, this.options);
+    const wrapper = await normalizeDescriptor(
+      descriptor,
+      this.options,
+      originalUrl
+    );
     return this.convertInner(wrapper);
   }
 
@@ -76,7 +88,7 @@ export class CSVW2RDFConvertor {
    */
   public async convertFromCsvUrl(url: string) {
     const [json, resolvedUrl] = await this.resolveMetadata(url);
-    const wrapper = await normalizeDescriptor(json, this.options);
+    const wrapper = await normalizeDescriptor(json, this.options, resolvedUrl);
     this.options.baseIRI = resolvedUrl;
     const tablesWithoutUrl = Array.from(wrapper.getTables()).filter(
       (table) => !table.url
@@ -91,6 +103,203 @@ export class CSVW2RDFConvertor {
     return this.convertInner(wrapper);
   }
 
+  private validateTableGroup(tg: CsvwTableGroupDescription) {
+    this.validateInheritedProperties(tg);
+    this.validateDialect(tg.dialect);
+    if (!tg.tables?.length) {
+      throw new Error('Table group must contain at least one table');
+    }
+    if (tg['@id']?.startsWith('_:')) {
+      throw new Error('Table group cannot have a blank node as id');
+    }
+    if (tg['@type'] && tg['@type'] !== 'TableGroup') {
+      throw new Error('Table group must have type TableGroup');
+    }
+    if (tg.transformations) {
+      if (!Array.isArray(tg.transformations)) {
+        tg.transformations = [];
+      } else {
+        for (const template of tg.transformations) {
+          this.validateTemplate(template);
+        }
+      }
+    }
+  }
+  private validateTable(t: CsvwTableDescription, ts: CsvwTableDescription[]) {
+    this.validateInheritedProperties(t);
+    this.validateDialect(t.dialect);
+    if (t['@id']?.startsWith('_:')) {
+      throw new Error('Table cannot have a blank node as id');
+    }
+    if (t['@type'] && t['@type'] !== 'Table') {
+      throw new Error('Table must have type Table');
+    }
+    this.validateSchema(t.tableSchema, ts);
+    if (t.transformations) {
+      if (!Array.isArray(t.transformations)) {
+        t.transformations = [];
+      } else {
+        for (const template of t.transformations ?? []) {
+          this.validateTemplate(template);
+        }
+      }
+    }
+  }
+  private validateSchema(
+    schema: CsvwSchemaDescription | undefined,
+    tables: CsvwTableDescription[]
+  ) {
+    if (!schema) return;
+    if (schema['@id']?.startsWith('_:')) {
+      throw new Error('Schema cannot have a blank node as id');
+    }
+    if (schema['@type'] && schema['@type'] !== 'Schema') {
+      throw new Error('Schema must have type Schema');
+    }
+    if (schema.foreignKeys) {
+      console.log('validating foreign keys', schema.foreignKeys);
+      if (!Array.isArray(schema.foreignKeys)) {
+        schema.foreignKeys = [];
+      } else {
+        schema.foreignKeys = schema.foreignKeys.filter(
+          (fk) => fk && typeof fk === 'object'
+        );
+        for (const fk of schema.foreignKeys) {
+          this.validateForeignKey(fk, schema, tables);
+        }
+      }
+    }
+    if (schema.columns) {
+      if (!Array.isArray(schema.columns)) {
+        schema.columns = [];
+      } else {
+        schema.columns = schema.columns.filter(
+          (col) => col && typeof col === 'object'
+        );
+        for (const col of schema.columns) {
+          this.validateColumn(col);
+        }
+      }
+    }
+  }
+  private validateForeignKey(
+    fk: CsvwForeignKeyDefinition,
+    schema: CsvwSchemaDescription,
+    tables: CsvwTableDescription[]
+  ) {
+    console.log('validating foreign key', fk);
+    const colRef = coerceArray(fk.columnReference);
+    for (const col of colRef) {
+      if (!schema.columns?.some((c) => c.name === col)) {
+        throw new Error(`Column ${col} not found in schema`);
+      }
+    }
+  }
+  private validateColumn(c: CsvwColumnDescription) {
+    this.validateInheritedProperties(c);
+    if (c['@id']?.startsWith('_:')) {
+      throw new Error('Column cannot have a blank node as id');
+    }
+    if (c['@type'] && c['@type'] !== 'Column') {
+      throw new Error('Column must have type Column');
+    }
+  }
+  private validateInheritedProperties(props: CsvwInheritedProperties) {
+    if (props.lang !== undefined && !bcp47Validate(props.lang)) {
+      delete props.lang;
+    }
+    this.validateDatatype(props);
+    for (const urlType of ['aboutUrl', 'propertyUrl', 'valueUrl'] as const) {
+      if (props[urlType] !== undefined) {
+        if (typeof props[urlType] !== 'string') {
+          props[urlType] = '';
+        }
+      }
+    }
+  }
+  private validateTemplate(template: CsvwTransformationDefinition) {
+    if (!template || typeof template !== 'object') return;
+    if (template['@id']?.startsWith('_:')) {
+      throw new Error('Template cannot have a blank node as id');
+    }
+    if (template['@type'] && template['@type'] !== 'Template') {
+      throw new Error('Template must have type Template');
+    }
+  }
+  private validateDialect(dialect: CsvwDialectDescription | undefined) {
+    if (!dialect) return;
+    if (dialect['@id']?.startsWith('_:')) {
+      throw new Error('Dialect cannot have a blank node as id');
+    }
+    if (dialect['@type'] && dialect['@type'] !== 'Dialect') {
+      throw new Error('Dialect must have type Dialect');
+    }
+    for (const strKey of ['commentPrefix', 'delimiter'] as const) {
+      if (
+        dialect[strKey] !== undefined &&
+        typeof dialect[strKey] !== 'string'
+      ) {
+        delete dialect[strKey];
+      }
+    }
+    for (const boolKey of [
+      'doubleQuote',
+      'header',
+      'skipBlankRows',
+      'skipInitialSpace',
+    ] as const) {
+      if (
+        dialect[boolKey] !== undefined &&
+        typeof dialect[boolKey] !== 'boolean'
+      ) {
+        delete dialect[boolKey];
+      }
+    }
+
+    if (
+      dialect.headerRowCount !== undefined &&
+      (typeof dialect.headerRowCount !== 'number' || dialect.headerRowCount < 0)
+    ) {
+      delete dialect.headerRowCount;
+    }
+    if (
+      dialect.skipColumns !== undefined &&
+      (typeof dialect.skipColumns !== 'number' || dialect.skipColumns < 0)
+    ) {
+      delete dialect.skipColumns;
+    }
+    if (
+      dialect.skipRows !== undefined &&
+      (typeof dialect.skipRows !== 'number' || dialect.skipRows < 0)
+    ) {
+      delete dialect.skipRows;
+    }
+
+    if (dialect.lineTerminators !== undefined) {
+      dialect.lineTerminators = coerceArray(dialect.lineTerminators).filter(
+        (t) => typeof t === 'string'
+      );
+    }
+    if (
+      dialect.quoteChar !== undefined &&
+      typeof dialect.quoteChar !== 'string' &&
+      dialect.quoteChar !== null
+    ) {
+      delete dialect.quoteChar;
+    }
+    if (dialect.trim !== undefined && typeof dialect.trim !== 'boolean') {
+      if (['true', 'false', 'start', 'end'].includes(dialect.trim)) {
+        delete dialect.trim;
+      }
+    }
+    if (
+      dialect.encoding !== undefined &&
+      !Buffer.isEncoding(dialect.encoding)
+    ) {
+      delete dialect.encoding;
+    }
+  }
+
   private async convertInner(input: DescriptorWrapper) {
     await this.openStore();
     if (!this.options.baseIRI) {
@@ -101,6 +310,9 @@ export class CSVW2RDFConvertor {
     const groupNode = this.createNode(
       input.isTableGroup ? input.descriptor : {}
     );
+    if (input.isTableGroup) {
+      this.validateTableGroup(input.descriptor as CsvwTableGroupDescription);
+    }
     if (!this.options.minimal) {
       //2
       await this.emitTriple(
@@ -143,33 +355,33 @@ export class CSVW2RDFConvertor {
   private async resolveMetadata(
     csvUrl: string
   ): Promise<[AnyCsvwDescriptor, string]> {
-    csvUrl = replaceUrl(csvUrl, this.options.pathOverrides);
-    csvUrl = new URL(csvUrl, this.options.baseIRI).href;
+    let expandedUrl = replaceUrl(csvUrl, this.options.pathOverrides);
+    expandedUrl = new URL(expandedUrl, this.options.baseIRI).href;
 
     // metadata in a document linked to using a Link header associated with the tabular data file.
     try {
       // TODO: Maybe reconsider this resolveJsonldFn API?
       const descriptor = await this.options.resolveJsonldFn(
-        csvUrl,
+        expandedUrl,
         this.options.baseIRI
       );
       return [
         JSON.parse(descriptor),
-        new URL(csvUrl, this.options.baseIRI).href,
+        new URL(expandedUrl, this.options.baseIRI).href,
       ];
     } catch {
       // that apparently didn't work, let's move on
     }
 
     // metadata located through default paths which may be overridden by a site-wide location configuration.
-    const cleanUrl = new URL(csvUrl);
+    const cleanUrl = new URL(expandedUrl);
     cleanUrl.hash = '';
     cleanUrl.search = '';
 
-    for (const template of await this.getWellKnownUris(csvUrl)) {
+    for (const template of await this.getWellKnownUris(expandedUrl)) {
       let resolvedUrl = new URL(
         template.expand({ url: cleanUrl.toString() }),
-        csvUrl
+        expandedUrl
       ).href;
       resolvedUrl = replaceUrl(resolvedUrl, this.options.pathOverrides);
       try {
@@ -183,11 +395,17 @@ export class CSVW2RDFConvertor {
       }
     }
 
-    // TODO: Should we support embedded metadata as well?
-
-    throw new Error(
-      `Metadata file location could not be resolved for input: ${csvUrl}`
-    );
+    return [
+      {
+        '@context': 'http://www.w3.org/ns/csvw',
+        'rdfs:comment': [],
+        tableSchema: {
+          columns: [],
+        },
+        url: csvUrl,
+      },
+      expandedUrl,
+    ];
   }
 
   /**
@@ -236,7 +454,7 @@ export class CSVW2RDFConvertor {
     table: CsvwTableDescription,
     input: DescriptorWrapper
   ) {
-    this.validateDatatypes(table);
+    this.validateTable(table, Array.from(input.getTables()));
 
     //4.1
     const tableNode = this.createNode(table);
@@ -271,7 +489,7 @@ export class CSVW2RDFConvertor {
       new CSVParser(table.dialect ?? input.descriptor.dialect ?? {})
     );
     const iter = csvStream[Symbol.asyncIterator]();
-    await this.processCsvHeader(
+    const maybeRow1 = await this.processCsvHeader(
       iter,
       table,
       table.dialect ?? input.descriptor.dialect ?? {},
@@ -282,6 +500,19 @@ export class CSVW2RDFConvertor {
       table.dialect ?? input.descriptor.dialect ?? {}
     );
 
+    if (maybeRow1) {
+      const rowNode = await this.convertTableRow(
+        maybeRow1,
+        ++rowNum,
+        rowsOffset,
+        templates,
+        table,
+        input
+      );
+      if (!this.options.minimal) {
+        await this.emitTriple(tableNode, namedNode(csvw + 'row'), rowNode);
+      }
+    }
     for await (const row of iter) {
       const rowNode = await this.convertTableRow(
         row,
@@ -343,13 +574,15 @@ export class CSVW2RDFConvertor {
    * @param {CsvwTableDescription} table - Table description
    * @param {CsvwDialectDescription} dialect - Dialect description
    * @param {DescriptorWrapper} input - Input descriptor
+   * @returns The first row of the table if there is no header and there are no columns defined in the table schema.
+   * This row is used to determine the column count and must be passed to the {@link CSVW2RDFConvertor#convertTableRow} method.
    */
   private async processCsvHeader(
     stream: AsyncIterator<string[]>,
     table: CsvwTableDescription,
     dialect: CsvwDialectDescription,
     input: DescriptorWrapper
-  ) {
+  ): Promise<string[] | undefined> {
     const defaultLang = this.inherit('lang', table, input.descriptor) ?? 'und';
 
     const headerRowCount =
@@ -379,7 +612,17 @@ export class CSVW2RDFConvertor {
       }
     }
 
-    for (const col of table.tableSchema.columns) {
+    if (!table.tableSchema.columns.length) {
+      const row = await stream.next();
+      if (row.done) return;
+      table.tableSchema.columns = row.value.map((_, i) => ({
+        name: '_col.' + (i + 1),
+      }));
+      return row.value;
+    }
+
+    for (let i = 0; i < table.tableSchema.columns.length; ++i) {
+      const col = table.tableSchema.columns[i];
       if (col.name || !col.titles) continue;
       col.name =
         typeof col.titles === 'string'
@@ -389,56 +632,61 @@ export class CSVW2RDFConvertor {
           : typeof col.titles[defaultLang] === 'string'
           ? col.titles[defaultLang]
           : col.titles[defaultLang]?.[0];
+      col.name = col.name ? encodeURIComponent(col.name) : '_col.' + (i + 1);
     }
+    return undefined;
   }
 
   /**
    * Validate datatype formats of the column descriptions in the table.
    * @param table - Table description
    */
-  private validateDatatypes(table: CsvwTableDescription) {
-    for (const col of table.tableSchema?.columns ?? []) {
-      const dt = this.inherit('datatype', col, table.tableSchema, table);
-      if (dt === undefined) continue;
-      if (typeof dt === 'string' || !dt.base || !dt.format) continue;
-
-      if (CSVW2RDFConvertor.numericTypes.has(xsd + dt.base)) {
-        if (typeof dt.format === 'string') {
-          dt.format = { pattern: dt.format };
-        }
-        if (typeof (dt.format as CsvwNumberFormat).decimalChar !== 'string') {
-          console.warn('Invalid decimalChar format for column', col.name);
-          (dt.format as CsvwNumberFormat).decimalChar = '.';
-        }
-        if (
-          (dt.format as CsvwNumberFormat).groupChar &&
-          typeof (dt.format as CsvwNumberFormat).groupChar !== 'string'
-        ) {
-          console.warn('Invalid groupChar format for column', col.name);
-          (dt.format as CsvwNumberFormat).groupChar = undefined;
-        }
-        continue;
+  private validateDatatype(props: CsvwInheritedProperties) {
+    const dt = props.datatype;
+    if (dt === undefined) return;
+    if (typeof dt === 'string') {
+      if (!(dt in CSVW2RDFConvertor.dtUris)) {
+        delete props.datatype;
       }
-      if (typeof dt.format !== 'string') {
-        console.warn('Invalid format for column', col.name);
-        dt.format = undefined;
-        continue;
-      }
+      return;
+    }
+    if (dt.base && !(dt.base in CSVW2RDFConvertor.dtUris)) {
+      dt.base = 'string';
+    }
+    if (!dt.base || !dt.format) return;
 
-      if (dt['@id'] === 'boolean') {
-        if (!dt.format.includes('|')) {
-          console.warn('Invalid boolean format for column', col.name);
-          dt.format = undefined;
-        }
-        continue;
+    if (CSVW2RDFConvertor.numericTypes.has(xsd + dt.base)) {
+      if (typeof dt.format === 'string') {
+        dt.format = { pattern: dt.format };
       }
-
+      if (typeof (dt.format as CsvwNumberFormat).decimalChar !== 'string') {
+        (dt.format as CsvwNumberFormat).decimalChar = '.';
+      }
       if (
-        !CSVW2RDFConvertor.dateTypes.has(xsd + dt.base) &&
-        dt.base !== 'datetime'
+        (dt.format as CsvwNumberFormat).groupChar &&
+        typeof (dt.format as CsvwNumberFormat).groupChar !== 'string'
       ) {
-        dt.format = new RegExp(dt.format);
+        (dt.format as CsvwNumberFormat).groupChar = undefined;
       }
+      return;
+    }
+    if (typeof dt.format !== 'string') {
+      dt.format = undefined;
+      return;
+    }
+
+    if (dt.base === 'boolean') {
+      if (!dt.format.includes('|')) {
+        dt.format = undefined;
+      }
+      return;
+    }
+
+    if (
+      !CSVW2RDFConvertor.dateTypes.has(xsd + dt.base) &&
+      dt.base !== 'datetime'
+    ) {
+      dt.format = new RegExp(dt.format);
     }
   }
   private static numericTypes = new Set([
@@ -536,7 +784,10 @@ export class CSVW2RDFConvertor {
 
     //4.6.8
     const defaultCellSubj = blankNode();
-    const totalCols = table.tableSchema?.columns?.length ?? 0;
+    const totalCols = Math.max(
+      table.tableSchema?.columns?.length ?? 0,
+      row.length
+    );
     const tg = input.isTableGroup
       ? (input.descriptor as CsvwTableGroupDescription)
       : undefined;
@@ -560,7 +811,7 @@ export class CSVW2RDFConvertor {
     // now we can safely process the values
     for (let i = 0; i < totalCols; ++i) {
       const col = table.tableSchema?.columns?.[i] as CsvwColumnDescription;
-      if (col.suppressOutput) continue;
+      if (col.suppressOutput || values[col.name as string] === null) continue;
 
       await this.convertRowCell(
         col,
@@ -904,7 +1155,7 @@ export class CSVW2RDFConvertor {
       value = value.replace(/\t\r\n/g, ' ');
     }
     if (value === '') value = col.default ?? '';
-    const sep = this.inherit('separator', table.tableSchema, table, tg);
+    const sep = this.inherit('separator', col, table.tableSchema, table, tg);
     if (sep !== undefined) {
       if (value === '') return [];
       if (this.isValueNull(value, col)) return null;
@@ -916,14 +1167,54 @@ export class CSVW2RDFConvertor {
     }
     return value;
   }
-  private static dtUris: Partial<Record<CsvwBuiltinDatatype, string>> = {
-    xml: rdf + 'XMLLiteral',
-    html: rdf + 'HTML',
-    json: csvw + 'JSON',
-    number: xsd + 'double',
+  private static dtUris: Record<CsvwBuiltinDatatype, string> = {
     any: xsd + 'anyAtomicType',
+    anyAtomicType: xsd + 'anyAtomicType',
+    anyURI: xsd + 'anyURI',
+    base64Binary: xsd + 'base64Binary',
     binary: xsd + 'base64Binary',
+    boolean: xsd + 'boolean',
+    byte: xsd + 'byte',
+    date: xsd + 'date',
     datetime: xsd + 'dateTime',
+    dateTime: xsd + 'dateTime',
+    dateTimeStamp: xsd + 'dateTimeStamp',
+    dayTimeDuration: xsd + 'dayTimeDuration',
+    decimal: xsd + 'decimal',
+    double: xsd + 'double',
+    duration: xsd + 'duration',
+    float: xsd + 'float',
+    gDay: xsd + 'gDay',
+    gMonth: xsd + 'gMonth',
+    gMonthDay: xsd + 'gMonthDay',
+    gYear: xsd + 'gYear',
+    gYearMonth: xsd + 'gYearMonth',
+    hexBinary: xsd + 'hexBinary',
+    html: rdf + 'HTML',
+    int: xsd + 'int',
+    integer: xsd + 'integer',
+    json: csvw + 'JSON',
+    language: xsd + 'language',
+    long: xsd + 'long',
+    Name: xsd + 'Name',
+    negativeInteger: xsd + 'negativeInteger',
+    NMTOKEN: xsd + 'NMTOKEN',
+    nonNegativeInteger: xsd + 'nonNegativeInteger',
+    nonPositiveInteger: xsd + 'nonPositiveInteger',
+    normalizedString: xsd + 'normalizedString',
+    number: xsd + 'double',
+    positiveInteger: xsd + 'positiveInteger',
+    QName: xsd + 'QName',
+    short: xsd + 'short',
+    string: xsd + 'string',
+    time: xsd + 'time',
+    token: xsd + 'token',
+    unsignedByte: xsd + 'unsignedByte',
+    unsignedInt: xsd + 'unsignedInt',
+    unsignedLong: xsd + 'unsignedLong',
+    unsignedShort: xsd + 'unsignedShort',
+    xml: rdf + 'XMLLiteral',
+    yearMonthDuration: xsd + 'yearMonthDuration',
   };
   private static normalizeWsTypes = new Set([
     xsd + 'string',

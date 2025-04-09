@@ -11,6 +11,7 @@ import { replaceUrl } from './utils/replace-url.js';
 import { Quad, Quadstore } from 'quadstore';
 import { BlankNode, NamedNode } from 'n3';
 import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
+import { validate as bcp47Validate } from 'bcp47-validate';
 
 /**
  * Normalize the JSON-LD descriptor to a specific format.
@@ -20,7 +21,8 @@ import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
  */
 export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
-  options: Required<Csvw2RdfOptions>
+  options: Required<Csvw2RdfOptions>,
+  url?: string
 ): Promise<DescriptorWrapper> {
   const docLoader = async (url: string) => {
     url = replaceUrl(url, options.pathOverrides);
@@ -36,12 +38,22 @@ export async function normalizeDescriptor(
   } else {
     parsedDescriptor = descriptor;
   }
+  if (
+    parsedDescriptor['@id'] &&
+    typeof parsedDescriptor['@id'] !== 'string' &&
+    url
+  ) {
+    parsedDescriptor['@id'] = url;
+  }
+  removeInvalidIds(parsedDescriptor);
+  validateLanguage(parsedDescriptor as NodeObject);
+  const originalCtx = parsedDescriptor['@context'];
 
   const expanded = await jsonld.expand(
     parsedDescriptor as jsonld.JsonLdDocument,
     { documentLoader: docLoader }
   );
-  await loadReferencedSubdescriptors(expanded, docLoader, options);
+  await loadReferencedSubdescriptors(expanded, docLoader, options, originalCtx);
   const compactedExpanded = (await jsonld.compact(
     expanded,
     {},
@@ -60,6 +72,40 @@ export async function normalizeDescriptor(
 }
 
 /**
+ * Removes `@id` properties which are not strings from the descriptor.
+ * This is needed because the JSON-LD parser throws errors but we want to ignore them.
+ * @param obj descriptor as parsed expanded JSON-LD
+ */
+function removeInvalidIds(obj: Record<string, any>) {
+  for (const key in obj) {
+    if (key === '@id') {
+      if (typeof obj[key] !== 'string') {
+        obj[key] = '';
+      }
+    } else if (typeof obj[key] === 'object') {
+      removeInvalidIds(obj[key]);
+    }
+  }
+}
+
+/**
+ * Validates the language tags in the descriptor and removes invalid ones.
+ * @param obj descriptor as parsed expanded JSON-LD
+ */
+function validateLanguage(obj: NodeObject) {
+  const ctx = Array.isArray(obj['@context'])
+    ? obj['@context']
+    : [obj['@context']];
+  for (const c of ctx) {
+    if (typeof c === 'object' && c?.['@language']) {
+      if (!bcp47Validate(c['@language'])) {
+        delete c['@language'];
+      }
+    }
+  }
+}
+
+/**
  * The descriptor can include references to other descriptors.
  * This function loads these referenced descriptors and replaces the references in the original descriptor.
  * @param descriptor descriptor as parsed expanded JSON-LD
@@ -70,7 +116,8 @@ async function loadReferencedSubdescriptors(
     document: any;
     documentUrl: string;
   }>,
-  options: Required<Csvw2RdfOptions>
+  options: Required<Csvw2RdfOptions>,
+  originalCtx: AnyCsvwDescriptor['@context']
 ) {
   const root = descriptor[0];
   const objects = [root];
@@ -88,8 +135,14 @@ async function loadReferencedSubdescriptors(
             replaceUrl(refContainer['@id'] as string, options.pathOverrides),
             options.baseIRI
           );
+          const parsed = JSON.parse(doc);
+          if (parsed['@id'] && typeof parsed['@id'] !== 'string') {
+            parsed['@id'] = refContainer['@id'];
+          }
+          removeInvalidIds(parsed);
+          validateLanguage(parsed as NodeObject);
           const subdescriptor = await jsonld.expand(
-            { '@context': csvwNs, [csvwNs + key]: JSON.parse(doc) },
+            { '@context': originalCtx as any, [csvwNs + key]: parsed },
             { documentLoader: docLoader }
           );
           object[csvwNs + key] = subdescriptor[0][csvwNs + key];
@@ -174,13 +227,18 @@ async function splitExternalProps(
       }
     } else if (key.startsWith('@')) {
       internal[key] = (await splitExternalProps(object[key], quadMap))[0];
-      external[key] = object[key];
+      if (key !== '@id') {
+        external[key] = object[key];
+      }
     } else {
       external[key] = object[key];
     }
   }
 
-  if (!('@list' in internal || '@value' in internal || '@set' in internal)) {
+  if (
+    !('@list' in internal || '@value' in internal || '@set' in internal) &&
+    Object.keys(external).length
+  ) {
     const externalId = `https://github.com/S0ft1/CSSW-RDF-convertor/externalsubj/${externalSubjCounter++}`;
     internal[csvwNs + '#note'] = externalId;
     external['@id'] = externalId;
@@ -234,6 +292,7 @@ export class DescriptorWrapper {
     store: Quadstore
   ) {
     const quads = this.externalProps.get(sourceId) as Quad[];
+    if (!quads) return;
     for (const quad of quads) {
       if (quad.subject.value === sourceId) {
         quad.subject = newSubj;
