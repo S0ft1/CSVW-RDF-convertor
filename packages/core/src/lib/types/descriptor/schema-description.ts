@@ -37,8 +37,8 @@ export interface CsvwForeignKeyDefinition {
   /**
    * A column reference property that holds either a single reference to a column description object within this schema, or an array of references. These form the referencing columns for the foreign key definition.
    */
-  columnReference?: string | string[];
-  reference?: CsvwForeignKeyReference;
+  columnReference: string | string[];
+  reference: CsvwForeignKeyReference;
 }
 /**
  * An object property that identifies a referenced table and a set of referenced columns within that table.

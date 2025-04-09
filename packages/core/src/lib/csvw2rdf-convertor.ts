@@ -28,7 +28,7 @@ import { parseTemplate, Template } from 'url-template';
 import { Stream } from '@rdfjs/types';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { replaceUrl } from './utils/replace-url.js';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { parseNumber } from './utils/parse-number.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
 import {
@@ -36,6 +36,9 @@ import {
   CsvwSchemaDescription,
 } from './types/descriptor/schema-description.js';
 import { CsvwTransformationDefinition } from './types/descriptor/transformation-definition.js';
+import { validateArray, validateIdAndType } from './utils/validation.js';
+import { parseDate } from './utils/parse-date.js';
+import { tz } from '@date-fns/tz';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -109,100 +112,69 @@ export class CSVW2RDFConvertor {
     if (!tg.tables?.length) {
       throw new Error('Table group must contain at least one table');
     }
-    if (tg['@id']?.startsWith('_:')) {
-      throw new Error('Table group cannot have a blank node as id');
-    }
-    if (tg['@type'] && tg['@type'] !== 'TableGroup') {
-      throw new Error('Table group must have type TableGroup');
-    }
-    if (tg.transformations) {
-      if (!Array.isArray(tg.transformations)) {
-        tg.transformations = [];
-      } else {
-        for (const template of tg.transformations) {
-          this.validateTemplate(template);
-        }
-      }
-    }
+    validateIdAndType(tg, 'TableGroup');
+    validateArray(tg, 'transformations', this.validateTemplate.bind(this));
   }
   private validateTable(t: CsvwTableDescription, ts: CsvwTableDescription[]) {
     this.validateInheritedProperties(t);
     this.validateDialect(t.dialect);
-    if (t['@id']?.startsWith('_:')) {
-      throw new Error('Table cannot have a blank node as id');
-    }
-    if (t['@type'] && t['@type'] !== 'Table') {
-      throw new Error('Table must have type Table');
-    }
+    validateIdAndType(t, 'Table');
     this.validateSchema(t.tableSchema, ts);
-    if (t.transformations) {
-      if (!Array.isArray(t.transformations)) {
-        t.transformations = [];
-      } else {
-        for (const template of t.transformations ?? []) {
-          this.validateTemplate(template);
-        }
-      }
-    }
+    validateArray(t, 'transformations', this.validateTemplate.bind(this));
   }
   private validateSchema(
     schema: CsvwSchemaDescription | undefined,
     tables: CsvwTableDescription[]
   ) {
     if (!schema) return;
-    if (schema['@id']?.startsWith('_:')) {
-      throw new Error('Schema cannot have a blank node as id');
-    }
-    if (schema['@type'] && schema['@type'] !== 'Schema') {
-      throw new Error('Schema must have type Schema');
-    }
-    if (schema.foreignKeys) {
-      console.log('validating foreign keys', schema.foreignKeys);
-      if (!Array.isArray(schema.foreignKeys)) {
-        schema.foreignKeys = [];
-      } else {
-        schema.foreignKeys = schema.foreignKeys.filter(
-          (fk) => fk && typeof fk === 'object'
-        );
-        for (const fk of schema.foreignKeys) {
-          this.validateForeignKey(fk, schema, tables);
-        }
-      }
-    }
-    if (schema.columns) {
-      if (!Array.isArray(schema.columns)) {
-        schema.columns = [];
-      } else {
-        schema.columns = schema.columns.filter(
-          (col) => col && typeof col === 'object'
-        );
-        for (const col of schema.columns) {
-          this.validateColumn(col);
-        }
-      }
-    }
+    validateIdAndType(schema, 'Schema');
+    validateArray(schema, 'foreignKeys', (fk) =>
+      this.validateForeignKey(fk, schema, tables)
+    );
+    validateArray(schema, 'columns', this.validateColumn.bind(this));
   }
   private validateForeignKey(
     fk: CsvwForeignKeyDefinition,
     schema: CsvwSchemaDescription,
     tables: CsvwTableDescription[]
   ) {
-    console.log('validating foreign key', fk);
     const colRef = coerceArray(fk.columnReference);
     for (const col of colRef) {
       if (!schema.columns?.some((c) => c.name === col)) {
         throw new Error(`Column ${col} not found in schema`);
       }
     }
+
+    let table: CsvwTableDescription | undefined;
+    if (fk.reference.resource) {
+      table = tables.find((t) => t.url === fk.reference.resource);
+      if (!table) {
+        throw new Error(`Table ${fk.reference.resource} not found`);
+      }
+    } else if (fk.reference.schemaReference) {
+      table = tables.find(
+        (t) => t.tableSchema?.['@id'] === fk.reference.schemaReference
+      );
+      if (!table) {
+        throw new Error(
+          `Schema ${fk.reference.schemaReference} not found in tables`
+        );
+      }
+    }
+    if (!table) {
+      throw new Error('Table not found');
+    }
+
+    const remoteRef = coerceArray(fk.reference.columnReference);
+    for (const col of remoteRef) {
+      if (!table.tableSchema?.columns?.some((c) => c.name === col)) {
+        throw new Error(`Column ${col} not found in table ${table.url}`);
+      }
+    }
   }
   private validateColumn(c: CsvwColumnDescription) {
     this.validateInheritedProperties(c);
-    if (c['@id']?.startsWith('_:')) {
-      throw new Error('Column cannot have a blank node as id');
-    }
-    if (c['@type'] && c['@type'] !== 'Column') {
-      throw new Error('Column must have type Column');
-    }
+    validateIdAndType(c, 'Column');
   }
   private validateInheritedProperties(props: CsvwInheritedProperties) {
     if (props.lang !== undefined && !bcp47Validate(props.lang)) {
@@ -219,21 +191,11 @@ export class CSVW2RDFConvertor {
   }
   private validateTemplate(template: CsvwTransformationDefinition) {
     if (!template || typeof template !== 'object') return;
-    if (template['@id']?.startsWith('_:')) {
-      throw new Error('Template cannot have a blank node as id');
-    }
-    if (template['@type'] && template['@type'] !== 'Template') {
-      throw new Error('Template must have type Template');
-    }
+    validateIdAndType(template, 'Template');
   }
   private validateDialect(dialect: CsvwDialectDescription | undefined) {
     if (!dialect) return;
-    if (dialect['@id']?.startsWith('_:')) {
-      throw new Error('Dialect cannot have a blank node as id');
-    }
-    if (dialect['@type'] && dialect['@type'] !== 'Dialect') {
-      throw new Error('Dialect must have type Dialect');
-    }
+    validateIdAndType(dialect, 'Dialect');
     for (const strKey of ['commentPrefix', 'delimiter'] as const) {
       if (
         dialect[strKey] !== undefined &&
@@ -376,7 +338,6 @@ export class CSVW2RDFConvertor {
     // metadata located through default paths which may be overridden by a site-wide location configuration.
     const cleanUrl = new URL(expandedUrl);
     cleanUrl.hash = '';
-    cleanUrl.search = '';
 
     for (const template of await this.getWellKnownUris(expandedUrl)) {
       let resolvedUrl = new URL(
@@ -624,15 +585,23 @@ export class CSVW2RDFConvertor {
     for (let i = 0; i < table.tableSchema.columns.length; ++i) {
       const col = table.tableSchema.columns[i];
       if (col.name || !col.titles) continue;
-      col.name =
-        typeof col.titles === 'string'
-          ? col.titles
-          : Array.isArray(col.titles)
-          ? col.titles[0]
-          : typeof col.titles[defaultLang] === 'string'
-          ? col.titles[defaultLang]
-          : col.titles[defaultLang]?.[0];
-      col.name = col.name ? encodeURIComponent(col.name) : '_col.' + (i + 1);
+      if (typeof col.titles === 'string') col.name = col.titles;
+      else if (Array.isArray(col.titles)) col.name = col.titles[0];
+      else {
+        if (defaultLang in col.titles) {
+          col.name = coerceArray(col.titles[defaultLang])[0];
+        } else {
+          for (const key in col.titles) {
+            if (key.startsWith(defaultLang)) {
+              col.name = coerceArray(col.titles[key])[0];
+              break;
+            }
+          }
+        }
+      }
+      col.name = col.name
+        ? encodeURIComponent(col.name).replaceAll('-', '%2D')
+        : '_col.' + (i + 1);
     }
     return undefined;
   }
@@ -1092,21 +1061,27 @@ export class CSVW2RDFConvertor {
       const num = parseNumber(value, dt.format as CsvwNumberFormat);
       value = num + '';
     } else if (CSVW2RDFConvertor.dateTypes.has(dtUri)) {
-      const date = dt.format
-        ? parse(value, (dt.format as string).replace('T', "'T'"), new Date())
-        : new Date(value);
-      value = format(
-        date,
+      const date = parseDate(value, dtUri, dt.format as string);
+      let resultFormat =
         dtUri === xsd + 'date'
           ? 'yyyy-MM-dd'
           : dtUri === xsd + 'dateTime'
           ? "yyyy-MM-dd'T'HH:mm:ss"
-          : 'HH:mm:ss'
-      );
+          : 'HH:mm:ss';
+      if (date.timeZone) {
+        resultFormat += 'XXX';
+        value = format(date, resultFormat, {
+          in: tz(date.timeZone as string),
+        });
+      } else {
+        value = format(date, resultFormat);
+      }
     } else if (dtUri === xsd + 'boolean') {
       if (dt.format) {
         const [trueVal] = (dt.format as string).split('|');
         value = value === trueVal ? 'true' : 'false';
+      } else {
+        value = value === 'true' || value === '1' ? 'true' : 'false';
       }
     } else if (
       dt.format instanceof RegExp &&

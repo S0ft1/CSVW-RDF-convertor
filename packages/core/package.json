@@ -39,6 +39,7 @@
     }
   },
   "dependencies": {
+    "@date-fns/tz": "^1.2.0",
     "@swc/helpers": "~0.5.11",
     "bcp47-validate": "^1.0.0",
     "csv": "^6.3.11",
