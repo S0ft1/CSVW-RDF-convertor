@@ -55,11 +55,11 @@ export interface CsvwDialectDescription {
    */
   trim?: boolean | ('true' | 'false' | 'start' | 'end');
   /**
-   * If included, @id is a link property that identifies the dialect described by this dialect description. It must not start with _:.
+   * If included, \@id is a link property that identifies the dialect described by this dialect description. It must not start with _:.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "Dialect". Publishers may include this to provide additional information to JSON-LD based toolchains.
+   * If included, \@type is an atomic property that must be set to "Dialect". Publishers may include this to provide additional information to JSON-LD based toolchains.
    */
   '@type'?: 'Dialect';
 }

@@ -33,11 +33,11 @@ export interface CsvwTableGroupDescription extends CsvwInheritedProperties {
    */
   transformations?: CsvwTransformationDefinition[];
   /**
-   * If included, @id is a link property that identifies the group of tables, as defined by [tabular-data-model], described by this table group description. It must not start with _:.
+   * If included, \@id is a link property that identifies the group of tables, as defined by [tabular-data-model], described by this table group description. It must not start with _:.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "TableGroup".
+   * If included, \@type is an atomic property that must be set to "TableGroup".
    */
   '@type'?: 'TableGroup';
 }

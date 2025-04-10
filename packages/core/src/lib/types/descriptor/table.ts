@@ -36,11 +36,11 @@ export interface CsvwTableDescription extends CsvwInheritedProperties {
    */
   transformations?: CsvwTransformationDefinition[];
   /**
-   * If included, @id is a link property that identifies the table, as defined in [tabular-data-model], described by this table description. It must not start with _:.
+   * If included, \@id is a link property that identifies the table, as defined in [tabular-data-model], described by this table description. It must not start with _:.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "Table".
+   * If included, \@type is an atomic property that must be set to "Table".
    */
   '@type'?: 'Table';
 }

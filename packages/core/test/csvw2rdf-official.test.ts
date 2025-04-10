@@ -27,7 +27,9 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.resetMocks();
   });
 
-  for (const entry of manifest.entries.slice(0, 80)) {
+  for (const entry of manifest.entries
+    .filter((e) => e.type === EntryType.Test)
+    .slice()) {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
@@ -64,7 +66,7 @@ describe('CSVW -> RDF Official tests', () => {
 });
 
 async function runConversion(options: Csvw2RdfOptions, entry: Entry) {
-  const fromCsvUrl = entry.action.endsWith('.csv');
+  const fromCsvUrl = !!entry.action.match(/\.csv([?#].*)?/);
   const convertor = new CSVW2RDFConvertor({
     ...options,
     minimal: entry.option.minimal,
@@ -102,6 +104,7 @@ function loadStringStream(
   if (url.startsWith(TEST_HTTP_BASE)) {
     url = url.replace(TEST_HTTP_BASE, testDir);
   }
+  url = url.replace(/[?#].*/g, '');
   return Promise.resolve(
     Readable.toWeb(createReadStream(url, 'utf-8')) as ReadableStream<string>
   );

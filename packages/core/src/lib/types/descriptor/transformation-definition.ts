@@ -28,11 +28,11 @@ export interface CsvwTransformationDefinition {
         [k: string]: unknown;
       };
   /**
-   * If included, @id is a link property that identifies the transformation described by this transformation definition. It must not start with _:.
+   * If included, \@id is a link property that identifies the transformation described by this transformation definition. It must not start with _:.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "Template".
+   * If included, \@type is an atomic property that must be set to "Template".
    */
   '@type'?: 'Template';
 }

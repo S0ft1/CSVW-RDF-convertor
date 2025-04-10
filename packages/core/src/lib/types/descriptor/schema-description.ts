@@ -22,11 +22,11 @@ export interface CsvwSchemaDescription extends CsvwInheritedProperties {
    */
   rowTitles?: string | string[];
   /**
-   * If included, @id is a link property that identifies the schema described by this schema description. It must not start with _:.
+   * If included, \@id is a link property that identifies the schema described by this schema description. It must not start with _:.
    */
   '@id'?: string;
   /**
-   * If included, @type is an atomic property that must be set to "Schema".
+   * If included, \@type is an atomic property that must be set to "Schema".
    */
   '@type'?: 'Schema';
 }
@@ -37,8 +37,8 @@ export interface CsvwForeignKeyDefinition {
   /**
    * A column reference property that holds either a single reference to a column description object within this schema, or an array of references. These form the referencing columns for the foreign key definition.
    */
-  columnReference?: string | string[];
-  reference?: CsvwForeignKeyReference;
+  columnReference: string | string[];
+  reference: CsvwForeignKeyReference;
 }
 /**
  * An object property that identifies a referenced table and a set of referenced columns within that table.
