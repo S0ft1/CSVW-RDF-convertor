@@ -2,6 +2,13 @@
     "entryPoints": ["packages/*"],
     "entryPointStrategy": "packages",
     "excludePrivate": false,
+    "visibilityFilters": {
+        "protected": false,
+        "private": false,
+        "inherited": true,
+        "external": false
+    },
+    "useFirstParagraphOfCommentAsSummary": true,
     "packageOptions": {
         "entryPoints": ["src"],
         "entryPointStrategy": "expand",
