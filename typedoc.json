@@ -2,13 +2,18 @@
     "entryPoints": ["packages/*"],
     "entryPointStrategy": "packages",
     "excludePrivate": false,
+    "favicon": "favicon.svg",
+    "name": "CSVW RDF Convertor - Documentation",
+    "navigationLinks": {
+        "GitHub": "https://github.com/S0ft1/CSSW-RDF-convertor"
+    },
+    "useFirstParagraphOfCommentAsSummary": true,
     "visibilityFilters": {
         "protected": false,
         "private": false,
         "inherited": true,
         "external": false
     },
-    "useFirstParagraphOfCommentAsSummary": true,
     "packageOptions": {
         "entryPoints": ["src"],
         "entryPointStrategy": "expand",

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+    width="512"
+    height="512"
+    viewBox="0 0 135.46666 135.46667"
+    version="1.1"
+    id="svg5"
+    xml:space="preserve"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+      id="defs2">
+    <style>
+      path, text {
+        stroke: black;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme:dark) {
+        path, text {
+          stroke: white;
+        }
+      }
+    </style>
+    <rect
+        x="50.703495"
+        y="255.99998"
+        width="339.18536"
+        height="120.502"
+        id="rect6605" />
+    <rect
+        x="122.11095"
+        y="135.49802"
+        width="339.18549"
+        height="120.502"
+        id="rect6593" />
+  </defs>
+  <g
+      id="layer1">
+    <path
+        style="fill:none;stroke-width:7.9375;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+        d="M 60.648362,35.850516 H 103.1581 V 3.9677023 L 131.49797,51.79192 103.1581,99.616154 V 67.733337 H 32.308522 V 35.850516 L 3.9686856,83.674741 32.308522,131.49896 V 99.616154 H 74.81828"
+        id="path323" />
+    <text
+        xml:space="preserve"
+        transform="matrix(0.26458333,0,0,0.26458333,-0.11896672,4.3250321)"
+        id="text6591"
+        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;white-space:pre;shape-inside:url(#rect6593);display:inline;fill:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:0.5"><tspan
+            x="169.53613"
+            y="208.48447"
+            id="tspan12326">CSVW</tspan></text><text
+        xml:space="preserve"
+        transform="matrix(0.26458333,0,0,0.26458333,-0.89909778,4.3250347)"
+        id="text6603"
+        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;white-space:pre;shape-inside:url(#rect6605);display:inline;fill:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:0.5"><tspan
+            x="138.6748"
+            y="328.98643"
+            id="tspan12328">RDF</tspan></text>
+  </g>
+</svg>
