@@ -1,6 +1,6 @@
-# CSSWRDFConvertor
+# CSVW-RDF-Convertor
 
-Software team project.
+NPRG069 Software Project: Practical teamwork on a larger software project, implemented as a school work. 
 
 ## Run CLI using docker
 
@@ -16,7 +16,7 @@ docker run -it --rm -v $PWD:/app csvw_cli c2r -i /app/local-descriptor.json -o /
 Requires Node.js 22
 
 ```bash
-npm i
+npm install
 npx nx build cli
 node packages/cli/dist/index.js
 # example: convert local csvw to rdf
