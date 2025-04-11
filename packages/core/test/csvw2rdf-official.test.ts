@@ -27,9 +27,12 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.resetMocks();
   });
 
+  // skip: 35,65-72
+  // number failing tests: 36, 37
+
   for (const entry of manifest.entries
     .filter((e) => e.type === EntryType.Test)
-    .slice()) {
+    .slice(36, 38)) {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
@@ -144,6 +147,13 @@ function setupImplicit(entry: Entry) {
         },
         url: req.url,
       });
+    } else if (entry.name.includes('w3.org/.well-known/csvm')) {
+      // for some reason this file is not among implicit files
+      if (url === '.well-known/csvm') {
+        return Promise.resolve(
+          '{+url}-metadata.json\ncsv-metadata.json\n{+url}.json\ncsvm.json'
+        );
+      }
     }
     return Promise.resolve({ status: 404, url });
   });

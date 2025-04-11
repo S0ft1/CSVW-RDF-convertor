@@ -630,11 +630,8 @@ export class CSVW2RDFConvertor {
       if (typeof (dt.format as CsvwNumberFormat).decimalChar !== 'string') {
         (dt.format as CsvwNumberFormat).decimalChar = '.';
       }
-      if (
-        (dt.format as CsvwNumberFormat).groupChar &&
-        typeof (dt.format as CsvwNumberFormat).groupChar !== 'string'
-      ) {
-        (dt.format as CsvwNumberFormat).groupChar = undefined;
+      if (typeof (dt.format as CsvwNumberFormat).groupChar !== 'string') {
+        (dt.format as CsvwNumberFormat).groupChar = ',';
       }
       return;
     }
@@ -679,6 +676,7 @@ export class CSVW2RDFConvertor {
     xsd + 'date',
     xsd + 'dateTime',
     xsd + 'time',
+    xsd + 'dateTimeStamp',
   ]);
 
   /**
@@ -721,27 +719,6 @@ export class CSVW2RDFConvertor {
         namedNode(csvw + 'url'),
         namedNode(table.url + '#row=' + (rowNum + rowsOffset))
       );
-      //4.6.6
-      const titles = coerceArray(table.tableSchema?.rowTitles);
-      const titlemap: Record<string, number> = {};
-      for (let i = 0; i < titles.length; i++) {
-        titlemap[table.tableSchema?.columns?.[i].name as string] = i;
-      }
-
-      for (const title of titles) {
-        const lang = this.inherit(
-          'lang',
-          table.tableSchema?.columns?.[titlemap[title]],
-          table.tableSchema,
-          table,
-          input.isTableGroup ? input.descriptor : undefined
-        );
-        await this.emitTriple(
-          rowNode,
-          namedNode(csvw + 'title'),
-          literal(title, lang ?? 'und')
-        );
-      }
 
       //4.6.7
       // implementation dependent, based on notes on the table, we skip this
@@ -794,6 +771,32 @@ export class CSVW2RDFConvertor {
         i,
         colsOffset
       );
+    }
+
+    if (!this.options.minimal) {
+      //4.6.6
+      const titles = coerceArray(table.tableSchema?.rowTitles);
+      const titlemap: Record<string, number> = {};
+      for (let i = 0; i < titles.length; i++) {
+        titlemap[table.tableSchema?.columns?.[i].name as string] = i;
+      }
+
+      for (const title of titles) {
+        const lang = this.inherit(
+          'lang',
+          table.tableSchema?.columns?.[titlemap[title]],
+          table.tableSchema,
+          table,
+          input.isTableGroup ? input.descriptor : undefined
+        );
+        const val = values[title];
+        if (!val) continue;
+        await this.emitTriple(
+          rowNode,
+          namedNode(csvw + 'title'),
+          literal(values[title] as string, lang)
+        );
+      }
     }
 
     return rowNode;
@@ -929,9 +932,8 @@ export class CSVW2RDFConvertor {
     let dtUri = dt['@id'];
 
     if (!dtUri) {
-      if (!dt.base) {
-        throw new Error('Datatype must contain either @id or base property');
-      } else if (dt.base in CSVW2RDFConvertor.dtUris) {
+      dt.base ??= 'string';
+      if (dt.base in CSVW2RDFConvertor.dtUris) {
         dtUri = CSVW2RDFConvertor.dtUris[dt.base];
       } else {
         dtUri = xsd + dt.base;
@@ -953,17 +955,18 @@ export class CSVW2RDFConvertor {
     const head = blankNode();
     let current = head;
 
-    for (const val of values) {
-      await this.emitTriple(
-        current,
-        namedNode(rdf + 'type'),
-        namedNode(rdf + 'List')
-      );
-      await this.emitTriple(current, namedNode(rdf + 'first'), val);
+    for (let i = 0; i < values.length - 1; ++i) {
+      await this.emitTriple(current, namedNode(rdf + 'first'), values[i]);
       const next = blankNode();
       await this.emitTriple(current, namedNode(rdf + 'rest'), next);
       current = next;
     }
+
+    await this.emitTriple(
+      current,
+      namedNode(rdf + 'first'),
+      values[values.length - 1]
+    );
     await this.emitTriple(
       current,
       namedNode(rdf + 'rest'),
@@ -1060,21 +1063,7 @@ export class CSVW2RDFConvertor {
       const num = parseNumber(value, dt.format as CsvwNumberFormat);
       value = num + '';
     } else if (CSVW2RDFConvertor.dateTypes.has(dtUri)) {
-      const date = parseDate(value, dtUri, dt.format as string);
-      let resultFormat =
-        dtUri === xsd + 'date'
-          ? 'yyyy-MM-dd'
-          : dtUri === xsd + 'dateTime'
-          ? "yyyy-MM-dd'T'HH:mm:ss"
-          : 'HH:mm:ss';
-      if (date.timeZone) {
-        resultFormat += 'XXX';
-        value = format(date, resultFormat, {
-          in: tz(date.timeZone as string),
-        });
-      } else {
-        value = format(date, resultFormat);
-      }
+      value = this.formatDate(value, dtUri, dt);
     } else if (dtUri === xsd + 'boolean') {
       if (dt.format) {
         const [trueVal] = (dt.format as string).split('|');
@@ -1091,6 +1080,33 @@ export class CSVW2RDFConvertor {
       // maybe validate?
     }
 
+    return value;
+  }
+
+  private formatDate(value: string, dtUri: string, dt: CsvwDatatype) {
+    const date = parseDate(value, dtUri, dt.format as string);
+    let resultFormat =
+      dtUri === xsd + 'date'
+        ? 'yyyy-MM-dd'
+        : dtUri === xsd + 'time'
+        ? 'HH:mm:ss'
+        : "yyyy-MM-dd'T'HH:mm:ss";
+    let millis = date.getMilliseconds();
+    if (millis) {
+      resultFormat += '.';
+      while (millis % 10 === 0) {
+        millis /= 10;
+      }
+      resultFormat += 'S'.repeat(millis.toString().length);
+    }
+    if (date.timeZone) {
+      resultFormat += 'XXX';
+      value = format(date, resultFormat, {
+        in: tz(date.timeZone as string),
+      });
+    } else {
+      value = format(date, resultFormat);
+    }
     return value;
   }
 
