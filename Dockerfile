@@ -1,5 +1,5 @@
 FROM node:lts-alpine
-WORKDIR /cssw-rdf-convertor
+WORKDIR /csvw-rdf-convertor
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=package-lock.json,target=package-lock.json \
     --mount=type=bind,source=packages/core/package.json,target=packages/core/package.json \

@@ -9,7 +9,7 @@ const swcJestConfig = JSON.parse(
 swcJestConfig.swcrc = false;
 
 export default {
-  displayName: '@cssw-rdf-convertor/cli',
+  displayName: '@csvw-rdf-convertor/cli',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {

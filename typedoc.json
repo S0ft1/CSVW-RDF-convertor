@@ -5,7 +5,7 @@
     "favicon": "favicon.svg",
     "name": "CSVW RDF Convertor - Documentation",
     "navigationLinks": {
-        "GitHub": "https://github.com/S0ft1/CSSW-RDF-convertor"
+        "GitHub": "https://github.com/S0ft1/CSVW-RDF-convertor"
     },
     "useFirstParagraphOfCommentAsSummary": true,
     "visibilityFilters": {

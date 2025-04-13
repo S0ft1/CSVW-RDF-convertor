@@ -7,7 +7,7 @@ import {
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
   RDFSerialization,
-} from '@cssw-rdf-convertor/core';
+} from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';

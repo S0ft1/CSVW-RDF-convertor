@@ -239,7 +239,7 @@ async function splitExternalProps(
     !('@list' in internal || '@value' in internal || '@set' in internal) &&
     Object.keys(external).length
   ) {
-    const externalId = `https://github.com/S0ft1/CSSW-RDF-convertor/externalsubj/${externalSubjCounter++}`;
+    const externalId = `https://github.com/S0ft1/CSVW-RDF-convertor/externalsubj/${externalSubjCounter++}`;
     internal[csvwNs + '#note'] = externalId;
     external['@id'] = externalId;
     quadMap.set(externalId, (await jsonld.toRDF(external)) as Quad[]);
