@@ -1,15 +1,9 @@
 import { CsvwNumberFormat } from '../types/descriptor/datatype.js';
 import issueTracker from '../utils/error-collector.js';
 
-export function parseNumber(value: string, format: CsvwNumberFormat): number {
-  if (value === 'INF') {
-    return Infinity;
-  }
-  if (value === '-INF'){
-    return -Infinity;
-  } 
-  if (value === 'NaN') {
-    return NaN;
+export function parseNumber(value: string, format: CsvwNumberFormat): string {
+  if (value === 'INF' || value === 'NaN' || value === '-INF') {
+    return value;
   }
 
   const decimal = format?.decimalChar as string;
@@ -24,16 +18,15 @@ export function parseNumber(value: string, format: CsvwNumberFormat): number {
   if (transformedNumber == null) {
     throw Error(`Invalid number format: ${value} ${pattern}`);
   }
-  return transformedNumber;
+  if (transformedNumber === 0 && value.startsWith('-')) return '-0';
+  return transformedNumber + '';
 }
-
 
 function castToNumberWithoutPattern(
   value: string,
   decimal: string,
   groupChar: string
 ): number | null {
-  //console.log("without pattern: " + value);
   let newVal = '';
   let divideBy = 1;
 
@@ -56,7 +49,6 @@ function castToNumberWithoutPattern(
       newVal += value[i];
     }
   }
-  //console.log("without pattern result:" +(+newVal) / divideBy)
   return +newVal / divideBy;
 }
 
@@ -66,64 +58,50 @@ function castToNumberByPattern(
   decimal: string,
   groupChar: string
 ): number | null {
-  /*
-  console.log("pattern: " + pattern);
-  console.log("number: " + number);
-  console.log("decimalChar: " + decimal);
-  console.log("groupChar: " + groupChar);*/
   let strNumber = '';
   let patternIndex = 0;
   let numberIndex = 0;
-  while(numberIndex!=number.length) {
+  while (numberIndex != number.length) {
     const numberChar = number[numberIndex];
     const patternChar = pattern[patternIndex];
-    if(patternChar=='#' || patternChar=='0'){
-      if(isNumberChar(numberChar)){
+    if (patternChar == '#' || patternChar == '0') {
+      if (isNumberChar(numberChar)) {
         numberIndex++;
-        strNumber+=numberChar;
-      }
-      else{
+        strNumber += numberChar;
+      } else {
         patternIndex++;
       }
       continue;
-    }
-
-    else if(patternChar==','){
-      if(numberChar==groupChar){
+    } else if (patternChar == groupChar) {
+      if (numberChar == groupChar) {
         numberIndex++;
         patternIndex++;
         continue;
-      }
-      else{
+      } else {
         issueTracker.addError("Group char isn't where it should be at cell:");
         break;
       }
-    }
-    else if(patternChar=='.'){
-      if(numberChar==decimal){
+    } else if (patternChar == decimal) {
+      if (numberChar == decimal) {
         numberIndex++;
         patternIndex++;
-        strNumber+='.';
-      }else{
+        strNumber += '.';
+      } else {
         issueTracker.addError("Decimal char isn't where it should be at cell:");
         break;
       }
-    }
-    else if((patternChar=='e'||patternChar=='E') && (numberChar=='E'|| numberChar=='e')){
-      strNumber+='E';
+    } else if (
+      (patternChar == 'e' || patternChar == 'E') &&
+      (numberChar == 'E' || numberChar == 'e')
+    ) {
+      strNumber += 'E';
       patternIndex++;
       numberIndex++;
-    }
-    else{
-      issueTracker.addError("FATAL: char unrecognized at cell:");
-      /*
-      console.log("diff char")
-      console.log("patternChar: " + patternChar); 
-      console.log("numberChar: " + numberChar)*/
+    } else {
+      issueTracker.addError('FATAL: char unrecognized at cell:');
       return 0;
     }
   }
- // console.log("vraceni:" + (+strNumber));
   return +strNumber;
 }
 

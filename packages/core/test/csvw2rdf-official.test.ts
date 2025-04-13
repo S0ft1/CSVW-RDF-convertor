@@ -2,14 +2,16 @@ import { Manifest, EntryType, Entry } from './types/manifest';
 import { CSVW2RDFConvertor } from '../src/lib/csvw2rdf-convertor.js';
 import { Csvw2RdfOptions } from '../src/lib/conversion-options.js';
 import { defaultResolveJsonldFn } from '../src/lib/req-resolve.js';
+import { numericTypes } from '../src/lib/utils/prefix.js';
 
 import { createReadStream, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { isAbsolute, resolve } from 'node:path';
 import { Quad } from 'quadstore';
-import { StreamParser } from 'n3';
+import { DataFactory, StreamParser } from 'n3';
 import { Stream } from '@rdfjs/types';
+const { literal, quad } = DataFactory;
 
 // these need to be here for vscode to find the types
 import fetchMock from 'jest-fetch-mock';
@@ -27,12 +29,11 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.resetMocks();
   });
 
-  // skip: 35,65-72
-  // number failing tests: 36, 37
+  // skip: 34,65-72 (#149, #263-#304)
 
   for (const entry of manifest.entries
     .filter((e) => e.type === EntryType.Test)
-    .slice(36, 38)) {
+    .filter((_, i) => i != 34 && (i < 65 || i > 72))) {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
@@ -113,10 +114,30 @@ function loadStringStream(
   );
 }
 
-function loadRDF(rdfFilePath: string) {
+async function loadRDF(rdfFilePath: string) {
   const reader = createReadStream(rdfFilePath);
   const parser = new StreamParser({ format: 'text/turtle' });
-  return rdfStreamToArray(reader.pipe(parser));
+  const stringConstants = new Set(['NaN', 'INF', '-INF']);
+  const rdfArray = await rdfStreamToArray(reader.pipe(parser));
+  return rdfArray.map((q) => {
+    // normalize numeric literals
+    if (
+      q.object.termType === 'Literal' &&
+      numericTypes.has(q.object.datatype.value) &&
+      !stringConstants.has(q.object.value)
+    ) {
+      const numeric = +q.object.value;
+      if (numeric === 0 && q.object.value.startsWith('-')) {
+        return quad(q.subject, q.predicate, literal('-0', q.object.datatype));
+      }
+      return quad(
+        q.subject,
+        q.predicate,
+        literal(numeric + '', q.object.datatype)
+      );
+    }
+    return q;
+  });
 }
 
 function rdfStreamToArray(stream: Stream<Quad>) {
