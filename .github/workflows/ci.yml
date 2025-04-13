@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - run: git submodule update --init --recursive
 
       # This enables task distribution via Nx Cloud
       # Run this command as early as possible, before dependencies are installed
@@ -50,7 +51,7 @@ jobs:
     # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
     # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
     concurrency:
-      group: "docs"
+      group: 'docs'
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
@@ -62,5 +63,5 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: "docs/"
+          path: 'docs/'
       - uses: actions/deploy-pages@v4

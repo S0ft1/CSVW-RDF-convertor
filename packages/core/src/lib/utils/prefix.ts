@@ -54,6 +54,9 @@ export const commonPrefixes = {
   xsd: 'http://www.w3.org/2001/XMLSchema#',
 } as const;
 
+export const XSD_TEMP_PREFIX = 'XXX' as const;
+export const XSD_TEMP = `${XSD_TEMP_PREFIX}${commonPrefixes.xsd}` as const;
+
 /**
  * Looks up URI of the RDF namespace using {@link https://prefix.cc} service.
  * @param prefix - Prefix of the namespace
@@ -87,3 +90,30 @@ export function getPrefix(uri: string): Promise<string | null> {
 export interface PrefixCCResponse {
   [key: string]: string;
 }
+
+const { xsd } = commonPrefixes;
+
+export const numericTypes = new Set([
+  xsd + 'integer',
+  xsd + 'decimal',
+  xsd + 'long',
+  xsd + 'int',
+  xsd + 'short',
+  xsd + 'byte',
+  xsd + 'nonNegativeInteger',
+  xsd + 'positiveInteger',
+  xsd + 'unsignedLong',
+  xsd + 'unsignedInt',
+  xsd + 'unsignedShort',
+  xsd + 'unsignedByte',
+  xsd + 'double',
+  xsd + 'float',
+  xsd + 'nonPositiveInteger',
+  xsd + 'negativeInteger',
+]);
+export const dateTypes = new Set([
+  xsd + 'date',
+  xsd + 'dateTime',
+  xsd + 'time',
+  xsd + 'dateTimeStamp',
+]);
