@@ -31,7 +31,7 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.default.resetMocks();
   });
 
-  // skip: 34,65-72 (#149, #263-#304)
+  // skip: 34, 65-72 (#149, #263-#304)
 
   for (const entry of manifest.entries
     .filter((e) => e.type === EntryType.Test)
