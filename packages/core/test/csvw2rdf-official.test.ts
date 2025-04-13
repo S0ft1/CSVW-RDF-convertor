@@ -6,7 +6,7 @@ import { numericTypes } from '../src/lib/utils/prefix.js';
 
 import { createReadStream, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { pathToFileURL, fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { isAbsolute, resolve } from 'node:path';
 import { Quad } from 'quadstore';
 import { DataFactory, StreamParser } from 'n3';
@@ -18,15 +18,17 @@ import fetchMock from 'jest-fetch-mock';
 import 'jest-rdf';
 import { Readable } from 'node:stream';
 
-const testDir = '../../csvw/tests/';
+const testDir = resolve(
+  fileURLToPath(import.meta.url),
+  '../../../../csvw/tests/'
+);
 const TEST_HTTP_BASE = 'http://example.com/';
 const manifest = JSON.parse(
-  readFileSync(testDir + 'manifest-rdf.jsonld', 'utf-8')
+  readFileSync(resolve(testDir, 'manifest-rdf.jsonld'), 'utf-8')
 ) as Manifest;
-
 describe('CSVW -> RDF Official tests', () => {
   beforeEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.default.resetMocks();
   });
 
   // skip: 34,65-72 (#149, #263-#304)
@@ -37,10 +39,7 @@ describe('CSVW -> RDF Official tests', () => {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
-          [
-            'http://www.w3.org/ns/csvw',
-            pathToFileURL('../../csvw/ns/csvw.jsonld').href,
-          ],
+          ['http://www.w3.org/ns/csvw', resolve(testDir, '../ns/csvw.jsonld')],
         ],
         resolveJsonldFn: loadJsonLd,
         resolveCsvStreamFn: loadStringStream,
@@ -50,7 +49,9 @@ describe('CSVW -> RDF Official tests', () => {
         // TODO: check warnings
         case EntryType.Test:
         case EntryType.TestWithWarnings: {
-          const expected = await loadRDF(testDir + entry.result);
+          const expected = await loadRDF(
+            resolve(testDir, entry.result as string)
+          );
           const actual = await rdfStreamToArray(
             await runConversion(options, entry)
           );
@@ -82,7 +83,7 @@ async function runConversion(options: Csvw2RdfOptions, entry: Entry) {
     return convertor.convertFromCsvUrl(entry.action);
   }
   const descriptor = await readFile(
-    testDir + (entry.option.metadata ?? entry.action),
+    resolve(testDir, entry.option.metadata ?? entry.action),
     'utf-8'
   );
   return convertor.convert(descriptor, entry.option.metadata ?? entry.action);
@@ -106,7 +107,7 @@ function loadStringStream(
 ): Promise<ReadableStream<string>> {
   let url = URL.parse(path, base)?.href ?? resolve(base, path);
   if (url.startsWith(TEST_HTTP_BASE)) {
-    url = url.replace(TEST_HTTP_BASE, testDir);
+    url = url.replace(TEST_HTTP_BASE, testDir + '/');
   }
   url = url.replace(/[?#].*/g, '');
   return Promise.resolve(
@@ -156,10 +157,10 @@ function rdfStreamToArray(stream: Stream<Quad>) {
 }
 
 function setupImplicit(entry: Entry) {
-  fetchMock.mockResponse((req) => {
+  fetchMock.default.mockResponse((req) => {
     const url = req.url.replace(TEST_HTTP_BASE, '');
     if (entry.implicit?.includes(url)) {
-      return readFile(testDir + url, 'utf-8');
+      return readFile(resolve(testDir, url), 'utf-8');
     } else if (url === entry.action && entry.httpLink) {
       return Promise.resolve({
         status: 404,
