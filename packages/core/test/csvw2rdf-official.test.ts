@@ -164,6 +164,7 @@ function rdfStreamToArray(stream: Stream<Quad>) {
 
 function setupImplicit(entry: Entry) {
   fetchMock.default.mockResponse((req) => {
+    console.log('fetching', req.url);
     const url = req.url.replace(TEST_HTTP_BASE, '');
     if (entry.implicit?.includes(url)) {
       return readFile(resolve(testDir, url), 'utf-8');
