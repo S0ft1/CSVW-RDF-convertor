@@ -50,14 +50,19 @@ describe('CSVW -> RDF Official tests', () => {
         // TODO: check warnings
         case EntryType.Test:
         case EntryType.TestWithWarnings: {
-          const expected = await loadRDF(
-            resolve(testDir, entry.result as string)
-          );
-          const actual = await rdfStreamToArray(
-            await runConversion(options, entry)
-          );
-          expect(actual).toBeRdfIsomorphic(expected);
-          break;
+          try {
+            const expected = await loadRDF(
+              resolve(testDir, entry.result as string)
+            );
+            const actual = await rdfStreamToArray(
+              await runConversion(options, entry)
+            );
+            expect(actual).toBeRdfIsomorphic(expected);
+            break;
+          } catch (e: any) {
+            console.error(e.cause);
+            throw e;
+          }
         }
 
         case EntryType.NegativeTest:
