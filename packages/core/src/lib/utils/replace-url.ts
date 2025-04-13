@@ -17,7 +17,10 @@ export function replaceUrl(
     }
   }
   if (longestMatch) {
+    console.log('replacing', longestMatch, 'with', replacement);
+    console.log('url', url, '->', replacement + url.slice(longestMatch.length));
     return replacement + url.slice(longestMatch.length);
   }
+  console.log('no replacement for', url);
   return url;
 }
