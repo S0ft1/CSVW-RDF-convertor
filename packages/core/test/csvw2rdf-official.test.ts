@@ -6,7 +6,7 @@ import { numericTypes } from '../src/lib/utils/prefix.js';
 
 import { createReadStream, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isAbsolute, resolve } from 'node:path';
 import { Quad } from 'quadstore';
 import { DataFactory, StreamParser } from 'n3';
@@ -40,7 +40,10 @@ describe('CSVW -> RDF Official tests', () => {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
-          ['http://www.w3.org/ns/csvw', resolve(testDir, '../ns/csvw.jsonld')],
+          [
+            'http://www.w3.org/ns/csvw',
+            pathToFileURL(resolve(testDir, '../ns/csvw.jsonld')).href,
+          ],
         ],
         resolveJsonldFn: loadJsonLd,
         resolveCsvStreamFn: loadStringStream,
