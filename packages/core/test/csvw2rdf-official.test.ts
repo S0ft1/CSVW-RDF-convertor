@@ -1,4 +1,4 @@
-import { Manifest, EntryType, Entry } from './types/manifest';
+import { Manifest, EntryType, Entry } from './types/manifest.js';
 import { CSVW2RDFConvertor } from '../src/lib/csvw2rdf-convertor.js';
 import { Csvw2RdfOptions } from '../src/lib/conversion-options.js';
 import { defaultResolveJsonldFn } from '../src/lib/req-resolve.js';
