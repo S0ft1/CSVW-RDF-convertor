@@ -94,7 +94,9 @@ async function runConversion(options: Csvw2RdfOptions, entry: Entry) {
 }
 
 async function loadJsonLd(path: string, base: string): Promise<string> {
-  const url = URL.parse(path, base)?.href ?? resolve(base, path);
+  console.log('loadJsonLd', path, base);
+  const url =
+    URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   if (!isAbsolute(url) && URL.canParse(url)) {
     if (url.startsWith('file:')) {
       return readFile(fileURLToPath(url), 'utf-8');
