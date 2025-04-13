@@ -6,8 +6,8 @@
     "lib": ["DOM"],
     "emitDeclarationOnly": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "es6",
-    "moduleResolution": "node"
+    "module": "NodeNext",
+    "moduleResolution": "nodenext"
   },
   "include": [
     "jest.config.ts",
