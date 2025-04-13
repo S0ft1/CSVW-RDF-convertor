@@ -31,6 +31,8 @@ export async function normalizeDescriptor(
       documentUrl: url,
     };
   };
+  const csvw = await docLoader(csvwNs);
+  console.log('csvw', csvw);
 
   let parsedDescriptor: AnyCsvwDescriptor;
   if (typeof descriptor === 'string') {
