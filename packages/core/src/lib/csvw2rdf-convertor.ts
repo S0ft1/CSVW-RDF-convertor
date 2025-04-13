@@ -97,6 +97,7 @@ export class CSVW2RDFConvertor {
    */
   public async convertFromCsvUrl(url: string) {
     const [json, resolvedUrl] = await this.resolveMetadata(url);
+    console.log('Resolved metadata', resolvedUrl, json);
     const wrapper = await normalizeDescriptor(json, this.options, resolvedUrl);
     this.options.baseIRI = resolvedUrl;
     const tablesWithoutUrl = Array.from(wrapper.getTables()).filter(
