@@ -1,6 +1,10 @@
 {
   "name": "@csvw-rdf-convertor/core",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/S0ft1/CSVW-RDF-convertor"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
