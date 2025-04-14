@@ -17,7 +17,7 @@
     "url": "https://github.com/S0ft1/CSVW-RDF-convertor"
   },
   "homepage": "https://s0ft1.github.io/CSVW-RDF-convertor",
-  "licence": "MIT",
+  "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
