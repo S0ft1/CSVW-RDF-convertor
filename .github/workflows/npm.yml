@@ -24,7 +24,9 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
-      - run: npm publish --access public -ws true
+      - run: npx nx affected -t build
+
+      - run: npx nx release publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
