@@ -1,15 +1,23 @@
 {
   "name": "@csvw-rdf-convertor/core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
-  "keywords": ["csv", "csvw", "rdf", "convert", "converter", "conversion", "stream", "streaming"],
+  "keywords": [
+    "csv",
+    "csvw",
+    "rdf",
+    "convert",
+    "converter",
+    "conversion",
+    "stream",
+    "streaming"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/S0ft1/CSVW-RDF-convertor"
   },
   "homepage": "https://s0ft1.github.io/CSVW-RDF-convertor",
   "licence": "MIT",
-
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
