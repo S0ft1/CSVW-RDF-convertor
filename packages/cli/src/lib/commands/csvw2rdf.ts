@@ -55,7 +55,7 @@ export const csvw2rdf: CommandModule<
       type: 'boolean',
     },
     baseIri: {
-      describe: 'Base IRI for the output RDF',
+      describe: 'Base IRI for loading resources',
       type: 'string',
     },
   },
