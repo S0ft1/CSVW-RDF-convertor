@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - v*.*.*
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -28,7 +30,12 @@ jobs:
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
-      - run: npx nx affected -t build
+      - run: npx nx affected -t lint test build
+
+      - run: gh release create "$tag" --title="${tag#v}" --notes-file CHANGELOG.md --fail-on-no-commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
 
       - run: npx nx release publish --access public
         env:
