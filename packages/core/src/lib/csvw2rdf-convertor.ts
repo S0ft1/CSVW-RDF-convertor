@@ -357,7 +357,8 @@ export class CSVW2RDFConvertor {
     csvUrl: string
   ): Promise<[AnyCsvwDescriptor, string]> {
     let expandedUrl = replaceUrl(csvUrl, this.options.pathOverrides);
-    expandedUrl = new URL(expandedUrl, this.options.baseIRI).href;
+    expandedUrl = new URL(expandedUrl, this.options.baseIRI || expandedUrl)
+      .href;
 
     // metadata in a document linked to using a Link header associated with the tabular data file.
     try {
@@ -366,10 +367,7 @@ export class CSVW2RDFConvertor {
         expandedUrl,
         this.options.baseIRI
       );
-      return [
-        JSON.parse(descriptor),
-        new URL(expandedUrl, this.options.baseIRI).href,
-      ];
+      return [JSON.parse(descriptor), expandedUrl];
     } catch {
       // that apparently didn't work, let's move on
     }
@@ -422,7 +420,7 @@ export class CSVW2RDFConvertor {
       return text
         .split('\n')
         .filter((template) => template.trim())
-        .map((template: string) => parseTemplate(template));
+        .map((template: string) => parseTemplate(template.trim()));
     } catch {
       return CSVW2RDFConvertor.defaultWKs;
     }

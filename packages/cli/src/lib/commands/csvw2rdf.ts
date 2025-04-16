@@ -14,6 +14,7 @@ import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
+import { Quad, Stream } from '@rdfjs/types';
 
 export const csvw2rdf: CommandModule<
   CommonArgs,
@@ -66,21 +67,25 @@ export const csvw2rdf: CommandModule<
       minimal: args.minimal,
       templateIRIs: args.templateIris,
       pathOverrides: Object.entries(args.pathOverrides ?? {}),
-      resolveJsonldFn: (url, base) => {
-        // C:/foo can be parsed as a valid URL
-        if (
-          !isAbsolute(url) &&
-          (URL.canParse(url) || URL.canParse(url, base))
-        ) {
+      resolveJsonldFn: async (path, base) => {
+        const url =
+          URL.parse(path, base)?.href ??
+          URL.parse(path)?.href ??
+          resolve(base, path);
+        if (!isAbsolute(url) && URL.canParse(url)) {
           if (url.startsWith('file:')) {
             return readFile(fileURLToPath(url), 'utf-8');
           }
           return defaultResolveJsonldFn(url, base);
         }
-        return readFile(url, 'utf-8');
+
+        return await readFile(url, 'utf-8');
       },
-      resolveCsvStreamFn: (url, base) => {
-        // C:/foo can be parsed as a valid URL
+      resolveCsvStreamFn: (path, base) => {
+        const url =
+          URL.parse(path, base)?.href ??
+          URL.parse(path)?.href ??
+          resolve(base, path);
         if (
           !isAbsolute(url) &&
           (URL.canParse(url) || URL.canParse(url, base))
@@ -100,9 +105,16 @@ export const csvw2rdf: CommandModule<
     if (args.input === undefined)
       throw new Error('stdin input not supported yet');
     const convertor = new CSVW2RDFConvertor(options);
-    const stream = await convertor.convert(
-      (await options.resolveJsonldFn?.(args.input, '')) ?? ''
-    );
+    let stream: Stream<Quad>;
+    if (args.input.match(/\.csv([?#].*)?/)) {
+      stream = await convertor.convertFromCsvUrl(args.input);
+    } else {
+      stream = await convertor.convert(
+        (await options.resolveJsonldFn?.(args.input, '')) ?? '',
+        args.input
+      );
+    }
+
     const writer = new N3.StreamWriter({
       prefixes: commonPrefixes,
       format: n3Formats[args.format],
