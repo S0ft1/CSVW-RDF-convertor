@@ -1,0 +1,482 @@
+PS C:\Users\Owner\Documents\CSSW-RDF-convertor> npx nx release --skip-publish
+(node:11700) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+ NX   Executing pre-version command
+
+√ What kind of change is this for the 2 matched projects(s)? · patch
+
+ NX   Running release version for project: @csvw-rdf-convertor/core
+
+@csvw-rdf-convertor/core 🔍 Reading data for package "@csvw-rdf-convertor/core" from packages/core/package.json
+@csvw-rdf-convertor/core 📄 Resolved the current version as 0.0.3 from packages/core/package.json
+@csvw-rdf-convertor/core ✍️  New version 0.0.4 written to packages/core/package.json 
+@csvw-rdf-convertor/core ✍️  Applying new version 0.0.4 to 1 package which depends on @csvw-rdf-convertor/core
+
+ NX   Running release version for project: @csvw-rdf-convertor/cli
+
+@csvw-rdf-convertor/cli 🔍 Reading data for package "@csvw-rdf-convertor/cli" from packages/cli/package.json
+@csvw-rdf-convertor/cli 📄 Resolved the current version as 0.0.3 from packages/cli/package.json
+@csvw-rdf-convertor/cli ✍️  New version 0.0.4 written to packages/cli/package.json
+
+UPDATE packages/core/package.json
+
+    "name": "@csvw-rdf-convertor/core",
+-   "version": "0.0.3",
++   "version": "0.0.4",
+    "description": "",
+
+UPDATE packages/cli/package.json
+
+    "name": "@csvw-rdf-convertor/cli",
+-   "version": "0.0.3",
++   "version": "0.0.4",
+    "description": "",
+
+    "dependencies": {
+-     "@csvw-rdf-convertor/core": "0.0.3",
++     "@csvw-rdf-convertor/core": "0.0.4",
+      "@inquirer/prompts": "^7.3.1",
+
+
+ NX   Updating npm lock file
+
+
+ NX   Staging changed files with git
+
+
+ NX   Generating an entry in CHANGELOG.md for v0.0.4
+
+
+NOTE: There was no diff detected for the changelog entry. Maybe you intended to pass alternative git references via --from and --to?
+
+ NX   No changes detected for changelogs
+
+No changes were detected for any changelog files, so no changelog entries will be generated.
+
+
+ NX   Committing changes with git
+
+
+No staged files found. Skipping commit.
+
+ NX   Tagging commit with git
+
+
+ NX   Pushing to git remote "origin"
+
+
+ NX   Creating GitHub Release
+
+CREATE https://github.com/S0ft1/CSVW-RDF-convertor/releases/tag/v0.0.4
+
++ ## 0.0.4 (2025-04-14)
++
++ This was a version bump only, there were no code changes.
+
+
+ NX   A GitHub API Error occurred when creating/updating the release
+
+GitHub Error: {"message":"Not Found","documentation_url":"https://docs.github.com/rest/releases/releases#create-a-release","status":"404"}
+---
+Request Data:
+Repo: S0ft1/CSVW-RDF-convertor
+Token: null
+Body: {"tag_name":"v0.0.4","name":"v0.0.4","body":"## 0.0.4 (2025-04-14)\n\nThis was a version bump only, there were no code changes.","prerelease":false,"make_latest":"legacy"}
+
+√ Do you want to finish creating the release manually in your browser? · Yes
+
+Follow up in the browser to manually create the release:
+
+https://github.com/S0ft1/CSVW-RDF-convertor/releases/new?tag=v0.0.4&title=v0.0.4&body=%23%23%200.0.4%20(2025-04-14)%0A%0AThis%20was%20a%20version%20bump%20only%2C%20there%20were%20no%20code%20changes.&target=d90cd280f86e4b1e048359456d6000182617ef70       
+
+AxiosError: Request failed with status code 404
+    at settle (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\axios\lib\core\settle.js:19:12)
+    at Unzip.handleStreamEnd (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\axios\lib\adapters\http.js:599:11)
+    at Unzip.emit (node:events:530:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\axios\lib\core\Axios.js:45:41)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at makeGithubRequest (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\command-line\release\utils\github.js:274:13)
+    at createGithubRelease (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\command-line\release\utils\github.js:284:12)
+    at syncGithubRelease (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\command-line\release\utils\github.js:216:30)
+    at createOrUpdateGithubReleaseInternal (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\command-line\release\utils\github.js:115:20)
+    at createOrUpdateGithubRelease (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\command-line\release\utils\github.js:106:9)
+    at release (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\command-line\release\release.js:185:13)
+    at handleErrors (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\utils\handle-errors.js:8:24)
+    at Object.handler (C:\Users\Owner\Documents\CSSW-RDF-convertor\node_modules\nx\src\command-line\release\command-object.js:96:24) {
+  code: 'ERR_BAD_REQUEST',
+  config: {
+    transitional: {
+      silentJSONParsing: true,
+      forcedJSONParsing: true,
+      clarifyTimeoutError: false
+    },
+    adapter: [ 'xhr', 'http', 'fetch' ],
+    transformRequest: [ [Function: transformRequest] ],
+    transformResponse: [ [Function: transformResponse] ],
+    timeout: 0,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+    maxContentLength: -1,
+    maxBodyLength: -1,
+    env: { FormData: [Function [FormData]], Blob: [class Blob] },
+    validateStatus: [Function: validateStatus],
+    headers: Object [AxiosHeaders] {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
+      Authorization: undefined,
+      'User-Agent': 'axios/1.8.3',
+      'Content-Length': '233',
+      'Accept-Encoding': 'gzip, compress, deflate, br'
+    },
+    method: 'post',
+    data: '{"tag_name":"v0.0.4","name":"v0.0.4","body":"## 0.0.4 (2025-04-14)\\n\\nThis was a version bump only, there were no code changes.","prerelease":false,"make_latest":"legacy","target_commitish":"d90cd280f86e4b1e048359456d6000182617ef70"}',       
+    baseURL: 'https://api.github.com',
+    url: '/repos/S0ft1/CSVW-RDF-convertor/releases',
+    allowAbsoluteUrls: true
+  },
+  request: <ref *1> ClientRequest {
+    _events: [Object: null prototype] {
+      abort: [Function (anonymous)],
+      aborted: [Function (anonymous)],
+      connect: [Function (anonymous)],
+      error: [Function (anonymous)],
+      socket: [Function (anonymous)],
+      timeout: [Function (anonymous)],
+      finish: [Function: requestOnFinish]
+    },
+    _eventsCount: 7,
+    _maxListeners: undefined,
+    outputData: [],
+    outputSize: 0,
+    writable: true,
+    destroyed: true,
+    _last: false,
+    chunkedEncoding: false,
+    shouldKeepAlive: true,
+    maxRequestsOnConnectionReached: false,
+    _defaultKeepAlive: true,
+    useChunkedEncodingByDefault: true,
+    sendDate: false,
+    _removedConnection: false,
+    _removedContLen: false,
+    _removedTE: false,
+    strictContentLength: false,
+    _contentLength: '233',
+    _hasBody: true,
+    _trailer: '',
+    finished: true,
+    _headerSent: true,
+    _closed: true,
+    _header: 'POST /repos/S0ft1/CSVW-RDF-convertor/releases HTTP/1.1\r\n' +
+      'Accept: application/json, text/plain, */*\r\n' +
+      'Content-Type: application/json\r\n' +
+      'User-Agent: axios/1.8.3\r\n' +
+      'Content-Length: 233\r\n' +
+      'Accept-Encoding: gzip, compress, deflate, br\r\n' +
+      'Host: api.github.com\r\n' +
+      'Connection: keep-alive\r\n' +
+      '\r\n',
+    _keepAliveTimeout: 0,
+    _onPendingData: [Function: nop],
+    agent: Agent {
+      _events: [Object: null prototype],
+      _eventsCount: 2,
+      _maxListeners: undefined,
+      defaultPort: 443,
+      protocol: 'https:',
+      options: [Object: null prototype],
+      requests: [Object: null prototype] {},
+      sockets: [Object: null prototype] {},
+      freeSockets: [Object: null prototype] {},
+      keepAliveMsecs: 1000,
+      keepAlive: true,
+      maxSockets: Infinity,
+      maxFreeSockets: 256,
+      scheduling: 'lifo',
+      maxTotalSockets: Infinity,
+      totalSocketCount: 0,
+      maxCachedSessions: 100,
+      _sessionCache: [Object],
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false
+    },
+    socketPath: undefined,
+    method: 'POST',
+    maxHeaderSize: undefined,
+    insecureHTTPParser: undefined,
+    joinDuplicateHeaders: undefined,
+    path: '/repos/S0ft1/CSVW-RDF-convertor/releases',
+    _ended: true,
+    res: IncomingMessage {
+      _events: [Object],
+      _readableState: [ReadableState],
+      _maxListeners: undefined,
+      socket: null,
+      httpVersionMajor: 1,
+      httpVersionMinor: 1,
+      httpVersion: '1.1',
+      complete: true,
+      rawHeaders: [Array],
+      rawTrailers: [],
+      joinDuplicateHeaders: undefined,
+      aborted: false,
+      upgrade: false,
+      url: '',
+      method: null,
+      statusCode: 404,
+      statusMessage: 'Not Found',
+      client: [TLSSocket],
+      _consuming: false,
+      _dumped: false,
+      req: [Circular *1],
+      _eventsCount: 4,
+      responseUrl: 'https://api.github.com/repos/S0ft1/CSVW-RDF-convertor/releases', 
+      redirects: [],
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false,
+      [Symbol(kHeaders)]: [Object],
+      [Symbol(kHeadersCount)]: 44,
+      [Symbol(kTrailers)]: null,
+      [Symbol(kTrailersCount)]: 0
+    },
+    aborted: false,
+    timeoutCb: null,
+    upgradeOrConnect: false,
+    parser: null,
+    maxHeadersCount: null,
+    reusedSocket: true,
+    host: 'api.github.com',
+    protocol: 'https:',
+    _redirectable: Writable {
+      _events: [Object],
+      _writableState: [WritableState],
+      _maxListeners: undefined,
+      _options: [Object],
+      _ended: true,
+      _ending: true,
+      _redirectCount: 0,
+      _redirects: [],
+      _requestBodyLength: 233,
+      _requestBodyBuffers: [],
+      _eventsCount: 3,
+      _onNativeResponse: [Function (anonymous)],
+      _currentRequest: [Circular *1],
+      _currentUrl: 'https://api.github.com/repos/S0ft1/CSVW-RDF-convertor/releases', 
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false
+    },
+    [Symbol(shapeMode)]: false,
+    [Symbol(kCapture)]: false,
+    [Symbol(kBytesWritten)]: 0,
+    [Symbol(kNeedDrain)]: false,
+    [Symbol(corked)]: 0,
+    [Symbol(kChunkedBuffer)]: [],
+    [Symbol(kChunkedLength)]: 0,
+    [Symbol(kSocket)]: TLSSocket {
+      _tlsOptions: [Object],
+      _secureEstablished: true,
+      _securePending: false,
+      _newSessionPending: false,
+      _controlReleased: true,
+      secureConnecting: false,
+      _SNICallback: null,
+      servername: 'api.github.com',
+      alpnProtocol: false,
+      authorized: true,
+      authorizationError: null,
+      encrypted: true,
+      _events: [Object: null prototype],
+      _eventsCount: 9,
+      connecting: false,
+      _hadError: false,
+      _parent: null,
+      _host: 'api.github.com',
+      _closeAfterHandlingError: false,
+      _readableState: [ReadableState],
+      _writableState: [WritableState],
+      allowHalfOpen: false,
+      _maxListeners: undefined,
+      _sockname: null,
+      _pendingData: null,
+      _pendingEncoding: '',
+      server: undefined,
+      _server: null,
+      ssl: null,
+      _requestCert: true,
+      _rejectUnauthorized: true,
+      timeout: 5000,
+      parser: null,
+      _httpMessage: null,
+      [Symbol(alpncallback)]: null,
+      [Symbol(res)]: null,
+      [Symbol(verified)]: true,
+      [Symbol(pendingSession)]: null,
+      [Symbol(async_id_symbol)]: -1,
+      [Symbol(kHandle)]: null,
+      [Symbol(lastWriteQueueSize)]: 0,
+      [Symbol(timeout)]: Timeout {
+        _idleTimeout: -1,
+        _idlePrev: null,
+        _idleNext: null,
+        _idleStart: 29709,
+        _onTimeout: null,
+        _timerArgs: undefined,
+        _repeat: null,
+        _destroyed: true,
+        [Symbol(refed)]: false,
+        [Symbol(kHasPrimitive)]: false,
+        [Symbol(asyncId)]: 655,
+        [Symbol(triggerId)]: 653,
+        [Symbol(kAsyncContextFrame)]: undefined
+      },
+      [Symbol(kBuffer)]: null,
+      [Symbol(kBufferCb)]: null,
+      [Symbol(kBufferGen)]: null,
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false,
+      [Symbol(kSetNoDelay)]: false,
+      [Symbol(kSetKeepAlive)]: true,
+      [Symbol(kSetKeepAliveInitialDelay)]: 1,
+      [Symbol(kBytesRead)]: 2466,
+      [Symbol(kBytesWritten)]: 733,
+      [Symbol(connect-options)]: [Object]
+    },
+    [Symbol(kOutHeaders)]: [Object: null prototype] {
+      accept: [Array],
+      'content-type': [Array],
+      'user-agent': [Array],
+      'content-length': [Array],
+      'accept-encoding': [Array],
+      host: [Array]
+    },
+    [Symbol(errored)]: null,
+    [Symbol(kHighWaterMark)]: 16384,
+    [Symbol(kRejectNonStandardBodyWrites)]: false,
+    [Symbol(kUniqueHeaders)]: null
+  },
+  response: {
+    status: 404,
+    statusText: 'Not Found',
+    headers: Object [AxiosHeaders] {
+      date: 'Mon, 14 Apr 2025 15:45:21 GMT',
+      'content-type': 'application/json; charset=utf-8',
+      'x-github-media-type': 'github.v3',
+      'x-github-api-version-selected': '2022-11-28',
+      'access-control-expose-headers': 'ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset',
+      'access-control-allow-origin': '*',
+      'strict-transport-security': 'max-age=31536000; includeSubdomains; preload',   
+      'x-frame-options': 'deny',
+      'x-content-type-options': 'nosniff',
+      'x-xss-protection': '0',
+      'referrer-policy': 'origin-when-cross-origin, strict-origin-when-cross-origin',
+      'content-security-policy': "default-src 'none'",
+      vary: 'Accept-Encoding, Accept, X-Requested-With',
+      server: 'github.com',
+      'x-ratelimit-limit': '60',
+      'x-ratelimit-remaining': '45',
+      'x-ratelimit-reset': '1744646437',
+      'x-ratelimit-resource': 'core',
+      'x-ratelimit-used': '15',
+      'content-length': '122',
+      'x-github-request-id': '5683:39CCF8:4B1C8CD:4D7419E:67FD2D91'
+    },
+    config: {
+      transitional: [Object],
+      adapter: [Array],
+      transformRequest: [Array],
+      transformResponse: [Array],
+      timeout: 0,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+      maxContentLength: -1,
+      maxBodyLength: -1,
+      env: [Object],
+      validateStatus: [Function: validateStatus],
+      headers: [Object [AxiosHeaders]],
+      method: 'post',
+      data: '{"tag_name":"v0.0.4","name":"v0.0.4","body":"## 0.0.4 (2025-04-14)\\n\\nThis was a version bump only, there were no code changes.","prerelease":false,"make_latest":"legacy","target_commitish":"d90cd280f86e4b1e048359456d6000182617ef70"}',     
+      baseURL: 'https://api.github.com',
+      url: '/repos/S0ft1/CSVW-RDF-convertor/releases',
+      allowAbsoluteUrls: true
+    },
+    request: <ref *1> ClientRequest {
+      _events: [Object: null prototype],
+      _eventsCount: 7,
+      _maxListeners: undefined,
+      outputData: [],
+      outputSize: 0,
+      writable: true,
+      destroyed: true,
+      _last: false,
+      chunkedEncoding: false,
+      shouldKeepAlive: true,
+      maxRequestsOnConnectionReached: false,
+      _defaultKeepAlive: true,
+      useChunkedEncodingByDefault: true,
+      sendDate: false,
+      _removedConnection: false,
+      _removedContLen: false,
+      _removedTE: false,
+      strictContentLength: false,
+      _contentLength: '233',
+      _hasBody: true,
+      _trailer: '',
+      finished: true,
+      _headerSent: true,
+      _closed: true,
+      _header: 'POST /repos/S0ft1/CSVW-RDF-convertor/releases HTTP/1.1\r\n' +        
+        'Accept: application/json, text/plain, */*\r\n' +
+        'Content-Type: application/json\r\n' +
+        'User-Agent: axios/1.8.3\r\n' +
+        'Content-Length: 233\r\n' +
+        'Accept-Encoding: gzip, compress, deflate, br\r\n' +
+        'Host: api.github.com\r\n' +
+        'Connection: keep-alive\r\n' +
+        '\r\n',
+      _keepAliveTimeout: 0,
+      _onPendingData: [Function: nop],
+      socketPath: undefined,
+      method: 'POST',
+      maxHeaderSize: undefined,
+      insecureHTTPParser: undefined,
+      joinDuplicateHeaders: undefined,
+      path: '/repos/S0ft1/CSVW-RDF-convertor/releases',
+      _ended: true,
+      res: [IncomingMessage],
+      aborted: false,
+      timeoutCb: null,
+      upgradeOrConnect: false,
+      parser: null,
+      maxHeadersCount: null,
+      reusedSocket: true,
+      host: 'api.github.com',
+      protocol: 'https:',
+      _redirectable: [Writable],
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false,
+      [Symbol(kBytesWritten)]: 0,
+      [Symbol(kNeedDrain)]: false,
+      [Symbol(corked)]: 0,
+      [Symbol(kChunkedBuffer)]: [],
+      [Symbol(kChunkedLength)]: 0,
+      [Symbol(kSocket)]: [TLSSocket],
+      [Symbol(kOutHeaders)]: [Object: null prototype],
+      [Symbol(errored)]: null,
+      [Symbol(kHighWaterMark)]: 16384,
+      [Symbol(kRejectNonStandardBodyWrites)]: false,
+      [Symbol(kUniqueHeaders)]: null
+    },
+    data: {
+      message: 'Not Found',
+      documentation_url: 'https://docs.github.com/rest/releases/releases#create-a-release',
+      status: '404'
+    }
+  },
+  status: 404
+}
+Follow up in the browser to manually create the release.
+
+ NX   Skipped publishing packages.
