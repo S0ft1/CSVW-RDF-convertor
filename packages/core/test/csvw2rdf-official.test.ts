@@ -11,7 +11,7 @@ import { isAbsolute, resolve } from 'node:path';
 import { Quad } from 'quadstore';
 import { DataFactory, StreamParser } from 'n3';
 import { Stream } from '@rdfjs/types';
-const { literal, quad } = DataFactory;
+const { literal, quad, namedNode } = DataFactory;
 
 // these need to be here for vscode to find the types
 import fetchMock from 'jest-fetch-mock';
@@ -31,11 +31,11 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.default.resetMocks();
   });
 
-  // skip: 34, 65-72 (#149, #263-#304)
+  // skip: 34 (#149)
 
   for (const entry of manifest.entries
     .filter((e) => e.type === EntryType.Test)
-    .filter((_, i) => i != 34 && (i < 65 || i > 72))) {
+    .filter((_, i) => i != 34)) {
     test(entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
@@ -125,6 +125,11 @@ async function loadRDF(rdfFilePath: string) {
   const stringConstants = new Set(['NaN', 'INF', '-INF']);
   const rdfArray = await rdfStreamToArray(reader.pipe(parser));
   return rdfArray.map((q) => {
+    // normalize relative IRIs
+    const newPred = namedNode(
+      q.predicate.value.replace('http://www.w3.org/2013/csvw/tests/', '')
+    );
+
     // normalize numeric literals
     if (
       q.object.termType === 'Literal' &&
@@ -135,13 +140,17 @@ async function loadRDF(rdfFilePath: string) {
       if (numeric === 0 && q.object.value.startsWith('-')) {
         return quad(q.subject, q.predicate, literal('-0', q.object.datatype));
       }
+      return quad(q.subject, newPred, literal(numeric + '', q.object.datatype));
+    } else if (q.object.termType === 'NamedNode') {
       return quad(
         q.subject,
-        q.predicate,
-        literal(numeric + '', q.object.datatype)
+        newPred,
+        namedNode(
+          q.object.value.replace('http://www.w3.org/2013/csvw/tests/', '')
+        )
       );
     }
-    return q;
+    return quad(q.subject, newPred, q.object, q.graph);
   });
 }
 

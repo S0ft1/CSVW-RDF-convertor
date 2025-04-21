@@ -1,4 +1,4 @@
-import { DescriptorWrapper, normalizeDescriptor } from './core.js';
+import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
 import { Csvw2RdfOptions } from './conversion-options.js';
 import {
   defaultResolveJsonldFn,
@@ -121,7 +121,16 @@ export class CSVW2RDFConvertor {
     validateIdAndType(tg, 'TableGroup');
     validateArray(tg, 'transformations', this.validateTemplate.bind(this));
   }
-  private validateTable(t: CsvwTableDescription, ts: CsvwTableDescription[]) {
+  private validateTable(
+    t: CsvwTableDescription,
+    ts: CsvwTableDescription[],
+    input: DescriptorWrapper
+  ) {
+    const base =
+      (Array.isArray(input.descriptor['@context']) &&
+        input.descriptor['@context'][1]?.['@base']) ||
+      '';
+    t.url = base + t.url;
     this.validateInheritedProperties(t);
     this.validateDialect(t.dialect);
     validateIdAndType(t, 'Table');
@@ -452,7 +461,7 @@ export class CSVW2RDFConvertor {
     table: CsvwTableDescription,
     input: DescriptorWrapper
   ) {
-    this.validateTable(table, Array.from(input.getTables()));
+    this.validateTable(table, Array.from(input.getTables()), input);
 
     //4.1
     const tableNode = this.createNode(table);

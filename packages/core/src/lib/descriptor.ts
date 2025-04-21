@@ -65,7 +65,8 @@ export async function normalizeDescriptor(
   return new DescriptorWrapper(
     (await compactCsvwNs(
       internal,
-      docLoader
+      docLoader,
+      parsedDescriptor['@context'] || csvwNs
     )) as unknown as CompactedCsvwDescriptor,
     idMap
   );
@@ -124,6 +125,7 @@ async function loadReferencedSubdescriptors(
   if (csvwNs + '#table' in root) {
     objects.push(...(root[csvwNs + '#table'] as JsonLdArray));
   }
+  const base = (Array.isArray(originalCtx) && originalCtx[1]['@base']) || '';
 
   for (const object of objects) {
     for (const key of ['#tableSchema', '#dialect']) {
@@ -132,7 +134,10 @@ async function loadReferencedSubdescriptors(
         if ('@id' in refContainer && Object.keys(refContainer).length === 1) {
           // is a reference
           const doc = await options.resolveJsonldFn(
-            replaceUrl(refContainer['@id'] as string, options.pathOverrides),
+            replaceUrl(
+              (base + refContainer['@id']) as string,
+              options.pathOverrides
+            ),
             options.baseIRI
           );
           const parsed = JSON.parse(doc);
@@ -159,12 +164,14 @@ async function loadReferencedSubdescriptors(
  */
 async function compactCsvwNs(
   descriptor: any,
-  docLoader: (url: string) => Promise<RemoteDocument>
+  docLoader: (url: string) => Promise<RemoteDocument>,
+  ctx: AnyCsvwDescriptor['@context']
 ) {
   const compacted = await jsonld.compact(descriptor, csvwNs as any, {
     documentLoader: docLoader,
   });
   shortenProps(compacted);
+  compacted['@context'] = ctx as any;
   return compacted;
 }
 
