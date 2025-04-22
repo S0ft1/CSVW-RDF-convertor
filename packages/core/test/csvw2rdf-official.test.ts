@@ -11,12 +11,13 @@ import { isAbsolute, resolve } from 'node:path';
 import { Quad } from 'quadstore';
 import { DataFactory, StreamParser } from 'n3';
 import { Stream } from '@rdfjs/types';
+import { IssueTracker } from '../src/lib/utils/issue-tracker.js';
+import { Readable } from 'node:stream';
 const { literal, quad, namedNode } = DataFactory;
 
 // these need to be here for vscode to find the types
 import fetchMock from 'jest-fetch-mock';
 import 'jest-rdf';
-import { Readable } from 'node:stream';
 
 const testDir = resolve(
   fileURLToPath(import.meta.url),
@@ -31,12 +32,14 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.default.resetMocks();
   });
 
-  // skip: 34 (#149)
+  // skip: #149, #93, #100, #107, #148
+
+  const i = 86;
 
   for (const entry of manifest.entries
-    .filter((e) => e.type === EntryType.Test)
-    .filter((_, i) => i != 34)) {
-    test(entry.name, async () => {
+    .filter((e) => e.type === EntryType.TestWithWarnings)
+    .slice(0, 86)) {
+    test('#' + entry.id.slice(-3) + ': ' + entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
           [
@@ -49,16 +52,20 @@ describe('CSVW -> RDF Official tests', () => {
       };
 
       switch (entry.type) {
-        // TODO: check warnings
         case EntryType.Test:
         case EntryType.TestWithWarnings: {
           const expected = await loadRDF(
             resolve(testDir, entry.result as string)
           );
-          const actual = await rdfStreamToArray(
-            await runConversion(options, entry)
-          );
+          const [stream, issueTracker] = await runConversion(options, entry);
+          const actual = await rdfStreamToArray(stream);
+          console.log(issueTracker.getWarnings());
           expect(actual).toBeRdfIsomorphic(expected);
+          if (entry.type === EntryType.TestWithWarnings) {
+            expect(issueTracker.getWarnings()).not.toHaveLength(0);
+          } else {
+            expect(issueTracker.getWarnings()).toEqual([]);
+          }
           break;
         }
 
@@ -73,7 +80,10 @@ describe('CSVW -> RDF Official tests', () => {
   }
 });
 
-async function runConversion(options: Csvw2RdfOptions, entry: Entry) {
+async function runConversion(
+  options: Csvw2RdfOptions,
+  entry: Entry
+): Promise<[Stream<Quad>, IssueTracker]> {
   const fromCsvUrl = !!entry.action.match(/\.csv([?#].*)?/);
   const convertor = new CSVW2RDFConvertor({
     ...options,
@@ -83,13 +93,19 @@ async function runConversion(options: Csvw2RdfOptions, entry: Entry) {
 
   if (fromCsvUrl && !entry.option.metadata) {
     setupImplicit(entry);
-    return convertor.convertFromCsvUrl(entry.action);
+    return [
+      await convertor.convertFromCsvUrl(entry.action),
+      convertor.issueTracker,
+    ];
   }
   const descriptor = await readFile(
     resolve(testDir, entry.option.metadata ?? entry.action),
     'utf-8'
   );
-  return convertor.convert(descriptor, entry.option.metadata ?? entry.action);
+  return [
+    await convertor.convert(descriptor, entry.option.metadata ?? entry.action),
+    convertor.issueTracker,
+  ];
 }
 
 async function loadJsonLd(path: string, base: string): Promise<string> {

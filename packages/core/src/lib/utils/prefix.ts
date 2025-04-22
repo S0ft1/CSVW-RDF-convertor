@@ -1,3 +1,4 @@
+import { CsvwBuiltinDatatype } from '../types/descriptor/datatype.js';
 import { csvwNs } from '../types/descriptor/namespace.js';
 
 /**
@@ -91,7 +92,7 @@ export interface PrefixCCResponse {
   [key: string]: string;
 }
 
-const { xsd } = commonPrefixes;
+const { xsd, rdf, csvw } = commonPrefixes;
 
 export const numericTypes = new Set([
   xsd + 'integer',
@@ -117,3 +118,54 @@ export const dateTypes = new Set([
   xsd + 'time',
   xsd + 'dateTimeStamp',
 ]);
+export const dtUris: Record<CsvwBuiltinDatatype, string> = {
+  any: xsd + 'anyAtomicType',
+  anyAtomicType: xsd + 'anyAtomicType',
+  anyURI: xsd + 'anyURI',
+  base64Binary: xsd + 'base64Binary',
+  binary: xsd + 'base64Binary',
+  boolean: xsd + 'boolean',
+  byte: xsd + 'byte',
+  date: xsd + 'date',
+  datetime: xsd + 'dateTime',
+  dateTime: xsd + 'dateTime',
+  dateTimeStamp: xsd + 'dateTimeStamp',
+  dayTimeDuration: xsd + 'dayTimeDuration',
+  decimal: xsd + 'decimal',
+  double: xsd + 'double',
+  duration: xsd + 'duration',
+  float: xsd + 'float',
+  gDay: xsd + 'gDay',
+  gMonth: xsd + 'gMonth',
+  gMonthDay: xsd + 'gMonthDay',
+  gYear: xsd + 'gYear',
+  gYearMonth: xsd + 'gYearMonth',
+  hexBinary: xsd + 'hexBinary',
+  html: rdf + 'HTML',
+  int: xsd + 'int',
+  integer: xsd + 'integer',
+  json: csvw + 'JSON',
+  language: xsd + 'language',
+  long: xsd + 'long',
+  Name: xsd + 'Name',
+  negativeInteger: xsd + 'negativeInteger',
+  NMTOKEN: xsd + 'NMTOKEN',
+  nonNegativeInteger: xsd + 'nonNegativeInteger',
+  nonPositiveInteger: xsd + 'nonPositiveInteger',
+  normalizedString: xsd + 'normalizedString',
+  number: xsd + 'double',
+  positiveInteger: xsd + 'positiveInteger',
+  QName: xsd + 'QName',
+  short: xsd + 'short',
+  string: xsd + 'string',
+  time: xsd + 'time',
+  token: xsd + 'token',
+  unsignedByte: xsd + 'unsignedByte',
+  unsignedInt: xsd + 'unsignedInt',
+  unsignedLong: xsd + 'unsignedLong',
+  unsignedShort: xsd + 'unsignedShort',
+  xml: rdf + 'XMLLiteral',
+  yearMonthDuration: xsd + 'yearMonthDuration',
+};
+
+export const invalidValuePrefix = '@';

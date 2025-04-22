@@ -12,6 +12,7 @@ import { Quad, Quadstore } from 'quadstore';
 import { BlankNode, NamedNode } from 'n3';
 import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
+import { IssueTracker } from './utils/issue-tracker.js';
 
 /**
  * Normalize the JSON-LD descriptor to a specific format.
@@ -22,6 +23,7 @@ import { validate as bcp47Validate } from 'bcp47-validate';
 export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
   options: Required<Csvw2RdfOptions>,
+  issueTracker: IssueTracker,
   url?: string
 ): Promise<DescriptorWrapper> {
   const docLoader = async (url: string) => {
@@ -43,17 +45,27 @@ export async function normalizeDescriptor(
     typeof parsedDescriptor['@id'] !== 'string' &&
     url
   ) {
+    issueTracker.addWarning(
+      `Invalid @id: ${JSON.stringify(parsedDescriptor['@id'])}`
+    );
     parsedDescriptor['@id'] = url;
   }
-  removeInvalidIds(parsedDescriptor);
-  validateLanguage(parsedDescriptor as NodeObject);
+  removeInvalidIdsAndLangmaps(parsedDescriptor, issueTracker);
+  validateLanguage(parsedDescriptor as NodeObject, issueTracker);
   const originalCtx = parsedDescriptor['@context'];
 
   const expanded = await jsonld.expand(
     parsedDescriptor as jsonld.JsonLdDocument,
     { documentLoader: docLoader }
   );
-  await loadReferencedSubdescriptors(expanded, docLoader, options, originalCtx);
+  await loadReferencedSubdescriptors(
+    expanded,
+    docLoader,
+    options,
+    originalCtx,
+    issueTracker
+  );
+
   const compactedExpanded = (await jsonld.compact(
     expanded,
     {},
@@ -73,18 +85,38 @@ export async function normalizeDescriptor(
 }
 
 /**
- * Removes `@id` properties which are not strings from the descriptor.
+ * Removes `@id` properties which are not strings from the descriptor, as well as invalid language maps.
  * This is needed because the JSON-LD parser throws errors but we want to ignore them.
  * @param obj descriptor as parsed expanded JSON-LD
  */
-function removeInvalidIds(obj: Record<string, any>) {
+function removeInvalidIdsAndLangmaps(
+  obj: Record<string, any>,
+  issueTracker: IssueTracker
+) {
   for (const key in obj) {
     if (key === '@id') {
       if (typeof obj[key] !== 'string') {
+        issueTracker.addWarning(`Invalid @id: ${JSON.stringify(obj[key])}`);
         obj[key] = '';
       }
+    } else if (key === 'titles' || key === csvwNs + '#title') {
+      const titles = obj[key] ?? obj[csvwNs + '#title'];
+      if (titles && typeof titles === 'object') {
+        for (const key in titles) {
+          if (
+            typeof titles[key] !== 'string' &&
+            (!Array.isArray(titles[key]) ||
+              titles[key].some((t: any) => typeof t !== 'string'))
+          ) {
+            issueTracker.addWarning(
+              `Invalid title: ${JSON.stringify(titles[key])}`
+            );
+            delete titles[key];
+          }
+        }
+      }
     } else if (typeof obj[key] === 'object') {
-      removeInvalidIds(obj[key]);
+      removeInvalidIdsAndLangmaps(obj[key], issueTracker);
     }
   }
 }
@@ -93,13 +125,14 @@ function removeInvalidIds(obj: Record<string, any>) {
  * Validates the language tags in the descriptor and removes invalid ones.
  * @param obj descriptor as parsed expanded JSON-LD
  */
-function validateLanguage(obj: NodeObject) {
+function validateLanguage(obj: NodeObject, issueTracker: IssueTracker) {
   const ctx = Array.isArray(obj['@context'])
     ? obj['@context']
     : [obj['@context']];
   for (const c of ctx) {
     if (typeof c === 'object' && c?.['@language']) {
       if (!bcp47Validate(c['@language'])) {
+        issueTracker.addWarning(`Invalid language tag: ${c['@language']}`);
         delete c['@language'];
       }
     }
@@ -118,7 +151,8 @@ async function loadReferencedSubdescriptors(
     documentUrl: string;
   }>,
   options: Required<Csvw2RdfOptions>,
-  originalCtx: AnyCsvwDescriptor['@context']
+  originalCtx: AnyCsvwDescriptor['@context'],
+  issueTracker: IssueTracker
 ) {
   const root = descriptor[0];
   const objects = [root];
@@ -144,8 +178,8 @@ async function loadReferencedSubdescriptors(
           if (parsed['@id'] && typeof parsed['@id'] !== 'string') {
             parsed['@id'] = refContainer['@id'];
           }
-          removeInvalidIds(parsed);
-          validateLanguage(parsed as NodeObject);
+          removeInvalidIdsAndLangmaps(parsed, issueTracker);
+          validateLanguage(parsed as NodeObject, issueTracker);
           const subdescriptor = await jsonld.expand(
             { '@context': originalCtx as any, [csvwNs + key]: parsed },
             { documentLoader: docLoader }

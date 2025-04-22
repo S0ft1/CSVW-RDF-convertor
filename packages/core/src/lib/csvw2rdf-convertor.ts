@@ -10,6 +10,8 @@ import { CSVParser } from './csv-parser.js';
 import {
   commonPrefixes,
   dateTypes,
+  dtUris,
+  invalidValuePrefix,
   numericTypes,
   XSD_TEMP,
   XSD_TEMP_PREFIX,
@@ -18,11 +20,7 @@ import { coerceArray } from './utils/coerce.js';
 
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
-import {
-  CsvwBuiltinDatatype,
-  CsvwDatatype,
-  CsvwNumberFormat,
-} from './types/descriptor/datatype.js';
+import { CsvwDatatype, CsvwNumberFormat } from './types/descriptor/datatype.js';
 import { CsvwInheritedProperties } from './types/descriptor/inherited-properties.js';
 import { CsvwColumnDescription } from './types/descriptor/column-description.js';
 import { CsvwDialectDescription } from './types/descriptor/dialect-description.js';
@@ -35,17 +33,14 @@ import { Quad, Stream } from '@rdfjs/types';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { replaceUrl } from './utils/replace-url.js';
 import { format } from 'date-fns';
-import { parseNumber } from './utils/parse-number.js';
-import { validate as bcp47Validate } from 'bcp47-validate';
-import {
-  CsvwForeignKeyDefinition,
-  CsvwSchemaDescription,
-} from './types/descriptor/schema-description.js';
-import { CsvwTransformationDefinition } from './types/descriptor/transformation-definition.js';
-import { validateArray, validateIdAndType } from './utils/validation.js';
 import { parseDate } from './utils/parse-date.js';
 import { tz } from '@date-fns/tz';
 import EventEmitter from 'node:events';
+import { validateTableGroup } from './validation/table-group.js';
+import { validateTable } from './validation/table.js';
+import { IssueTracker } from './utils/issue-tracker.js';
+import { CsvLocationTracker } from './utils/code-location.js';
+import { NumberParser } from './utils/parse-number.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -56,10 +51,15 @@ interface Templates {
   value: Record<string, Template>;
 }
 
-/** Class responsible for converting from CSVW to RDF. */
+/**
+ * Class responsible for converting from CSVW to RDF. This class should not be used in parallel.
+ */
 export class CSVW2RDFConvertor {
   private options: Required<Csvw2RdfOptions>;
   private store: Quadstore;
+  public issueTracker: IssueTracker;
+  private location: CsvLocationTracker;
+  private numberParser: NumberParser;
 
   /**
    * Creates a new instance of the convertor.
@@ -80,9 +80,12 @@ export class CSVW2RDFConvertor {
     descriptor: string | AnyCsvwDescriptor,
     originalUrl?: string
   ): Promise<Stream> {
+    this.location = new CsvLocationTracker();
+    this.issueTracker = new IssueTracker(this.location);
     const wrapper = await normalizeDescriptor(
       descriptor,
       this.options,
+      this.issueTracker,
       originalUrl
     );
     return this.convertInner(wrapper);
@@ -96,8 +99,9 @@ export class CSVW2RDFConvertor {
    * @returns RDF stream
    */
   public async convertFromCsvUrl(url: string) {
-    const [json, resolvedUrl] = await this.resolveMetadata(url);
-    const wrapper = await normalizeDescriptor(json, this.options, resolvedUrl);
+    this.location = new CsvLocationTracker();
+    this.issueTracker = new IssueTracker(this.location);
+    const [wrapper, resolvedUrl] = await this.resolveMetadata(url);
     this.options.baseIRI = resolvedUrl;
     const tablesWithoutUrl = Array.from(wrapper.getTables()).filter(
       (table) => !table.url
@@ -112,184 +116,29 @@ export class CSVW2RDFConvertor {
     return this.convertInner(wrapper);
   }
 
-  private validateTableGroup(tg: CsvwTableGroupDescription) {
-    this.validateInheritedProperties(tg);
-    this.validateDialect(tg.dialect);
-    if (!tg.tables?.length) {
-      throw new Error('Table group must contain at least one table');
-    }
-    validateIdAndType(tg, 'TableGroup');
-    validateArray(tg, 'transformations', this.validateTemplate.bind(this));
-  }
-  private validateTable(
-    t: CsvwTableDescription,
-    ts: CsvwTableDescription[],
-    input: DescriptorWrapper
-  ) {
-    const base =
-      (Array.isArray(input.descriptor['@context']) &&
-        input.descriptor['@context'][1]?.['@base']) ||
-      '';
-    t.url = base + t.url;
-    this.validateInheritedProperties(t);
-    this.validateDialect(t.dialect);
-    validateIdAndType(t, 'Table');
-    this.validateSchema(t.tableSchema, ts);
-    validateArray(t, 'transformations', this.validateTemplate.bind(this));
-  }
-  private validateSchema(
-    schema: CsvwSchemaDescription | undefined,
-    tables: CsvwTableDescription[]
-  ) {
-    if (!schema) return;
-    validateIdAndType(schema, 'Schema');
-    validateArray(schema, 'foreignKeys', (fk) =>
-      this.validateForeignKey(fk, schema, tables)
-    );
-    validateArray(schema, 'columns', this.validateColumn.bind(this));
-  }
-  private validateForeignKey(
-    fk: CsvwForeignKeyDefinition,
-    schema: CsvwSchemaDescription,
-    tables: CsvwTableDescription[]
-  ) {
-    const colRef = coerceArray(fk.columnReference);
-    for (const col of colRef) {
-      if (!schema.columns?.some((c) => c.name === col)) {
-        throw new Error(`Column ${col} not found in schema`);
-      }
-    }
-
-    let table: CsvwTableDescription | undefined;
-    if (fk.reference.resource) {
-      table = tables.find((t) => t.url === fk.reference.resource);
-      if (!table) {
-        throw new Error(`Table ${fk.reference.resource} not found`);
-      }
-    } else if (fk.reference.schemaReference) {
-      table = tables.find(
-        (t) => t.tableSchema?.['@id'] === fk.reference.schemaReference
-      );
-      if (!table) {
-        throw new Error(
-          `Schema ${fk.reference.schemaReference} not found in tables`
-        );
-      }
-    }
-    if (!table) {
-      throw new Error('Table not found');
-    }
-
-    const remoteRef = coerceArray(fk.reference.columnReference);
-    for (const col of remoteRef) {
-      if (!table.tableSchema?.columns?.some((c) => c.name === col)) {
-        throw new Error(`Column ${col} not found in table ${table.url}`);
-      }
-    }
-  }
-  private validateColumn(c: CsvwColumnDescription) {
-    this.validateInheritedProperties(c);
-    validateIdAndType(c, 'Column');
-  }
-  private validateInheritedProperties(props: CsvwInheritedProperties) {
-    if (props.lang !== undefined && !bcp47Validate(props.lang)) {
-      delete props.lang;
-    }
-    this.validateDatatype(props);
-    for (const urlType of ['aboutUrl', 'propertyUrl', 'valueUrl'] as const) {
-      if (props[urlType] !== undefined) {
-        if (typeof props[urlType] !== 'string') {
-          props[urlType] = '';
-        }
-      }
-    }
-  }
-  private validateTemplate(template: CsvwTransformationDefinition) {
-    if (!template || typeof template !== 'object') return;
-    validateIdAndType(template, 'Template');
-  }
-  private validateDialect(dialect: CsvwDialectDescription | undefined) {
-    if (!dialect) return;
-    validateIdAndType(dialect, 'Dialect');
-    for (const strKey of ['commentPrefix', 'delimiter'] as const) {
-      if (
-        dialect[strKey] !== undefined &&
-        typeof dialect[strKey] !== 'string'
-      ) {
-        delete dialect[strKey];
-      }
-    }
-    for (const boolKey of [
-      'doubleQuote',
-      'header',
-      'skipBlankRows',
-      'skipInitialSpace',
-    ] as const) {
-      if (
-        dialect[boolKey] !== undefined &&
-        typeof dialect[boolKey] !== 'boolean'
-      ) {
-        delete dialect[boolKey];
-      }
-    }
-
-    if (
-      dialect.headerRowCount !== undefined &&
-      (typeof dialect.headerRowCount !== 'number' || dialect.headerRowCount < 0)
-    ) {
-      delete dialect.headerRowCount;
-    }
-    if (
-      dialect.skipColumns !== undefined &&
-      (typeof dialect.skipColumns !== 'number' || dialect.skipColumns < 0)
-    ) {
-      delete dialect.skipColumns;
-    }
-    if (
-      dialect.skipRows !== undefined &&
-      (typeof dialect.skipRows !== 'number' || dialect.skipRows < 0)
-    ) {
-      delete dialect.skipRows;
-    }
-
-    if (dialect.lineTerminators !== undefined) {
-      dialect.lineTerminators = coerceArray(dialect.lineTerminators).filter(
-        (t) => typeof t === 'string'
-      );
-    }
-    if (
-      dialect.quoteChar !== undefined &&
-      typeof dialect.quoteChar !== 'string' &&
-      dialect.quoteChar !== null
-    ) {
-      delete dialect.quoteChar;
-    }
-    if (dialect.trim !== undefined && typeof dialect.trim !== 'boolean') {
-      if (['true', 'false', 'start', 'end'].includes(dialect.trim)) {
-        delete dialect.trim;
-      }
-    }
-    if (
-      dialect.encoding !== undefined &&
-      !Buffer.isEncoding(dialect.encoding)
-    ) {
-      delete dialect.encoding;
-    }
-  }
-
   private async convertInner(input: DescriptorWrapper): Promise<Stream<Quad>> {
+    this.numberParser = new NumberParser(this.issueTracker);
     await this.openStore();
     if (!this.options.baseIRI) {
       this.options.baseIRI = input.descriptor['@id'] ?? '';
+    }
+
+    if (input.isTableGroup) {
+      validateTableGroup(input.descriptor as CsvwTableGroupDescription, {
+        input,
+        issueTracker: this.issueTracker,
+      });
+    } else {
+      validateTable(input.descriptor as CsvwTableDescription, {
+        input,
+        issueTracker: this.issueTracker,
+      });
     }
 
     // 1
     const groupNode = this.createNode(
       input.isTableGroup ? input.descriptor : {}
     );
-    if (input.isTableGroup) {
-      this.validateTableGroup(input.descriptor as CsvwTableGroupDescription);
-    }
     if (!this.options.minimal) {
       //2
       await this.emitTriple(
@@ -364,22 +213,14 @@ export class CSVW2RDFConvertor {
    */
   private async resolveMetadata(
     csvUrl: string
-  ): Promise<[AnyCsvwDescriptor, string]> {
+  ): Promise<[DescriptorWrapper, string]> {
     let expandedUrl = replaceUrl(csvUrl, this.options.pathOverrides);
     expandedUrl = new URL(expandedUrl, this.options.baseIRI || expandedUrl)
       .href;
 
     // metadata in a document linked to using a Link header associated with the tabular data file.
-    try {
-      // TODO: Maybe reconsider this resolveJsonldFn API?
-      const descriptor = await this.options.resolveJsonldFn(
-        expandedUrl,
-        this.options.baseIRI
-      );
-      return [JSON.parse(descriptor), expandedUrl];
-    } catch {
-      // that apparently didn't work, let's move on
-    }
+    let result = await this.verifyMetadataUrl(expandedUrl, expandedUrl);
+    if (result) return result;
 
     // metadata located through default paths which may be overridden by a site-wide location configuration.
     const cleanUrl = new URL(expandedUrl);
@@ -391,28 +232,63 @@ export class CSVW2RDFConvertor {
         expandedUrl
       ).href;
       resolvedUrl = replaceUrl(resolvedUrl, this.options.pathOverrides);
-      try {
-        const descriptor = await this.options.resolveJsonldFn(
-          resolvedUrl,
-          this.options.baseIRI
-        );
-        return [JSON.parse(descriptor), resolvedUrl];
-      } catch {
-        // that didn't work either
-      }
+      result = await this.verifyMetadataUrl(resolvedUrl, expandedUrl);
+      if (result) return result;
     }
 
     return [
-      {
-        '@context': 'http://www.w3.org/ns/csvw',
-        'rdfs:comment': [],
-        tableSchema: {
-          columns: [],
+      await normalizeDescriptor(
+        {
+          '@context': 'http://www.w3.org/ns/csvw',
+          'rdfs:comment': [],
+          tableSchema: {
+            columns: [],
+          },
+          url: csvUrl.split('/').pop() as string,
         },
-        url: csvUrl,
-      },
+        this.options,
+        this.issueTracker,
+        expandedUrl
+      ),
       expandedUrl,
     ];
+  }
+
+  /**
+   * Verify that the metadata URL is valid and contains a table description that matches the CSV file.
+   * @param url url to the descriptor
+   * @param csvUrl url to the CSV file
+   * @returns either descriptor and url or null if the descriptor is not valid
+   */
+  private async verifyMetadataUrl(
+    url: string,
+    csvUrl: string
+  ): Promise<[DescriptorWrapper, string] | null> {
+    try {
+      const descriptor = await this.options.resolveJsonldFn(
+        url,
+        this.options.baseIRI
+      );
+      const wrapper = await normalizeDescriptor(
+        JSON.parse(descriptor),
+        this.options,
+        this.issueTracker,
+        url
+      );
+      for (const t of wrapper.getTables()) {
+        let expandedUrl = replaceUrl(t.url ?? '', this.options.pathOverrides);
+        expandedUrl = new URL(expandedUrl, url).href;
+        if (!t.url || expandedUrl === csvUrl) {
+          return [wrapper, url];
+        }
+      }
+      this.issueTracker.addWarning(
+        `Metadata file ${url} does not contain a table that matches the CSV file ${csvUrl}`
+      );
+    } catch {
+      // ignore errors
+    }
+    return null;
   }
 
   /**
@@ -461,7 +337,7 @@ export class CSVW2RDFConvertor {
     table: CsvwTableDescription,
     input: DescriptorWrapper
   ) {
-    this.validateTable(table, Array.from(input.getTables()), input);
+    this.location.update({ table: table.url });
 
     //4.1
     const tableNode = this.createNode(table);
@@ -590,12 +466,29 @@ export class CSVW2RDFConvertor {
     dialect: CsvwDialectDescription,
     input: DescriptorWrapper
   ): Promise<string[] | undefined> {
-    const defaultLang = this.inherit('lang', table, input.descriptor) ?? 'und';
+    const defaultLang =
+      this.inherit('lang', table, input.descriptor) ??
+      (input.descriptor['@context']?.[1] as any)?.['@language'] ??
+      '@none';
 
     const headerRowCount =
       dialect.headerRowCount ?? (dialect.header ?? true ? 1 : 0);
     if (table.tableSchema === undefined) table.tableSchema = {};
     if (table.tableSchema.columns === undefined) table.tableSchema.columns = [];
+
+    for (const col of table.tableSchema.columns) {
+      if (
+        col.titles &&
+        typeof col.titles === 'object' &&
+        !Array.isArray(col.titles) &&
+        '@none' in col.titles &&
+        !(defaultLang in col.titles)
+      ) {
+        col.titles[defaultLang] = col.titles['@none'];
+        delete col.titles['@none'];
+      }
+    }
+
     for (let i = 0; i < headerRowCount; ++i) {
       const header = await stream.next();
       if (header.done) {
@@ -604,17 +497,51 @@ export class CSVW2RDFConvertor {
       const vals = header.value.slice(dialect.skipColumns ?? 0);
       for (let j = 0; j < vals.length; ++j) {
         if (!vals[j]) continue;
+        let modified = false;
         let col = table.tableSchema.columns[j];
         if (!col) {
           col = {};
           table.tableSchema.columns[j] = col;
         }
         if (col.titles === undefined) col.titles = [vals[j]];
-        else if (Array.isArray(col.titles)) col.titles.push(vals[j]);
-        else if (typeof col.titles === 'string') {
-          col.titles = [col.titles, vals[j]];
-        } else {
+        else if (Array.isArray(col.titles)) {
+          if (col.titles.includes(vals[j])) continue;
+          col.titles.push(vals[j]);
+          modified = true;
+        } else if (typeof col.titles === 'string') {
+          if (col.titles !== vals[j]) {
+            col.titles = [col.titles, vals[j]];
+            modified = true;
+          }
+        } else if (col.titles[defaultLang] === undefined) {
           col.titles[defaultLang] = vals[j];
+          console.log(col.titles, vals[j], defaultLang);
+          modified = Object.keys(col.titles).length > 1;
+        } else if (typeof col.titles[defaultLang] === 'string') {
+          if (col.titles[defaultLang] !== vals[j]) {
+            col.titles[defaultLang] = [col.titles[defaultLang], vals[j]];
+            modified = true;
+          }
+        } else if (!col.titles[defaultLang].includes(vals[j])) {
+          col.titles[defaultLang].push(vals[j]);
+          modified = true;
+        }
+
+        if (modified && i === 0) {
+          const title = coerceArray(
+            typeof col.titles === 'object' && !Array.isArray(col.titles)
+              ? col.titles[defaultLang]
+              : col.titles
+          )[0];
+          if (title === vals[j]) {
+            this.issueTracker.addWarning(
+              `Column title language is different from header in the CSV file "${vals[j]}"@${defaultLang}`
+            );
+          } else {
+            this.issueTracker.addWarning(
+              `Column title "${title}"@ is different from header in the CSV file "${vals[j]}"`
+            );
+          }
         }
       }
     }
@@ -653,53 +580,6 @@ export class CSVW2RDFConvertor {
   }
 
   /**
-   * Validate datatype formats of the column descriptions in the table.
-   * @param table - Table description
-   */
-  private validateDatatype(props: CsvwInheritedProperties) {
-    const dt = props.datatype;
-    if (dt === undefined) return;
-    if (typeof dt === 'string') {
-      if (!(dt in CSVW2RDFConvertor.dtUris)) {
-        delete props.datatype;
-      }
-      return;
-    }
-    if (dt.base && !(dt.base in CSVW2RDFConvertor.dtUris)) {
-      dt.base = 'string';
-    }
-    if (!dt.base || !dt.format) return;
-
-    if (numericTypes.has(xsd + dt.base)) {
-      if (typeof dt.format === 'string') {
-        dt.format = { pattern: dt.format };
-      }
-      if (typeof (dt.format as CsvwNumberFormat).decimalChar !== 'string') {
-        (dt.format as CsvwNumberFormat).decimalChar = '.';
-      }
-      if (typeof (dt.format as CsvwNumberFormat).groupChar !== 'string') {
-        (dt.format as CsvwNumberFormat).groupChar = ',';
-      }
-      return;
-    }
-    if (typeof dt.format !== 'string') {
-      dt.format = undefined;
-      return;
-    }
-
-    if (dt.base === 'boolean') {
-      if (!dt.format.includes('|')) {
-        dt.format = undefined;
-      }
-      return;
-    }
-
-    if (!dateTypes.has(xsd + dt.base) && dt.base !== 'datetime') {
-      dt.format = new RegExp(dt.format);
-    }
-  }
-
-  /**
    * Converts table row to RDF by row number.
    * @param {string[]} row - The row to be converted.
    * @param {number} rowNum - The row number.
@@ -716,6 +596,8 @@ export class CSVW2RDFConvertor {
     table: CsvwTableDescription,
     input: DescriptorWrapper
   ) {
+    this.location.update({ row: rowNum });
+
     //4.6.1
     const rowNode: BlankNode = blankNode();
     //4.6.2 done by caller
@@ -761,6 +643,7 @@ export class CSVW2RDFConvertor {
     // fill values (we need them all to process template uris)
     for (let i = 0; i < totalCols; ++i) {
       const col = table.tableSchema?.columns?.[i] as CsvwColumnDescription;
+      this.location.update({ column: i });
       const [dtUri, dt] = this.normalizeDatatype(col, table, tg);
 
       values[col.name as string] = await this.interpretDatatype(
@@ -776,7 +659,7 @@ export class CSVW2RDFConvertor {
     // now we can safely process the values
     for (let i = 0; i < totalCols; ++i) {
       const col = table.tableSchema?.columns?.[i] as CsvwColumnDescription;
-      if (col.suppressOutput || values[col.name as string] === null) continue;
+      if (col.suppressOutput) continue;
 
       await this.convertRowCell(
         col,
@@ -849,6 +732,15 @@ export class CSVW2RDFConvertor {
     colNum: number,
     colsOffset: number
   ) {
+    this.location.update({ column: colNum });
+
+    if (values[col.name as string] === null) {
+      if (col.required) {
+        this.issueTracker.addWarning('Null value in a required column');
+      }
+      return;
+    }
+
     const [dtUri] = this.normalizeDatatype(
       col,
       table,
@@ -894,8 +786,7 @@ export class CSVW2RDFConvertor {
     const lang = this.inherit('lang', col, table.tableSchema, table, tg);
 
     if (templates.value[col.name as string] === undefined) {
-      const val = values[col.name as string];
-      if (val === null) return;
+      const val = values[col.name as string] as string | string[];
       if (Array.isArray(val)) {
         if (this.inherit('ordered', col, table.tableSchema, table, tg)) {
           const head = await this.createRDFList(
@@ -953,8 +844,8 @@ export class CSVW2RDFConvertor {
 
     if (!dtUri) {
       dt.base ??= 'string';
-      if (dt.base in CSVW2RDFConvertor.dtUris) {
-        dtUri = CSVW2RDFConvertor.dtUris[dt.base];
+      if (dt.base in dtUris) {
+        dtUri = dtUris[dt.base];
       } else {
         dtUri = xsd + dt.base;
       }
@@ -1034,11 +925,20 @@ export class CSVW2RDFConvertor {
     if (normalizedValue === null) return null;
     if (Array.isArray(normalizedValue)) {
       const formatted = normalizedValue
-        .map((val) => this.formatValue(val, dtUri as string, dt, col))
+        .map((val) =>
+          this.formatValue(val, dtUri as string, dt, col, table, tg)
+        )
         .filter((val) => val !== null);
       return formatted;
     } else {
-      const object = this.formatValue(normalizedValue, dtUri, dt, col);
+      const object = this.formatValue(
+        normalizedValue,
+        dtUri,
+        dt,
+        col,
+        table,
+        tg
+      );
       return object;
     }
   }
@@ -1057,12 +957,24 @@ export class CSVW2RDFConvertor {
     dtUri: string,
     lang?: string
   ): Literal {
+    if (
+      value.startsWith(invalidValuePrefix) &&
+      (numericTypes.has(dtUri) ||
+        dtUri === xsd + 'boolean' ||
+        dateTypes.has(dtUri))
+    ) {
+      return literal(
+        value.slice(invalidValuePrefix.length),
+        namedNode(xsd + 'string')
+      );
+    }
     if (numericTypes.has(dtUri)) {
       return literal(value, namedNode(XSD_TEMP_PREFIX + dtUri));
     }
     if (dtUri === xsd + 'string' && lang) {
       return literal(value, lang);
     }
+
     return literal(value, namedNode(dtUri));
   }
 
@@ -1072,28 +984,49 @@ export class CSVW2RDFConvertor {
    * @param dtUri - datatype URI
    * @param dt - datatype description
    * @param col - column description
-   * @param lang - language tag
+   * @param table - table description
+   * @param tg - table group description
    * @returns the formatted value
    */
   private formatValue(
     value: string,
     dtUri: string,
     dt: CsvwDatatype,
-    col: CsvwColumnDescription
+    col: CsvwColumnDescription,
+    table: CsvwTableDescription,
+    tg?: CsvwTableGroupDescription
   ): string | null {
     if (value === '') value = col.default ?? '';
-    if (this.isValueNull(value, col)) return null;
+    if (this.isValueNull(value, col, table, tg)) return null;
 
     if (numericTypes.has(dtUri)) {
-      value = parseNumber(value, dt.format as CsvwNumberFormat);
+      value = this.numberParser.parse(
+        value,
+        dt.format as CsvwNumberFormat,
+        dtUri
+      );
     } else if (dateTypes.has(dtUri)) {
       value = this.formatDate(value, dtUri, dt);
     } else if (dtUri === xsd + 'boolean') {
       if (dt.format) {
-        const [trueVal] = (dt.format as string).split('|');
-        value = value === trueVal ? 'true' : 'false';
+        const [trueVal, falseVal] = (dt.format as string).split('|');
+        if (value === trueVal) value = 'true';
+        else if (value === falseVal) value = 'false';
+        else {
+          this.issueTracker.addWarning(
+            `Value "${value}" does not match the format "${dt.format}"`
+          );
+          value = invalidValuePrefix + value;
+        }
       } else {
-        value = value === 'true' || value === '1' ? 'true' : 'false';
+        if (value === 'true' || value === '1') value = 'true';
+        else if (value === 'false' || value === '0') value = 'false';
+        else {
+          this.issueTracker.addWarning(
+            `Value "${value}" does not match the format "true|false" or "1|0"`
+          );
+          value = invalidValuePrefix + value;
+        }
       }
     } else if (
       dt.format instanceof RegExp &&
@@ -1101,7 +1034,11 @@ export class CSVW2RDFConvertor {
       dtUri !== xsd + 'xml' &&
       dtUri !== xsd + 'html'
     ) {
-      // maybe validate?
+      if (!value.match(dt.format)) {
+        this.issueTracker.addWarning(
+          `Value "${value}" does not match the format "${dt.format}"`
+        );
+      }
     }
 
     return value;
@@ -1109,6 +1046,16 @@ export class CSVW2RDFConvertor {
 
   private formatDate(value: string, dtUri: string, dt: CsvwDatatype) {
     const date = parseDate(value, dtUri, dt.format as string);
+    if (Number.isNaN(date.getTime())) {
+      if (dt.format) {
+        this.issueTracker.addWarning(
+          `Value "${value}" does not match the format "${dt.format}"`
+        );
+      } else {
+        this.issueTracker.addWarning(`Value "${value}" is not a valid date`);
+      }
+      return invalidValuePrefix + value;
+    }
     let resultFormat =
       dtUri === xsd + 'date'
         ? 'yyyy-MM-dd'
@@ -1140,11 +1087,17 @@ export class CSVW2RDFConvertor {
    * @param col - column description
    * @returns true if the value is null, false otherwise
    */
-  private isValueNull(value: string, col: CsvwColumnDescription) {
-    if (!col.null) return value === '';
-    if (col.null === value) return true;
-    if (Array.isArray(col.null)) {
-      return col.null.some((nullVal) => nullVal === value);
+  private isValueNull(
+    value: string,
+    col: CsvwColumnDescription,
+    table: CsvwTableDescription,
+    tg?: CsvwTableGroupDescription
+  ) {
+    const nullVal = this.inherit('null', col, table.tableSchema, table, tg);
+    if (nullVal === undefined) return value === '';
+    if (nullVal === value) return true;
+    if (Array.isArray(nullVal)) {
+      return nullVal.some((n) => n === value);
     }
     return false;
   }
@@ -1172,7 +1125,7 @@ export class CSVW2RDFConvertor {
     const sep = this.inherit('separator', col, table.tableSchema, table, tg);
     if (sep !== undefined) {
       if (value === '') return [];
-      if (this.isValueNull(value, col)) return null;
+      if (this.isValueNull(value, col, table, tg)) return null;
       const parts = value.split(sep);
       if (dtype !== xsd + 'string' && dtype !== xsd + 'anyAtomicType') {
         return parts.map((part) => part.trim());
@@ -1181,61 +1134,12 @@ export class CSVW2RDFConvertor {
     }
     return value;
   }
-  private static dtUris: Record<CsvwBuiltinDatatype, string> = {
-    any: xsd + 'anyAtomicType',
-    anyAtomicType: xsd + 'anyAtomicType',
-    anyURI: xsd + 'anyURI',
-    base64Binary: xsd + 'base64Binary',
-    binary: xsd + 'base64Binary',
-    boolean: xsd + 'boolean',
-    byte: xsd + 'byte',
-    date: xsd + 'date',
-    datetime: xsd + 'dateTime',
-    dateTime: xsd + 'dateTime',
-    dateTimeStamp: xsd + 'dateTimeStamp',
-    dayTimeDuration: xsd + 'dayTimeDuration',
-    decimal: xsd + 'decimal',
-    double: xsd + 'double',
-    duration: xsd + 'duration',
-    float: xsd + 'float',
-    gDay: xsd + 'gDay',
-    gMonth: xsd + 'gMonth',
-    gMonthDay: xsd + 'gMonthDay',
-    gYear: xsd + 'gYear',
-    gYearMonth: xsd + 'gYearMonth',
-    hexBinary: xsd + 'hexBinary',
-    html: rdf + 'HTML',
-    int: xsd + 'int',
-    integer: xsd + 'integer',
-    json: csvw + 'JSON',
-    language: xsd + 'language',
-    long: xsd + 'long',
-    Name: xsd + 'Name',
-    negativeInteger: xsd + 'negativeInteger',
-    NMTOKEN: xsd + 'NMTOKEN',
-    nonNegativeInteger: xsd + 'nonNegativeInteger',
-    nonPositiveInteger: xsd + 'nonPositiveInteger',
-    normalizedString: xsd + 'normalizedString',
-    number: xsd + 'double',
-    positiveInteger: xsd + 'positiveInteger',
-    QName: xsd + 'QName',
-    short: xsd + 'short',
-    string: xsd + 'string',
-    time: xsd + 'time',
-    token: xsd + 'token',
-    unsignedByte: xsd + 'unsignedByte',
-    unsignedInt: xsd + 'unsignedInt',
-    unsignedLong: xsd + 'unsignedLong',
-    unsignedShort: xsd + 'unsignedShort',
-    xml: rdf + 'XMLLiteral',
-    yearMonthDuration: xsd + 'yearMonthDuration',
-  };
   private static normalizeWsTypes = new Set([
     xsd + 'string',
     xsd + 'normalizedString',
-    CSVW2RDFConvertor.dtUris.xml,
-    CSVW2RDFConvertor.dtUris.html,
-    CSVW2RDFConvertor.dtUris.json,
+    dtUris.xml,
+    dtUris.html,
+    dtUris.json,
     xsd + 'anyAtomicType',
   ]);
 
