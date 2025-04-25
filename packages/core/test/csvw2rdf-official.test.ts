@@ -1,5 +1,5 @@
 import { Manifest, EntryType, Entry } from './types/manifest.js';
-import { CSVW2RDFConvertor } from '../src/lib/csvw2rdf-convertor.js';
+import { Csvw2RdfConvertor } from '../src/lib/csvw2rdf-convertor.js';
 import { Csvw2RdfOptions } from '../src/lib/conversion-options.js';
 import { defaultResolveJsonldFn } from '../src/lib/req-resolve.js';
 import { numericTypes } from '../src/lib/utils/prefix.js';
@@ -85,7 +85,7 @@ async function runConversion(
   entry: Entry
 ): Promise<[Stream<Quad>, IssueTracker]> {
   const fromCsvUrl = !!entry.action.match(/\.csv([?#].*)?/);
-  const convertor = new CSVW2RDFConvertor({
+  const convertor = new Csvw2RdfConvertor({
     ...options,
     minimal: entry.option.minimal,
     baseIRI: fromCsvUrl ? TEST_HTTP_BASE : resolve(testDir, entry.action, '..'),

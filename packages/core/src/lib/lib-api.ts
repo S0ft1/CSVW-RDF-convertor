@@ -4,7 +4,7 @@
 // import { DataFactory } from 'n3';
 // import { DescriptorWrapper, normalizeDescriptor } from './core.js';
 // import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
-// import { CSVW2RDFConvertor } from './csvw2rdf-convertor.js';
+// import { Csvw2RdfConvertor } from './csvw2rdf-convertor.js';
 
 // let _descriptor: DescriptorWrapper;
 
@@ -14,7 +14,7 @@
 // ) {
 //   const actualBackend = new MemoryLevel() as any;
 //   _descriptor = await normalizeDescriptor(descriptor, options);
-//   const convertor: CSVW2RDFConvertor = new CSVW2RDFConvertor(options);
+//   const convertor: Csvw2RdfConvertor = new Csvw2RdfConvertor(options);
 //   convertor.convert(_descriptor);
 // }
 

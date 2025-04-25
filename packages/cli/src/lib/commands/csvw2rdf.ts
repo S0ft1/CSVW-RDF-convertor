@@ -2,7 +2,7 @@ import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
 import {
   commonPrefixes,
-  CSVW2RDFConvertor,
+  Csvw2RdfConvertor,
   Csvw2RdfOptions,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
@@ -104,7 +104,7 @@ export const csvw2rdf: CommandModule<
     };
     if (args.input === undefined)
       throw new Error('stdin input not supported yet');
-    const convertor = new CSVW2RDFConvertor(options);
+    const convertor = new Csvw2RdfConvertor(options);
     let stream: Stream<Quad>;
     if (args.input.match(/\.csv([?#].*)?/)) {
       stream = await convertor.convertFromCsvUrl(args.input);
