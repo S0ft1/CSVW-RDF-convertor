@@ -17,3 +17,7 @@ export interface Csvw2RdfOptions {
   /** Function which loads /.well-known/csvm file. */
   resolveWkfFn?: ResolveWkfFn;
 }
+
+export interface Rdf2CsvOptions {
+  
+}
