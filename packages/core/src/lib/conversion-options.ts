@@ -19,5 +19,5 @@ export interface Csvw2RdfOptions {
 }
 
 export interface Rdf2CsvOptions {
-  
+  descriptorNotProvided?: boolean;
 }
