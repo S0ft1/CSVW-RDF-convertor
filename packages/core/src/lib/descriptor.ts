@@ -6,7 +6,7 @@ import {
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { csvwNs } from './types/descriptor/namespace.js';
-import { Csvw2RdfOptions } from './conversion-options.js';
+import { ConversionOptions } from './conversion-options.js';
 import { replaceUrl } from './utils/replace-url.js';
 import { Quad, Quadstore } from 'quadstore';
 import { BlankNode, NamedNode } from 'n3';
@@ -22,7 +22,7 @@ import { IssueTracker } from './utils/issue-tracker.js';
  */
 export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
-  options: Required<Csvw2RdfOptions>,
+  options: Required<ConversionOptions>,
   issueTracker: IssueTracker,
   url?: string
 ): Promise<DescriptorWrapper> {
@@ -150,7 +150,7 @@ async function loadReferencedSubdescriptors(
     document: any;
     documentUrl: string;
   }>,
-  options: Required<Csvw2RdfOptions>,
+  options: Required<ConversionOptions>,
   originalCtx: AnyCsvwDescriptor['@context'],
   issueTracker: IssueTracker
 ) {
