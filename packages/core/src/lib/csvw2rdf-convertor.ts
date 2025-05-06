@@ -54,7 +54,7 @@ interface Templates {
 /**
  * Class responsible for converting from CSVW to RDF. This class should not be used in parallel.
  */
-export class CSVW2RDFConvertor {
+export class Csvw2RdfConvertor {
   private options: Required<Csvw2RdfOptions>;
   private store: Quadstore;
   public issueTracker: IssueTracker;
@@ -301,13 +301,13 @@ export class CSVW2RDFConvertor {
     url = replaceUrl(url, this.options.pathOverrides);
     try {
       const text = await this.options.resolveWkfFn(url, this.options.baseIRI);
-      if (!text) return CSVW2RDFConvertor.defaultWKs;
+      if (!text) return Csvw2RdfConvertor.defaultWKs;
       return text
         .split('\n')
         .filter((template) => template.trim())
         .map((template: string) => parseTemplate(template.trim()));
     } catch {
-      return CSVW2RDFConvertor.defaultWKs;
+      return Csvw2RdfConvertor.defaultWKs;
     }
   }
   private static defaultWKs = [
@@ -316,7 +316,7 @@ export class CSVW2RDFConvertor {
   ];
 
   /**
-   * Creates and opens a new quadstore in the current instance of CSVW2RDFConvertor.
+   * Creates and opens a new quadstore in the current instance of Csvw2RdfConvertor.
    */
   private async openStore() {
     const backend = new MemoryLevel() as any;
@@ -458,7 +458,7 @@ export class CSVW2RDFConvertor {
    * @param {CsvwDialectDescription} dialect - Dialect description
    * @param {DescriptorWrapper} input - Input descriptor
    * @returns The first row of the table if there is no header and there are no columns defined in the table schema.
-   * This row is used to determine the column count and must be passed to the {@link CSVW2RDFConvertor#convertTableRow} method.
+   * This row is used to determine the column count and must be passed to the {@link Csvw2RdfConvertor#convertTableRow} method.
    */
   private async processCsvHeader(
     stream: AsyncIterator<string[]>,
@@ -957,7 +957,7 @@ export class CSVW2RDFConvertor {
   /**
    * Convert string value to RDF literal based on the datatype URI.
    * Quadstore cannot store NaN as a literal, so we use a temporary prefix for numeric types.
-   * This is later replaced in the {@link CSVW2RDFConvertor#replacerStream} method.
+   * This is later replaced in the {@link Csvw2RdfConvertor#replacerStream} method.
    * @param value - string value to be converted
    * @param dtUri - datatype URI
    * @param lang - language tag
@@ -1204,7 +1204,7 @@ export class CSVW2RDFConvertor {
     table: CsvwTableDescription,
     tg: CsvwTableGroupDescription | undefined
   ): string | string[] | null {
-    if (!CSVW2RDFConvertor.normalizeWsTypes.has(dtype)) {
+    if (!Csvw2RdfConvertor.normalizeWsTypes.has(dtype)) {
       value = value.replace(/\s+/, ' ').trim();
     } else if (dtype === xsd + 'normalizedString') {
       value = value.replace(/\t\r\n/g, ' ');
