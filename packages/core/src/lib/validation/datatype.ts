@@ -1,5 +1,8 @@
 import { Csvw2RdfContext } from '../csvw2rdf/context.js';
-import { CsvwNumberFormat } from '../types/descriptor/datatype.js';
+import {
+  CsvwDatatype,
+  CsvwNumberFormat,
+} from '../types/descriptor/datatype.js';
 import { CsvwInheritedProperties } from '../types/descriptor/inherited-properties.js';
 import {
   commonPrefixes,
@@ -23,6 +26,18 @@ const numberFormatSchema: Partial<
   },
 };
 
+const datatypeSchema: Partial<Record<keyof CsvwDatatype, PropertySchema>> = {
+  length: { type: 'number' },
+  minLength: { type: 'number' },
+  maxLength: { type: 'number' },
+  minimum: { type: ['string', 'number'] },
+  maximum: { type: ['string', 'number'] },
+  minInclusive: { type: ['string', 'number'] },
+  maxInclusive: { type: ['string', 'number'] },
+  minExclusive: { type: ['string', 'number'] },
+  maxExclusive: { type: ['string', 'number'] },
+};
+
 /**
  * Validate datatype formats of the column descriptions in the table.
  * @param table - Table description
@@ -37,6 +52,9 @@ export function validateDatatype(
     if (!(dt in dtUris)) {
       ctx.issueTracker.addWarning(`Datatype "${dt}" is not a valid datatype.`);
       delete props.datatype;
+    } else {
+      props.datatype = { base: dt };
+      setupDefaultFormats(dt, props.datatype);
     }
     return;
   }
@@ -46,7 +64,13 @@ export function validateDatatype(
     );
     dt.base = 'string';
   }
+  if (dt.base && !dt.format) {
+    setupDefaultFormats(dt.base, dt);
+    if (dt.format) return; // setup ok
+  }
   if (!dt.base || !dt.format) return;
+
+  validateObject(dt, datatypeSchema, 'Datatype', ctx);
 
   if (numericTypes.has(xsd + dt.base)) {
     if (typeof dt.format === 'string') {
@@ -85,4 +109,17 @@ export function validateDatatype(
       dt.format = undefined;
     }
   }
+}
+
+function setupDefaultFormats(dtUri: string, dt: CsvwDatatype) {
+  dt.format = {
+    duration:
+      /^-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?$/,
+    dayTimeDuration:
+      /^-?P([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?$/,
+    yearMonthDuration: /^-?P([0-9]+Y)?([0-9]+M)?$/,
+    base64Binary:
+      /^((([A-Za-z0-9+/] ?){4})*(([A-Za-z0-9+/] ?){3}[A-Za-z0-9+/]|([A-Za-z0-9+/] ?){2}[AEIMQUYcgkosw048] ?=|[A-Za-z0-9+/] ?[AQgw] ?= ?=))?$/,
+    hexBinary: /^([0-9A-Fa-f]{2})*$/,
+  }[dtUri];
 }

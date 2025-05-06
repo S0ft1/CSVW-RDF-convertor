@@ -34,11 +34,11 @@ describe('CSVW -> RDF Official tests', () => {
 
   // skip: #149, #93, #100, #107, #148
 
-  const i = 86;
+  // comment in header: #286, #287, #296-#301
 
-  for (const entry of manifest.entries
-    .filter((e) => e.type === EntryType.TestWithWarnings)
-    .slice(0, 86)) {
+  for (const entry of manifest.entries.filter(
+    (e) => e.type === EntryType.TestWithWarnings
+  )) {
     test('#' + entry.id.slice(-3) + ': ' + entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [

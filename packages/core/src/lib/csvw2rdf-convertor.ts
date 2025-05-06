@@ -474,6 +474,9 @@ export class CSVW2RDFConvertor {
     const headerRowCount =
       dialect.headerRowCount ?? (dialect.header ?? true ? 1 : 0);
     if (table.tableSchema === undefined) table.tableSchema = {};
+    const nonvirtualColCount =
+      (table.tableSchema.columns?.length || undefined) &&
+      table.tableSchema.columns?.filter((c) => !c.virtual).length;
     if (table.tableSchema.columns === undefined) table.tableSchema.columns = [];
 
     for (const col of table.tableSchema.columns) {
@@ -495,6 +498,15 @@ export class CSVW2RDFConvertor {
         throw new Error('CSV stream ended before header was read');
       }
       const vals = header.value.slice(dialect.skipColumns ?? 0);
+      if (
+        nonvirtualColCount !== undefined &&
+        vals.length !== nonvirtualColCount
+      ) {
+        this.issueTracker.addWarning(
+          `Header row ${i} has ${vals.length} columns, but the table schema has ${nonvirtualColCount} non-virtual columns`
+        );
+      }
+
       for (let j = 0; j < vals.length; ++j) {
         if (!vals[j]) continue;
         let modified = false;
@@ -515,7 +527,6 @@ export class CSVW2RDFConvertor {
           }
         } else if (col.titles[defaultLang] === undefined) {
           col.titles[defaultLang] = vals[j];
-          console.log(col.titles, vals[j], defaultLang);
           modified = Object.keys(col.titles).length > 1;
         } else if (typeof col.titles[defaultLang] === 'string') {
           if (col.titles[defaultLang] !== vals[j]) {
@@ -539,7 +550,7 @@ export class CSVW2RDFConvertor {
             );
           } else {
             this.issueTracker.addWarning(
-              `Column title "${title}"@ is different from header in the CSV file "${vals[j]}"`
+              `Column title "${title}" is different from header in the CSV file "${vals[j]}"`
             );
           }
         }
@@ -957,12 +968,7 @@ export class CSVW2RDFConvertor {
     dtUri: string,
     lang?: string
   ): Literal {
-    if (
-      value.startsWith(invalidValuePrefix) &&
-      (numericTypes.has(dtUri) ||
-        dtUri === xsd + 'boolean' ||
-        dateTypes.has(dtUri))
-    ) {
+    if (dtUri !== xsd + 'string' && value.startsWith(invalidValuePrefix)) {
       return literal(
         value.slice(invalidValuePrefix.length),
         namedNode(xsd + 'string')
@@ -1003,7 +1009,8 @@ export class CSVW2RDFConvertor {
       value = this.numberParser.parse(
         value,
         dt.format as CsvwNumberFormat,
-        dtUri
+        dtUri,
+        dt
       );
     } else if (dateTypes.has(dtUri)) {
       value = this.formatDate(value, dtUri, dt);
@@ -1016,7 +1023,7 @@ export class CSVW2RDFConvertor {
           this.issueTracker.addWarning(
             `Value "${value}" does not match the format "${dt.format}"`
           );
-          value = invalidValuePrefix + value;
+          return invalidValuePrefix + value;
         }
       } else {
         if (value === 'true' || value === '1') value = 'true';
@@ -1025,7 +1032,7 @@ export class CSVW2RDFConvertor {
           this.issueTracker.addWarning(
             `Value "${value}" does not match the format "true|false" or "1|0"`
           );
-          value = invalidValuePrefix + value;
+          return invalidValuePrefix + value;
         }
       }
     } else if (
@@ -1038,10 +1045,43 @@ export class CSVW2RDFConvertor {
         this.issueTracker.addWarning(
           `Value "${value}" does not match the format "${dt.format}"`
         );
+        if (dtUri !== xsd + 'string') {
+          return invalidValuePrefix + value;
+        }
       }
     }
 
+    const valLength = this.getValueLength(value, dtUri);
+    if (dt.length !== undefined && dt.length !== valLength) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not match the length "${dt.length}"`
+      );
+      return invalidValuePrefix + value;
+    } else if (dt.minLength !== undefined && dt.minLength > valLength) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not match the minLength "${dt.minLength}"`
+      );
+      return invalidValuePrefix + value;
+    } else if (dt.maxLength !== undefined && dt.maxLength < valLength) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not match the maxLength "${dt.maxLength}"`
+      );
+      return invalidValuePrefix + value;
+    }
+
     return value;
+  }
+
+  private getValueLength(value: string, dtUri: string) {
+    if (value === undefined) return 0;
+    switch (dtUri) {
+      case xsd + 'hexBinary':
+        return value.length / 2;
+      case xsd + 'base64Binary':
+        return atob(value).length;
+      default:
+        return value.length;
+    }
   }
 
   private formatDate(value: string, dtUri: string, dt: CsvwDatatype) {
@@ -1056,6 +1096,11 @@ export class CSVW2RDFConvertor {
       }
       return invalidValuePrefix + value;
     }
+
+    if (!this.validateDateMinMax(date, dtUri, dt)) {
+      return invalidValuePrefix + value;
+    }
+
     let resultFormat =
       dtUri === xsd + 'date'
         ? 'yyyy-MM-dd'
@@ -1079,6 +1124,49 @@ export class CSVW2RDFConvertor {
       value = format(date, resultFormat);
     }
     return value;
+  }
+
+  private validateDateMinMax(
+    value: Date,
+    dtUri: string,
+    dt: CsvwDatatype
+  ): boolean {
+    const minimum = dt.minimum ?? dt.minInclusive ?? undefined;
+    const maximum = dt.maximum ?? dt.maxInclusive ?? undefined;
+    const minExclusive = dt.minExclusive ?? undefined;
+    const maxExclusive = dt.maxExclusive ?? undefined;
+
+    if (minimum !== undefined && value < parseDate(minimum as string, dtUri)) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the minimum "${minimum}"`
+      );
+      return false;
+    }
+    if (maximum !== undefined && value > parseDate(maximum as string, dtUri)) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the maximum "${maximum}"`
+      );
+      return false;
+    }
+    if (
+      minExclusive !== undefined &&
+      value <= parseDate(minExclusive as string, dtUri)
+    ) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the minimum exclusive "${minExclusive}"`
+      );
+      return false;
+    }
+    if (
+      maxExclusive !== undefined &&
+      value >= parseDate(maxExclusive as string, dtUri)
+    ) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the maximum exclusive "${maxExclusive}"`
+      );
+      return false;
+    }
+    return true;
   }
 
   /**

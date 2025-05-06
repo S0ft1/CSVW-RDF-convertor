@@ -168,4 +168,4 @@ export const dtUris: Record<CsvwBuiltinDatatype, string> = {
   yearMonthDuration: xsd + 'yearMonthDuration',
 };
 
-export const invalidValuePrefix = '@';
+export const invalidValuePrefix = '@@invalid@@';
