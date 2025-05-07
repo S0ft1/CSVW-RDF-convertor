@@ -6,7 +6,7 @@ import {
   validateAllowedKeys,
   validateArray,
   validateChild,
-  validateIdAndType,
+  validateType,
   validateObject,
 } from './generic.js';
 import {
@@ -48,7 +48,7 @@ export function validateTableGroup(
   if (!tg.tables?.length) {
     ctx.issueTracker.addError('Table group must contain at least one table');
   }
-  validateIdAndType(tg, 'TableGroup', ctx);
+  validateType(tg, 'TableGroup', ctx);
   validateArray(tg, 'transformations', validateTemplate, ctx);
   validateArray(tg, 'tables', validateTable, ctx);
 }

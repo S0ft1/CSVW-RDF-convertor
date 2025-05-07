@@ -41,6 +41,7 @@ import { validateTable } from './validation/table.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { CsvLocationTracker } from './utils/code-location.js';
 import { NumberParser } from './utils/parse-number.js';
+import * as uts46 from 'idna-uts46-hx';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -107,7 +108,9 @@ export class Csvw2RdfConvertor {
       (table) => !table.url
     );
     if (tablesWithoutUrl.length > 1) {
-      throw new Error('Multiple tables without URL found in the descriptor');
+      this.issueTracker.addError(
+        'Multiple tables without URL found in the descriptor'
+      );
     }
     if (tablesWithoutUrl.length === 1) {
       tablesWithoutUrl[0].url = url;
@@ -474,7 +477,25 @@ export class Csvw2RdfConvertor {
     const headerRowCount =
       dialect.headerRowCount ?? (dialect.header ?? true ? 1 : 0);
     if (table.tableSchema === undefined) table.tableSchema = {};
-    if (table.tableSchema.columns === undefined) table.tableSchema.columns = [];
+    if (table.tableSchema.columns === undefined) {
+      table.tableSchema.columns = [];
+    }
+    const physicalColCount = table.tableSchema.columns?.length
+      ? table.tableSchema.columns.filter((c) => !c.virtual).length
+      : undefined;
+    if (
+      physicalColCount !== undefined &&
+      table.tableSchema.columns
+        .slice(0, physicalColCount)
+        .find((c) => c.virtual)
+    ) {
+      this.issueTracker.addError(
+        'Table schema has virtual columns before physical ones'
+      );
+      table.tableSchema.columns.sort(
+        (a, b) => (a.virtual ? 1 : 0) - (b.virtual ? 1 : 0)
+      );
+    }
 
     for (const col of table.tableSchema.columns) {
       if (
@@ -492,58 +513,21 @@ export class Csvw2RdfConvertor {
     for (let i = 0; i < headerRowCount; ++i) {
       const header = await stream.next();
       if (header.done) {
-        throw new Error('CSV stream ended before header was read');
+        this.issueTracker.addError('CSV stream ended before header was read');
+        return;
       }
       const vals = header.value.slice(dialect.skipColumns ?? 0);
-      for (let j = 0; j < vals.length; ++j) {
-        if (!vals[j]) continue;
-        let modified = false;
-        let col = table.tableSchema.columns[j];
-        if (!col) {
-          col = {};
-          table.tableSchema.columns[j] = col;
-        }
-        if (col.titles === undefined) col.titles = [vals[j]];
-        else if (Array.isArray(col.titles)) {
-          if (col.titles.includes(vals[j])) continue;
-          col.titles.push(vals[j]);
-          modified = true;
-        } else if (typeof col.titles === 'string') {
-          if (col.titles !== vals[j]) {
-            col.titles = [col.titles, vals[j]];
-            modified = true;
-          }
-        } else if (col.titles[defaultLang] === undefined) {
-          col.titles[defaultLang] = vals[j];
-          console.log(col.titles, vals[j], defaultLang);
-          modified = Object.keys(col.titles).length > 1;
-        } else if (typeof col.titles[defaultLang] === 'string') {
-          if (col.titles[defaultLang] !== vals[j]) {
-            col.titles[defaultLang] = [col.titles[defaultLang], vals[j]];
-            modified = true;
-          }
-        } else if (!col.titles[defaultLang].includes(vals[j])) {
-          col.titles[defaultLang].push(vals[j]);
-          modified = true;
-        }
-
-        if (modified && i === 0) {
-          const title = coerceArray(
-            typeof col.titles === 'object' && !Array.isArray(col.titles)
-              ? col.titles[defaultLang]
-              : col.titles
-          )[0];
-          if (title === vals[j]) {
-            this.issueTracker.addWarning(
-              `Column title language is different from header in the CSV file "${vals[j]}"@${defaultLang}`
-            );
-          } else {
-            this.issueTracker.addWarning(
-              `Column title "${title}"@ is different from header in the CSV file "${vals[j]}"`
-            );
-          }
-        }
+      if (physicalColCount !== undefined && vals.length !== physicalColCount) {
+        this.issueTracker.addWarning(
+          `Header row ${i} has ${vals.length} columns, but the table schema has ${physicalColCount} non-virtual columns`
+        );
       }
+      this.headerRowToTitles(
+        vals,
+        table.tableSchema.columns,
+        defaultLang,
+        i === 0
+      );
     }
 
     if (!table.tableSchema.columns.length) {
@@ -555,9 +539,81 @@ export class Csvw2RdfConvertor {
       return row.value;
     }
 
-    for (let i = 0; i < table.tableSchema.columns.length; ++i) {
-      const col = table.tableSchema.columns[i];
-      if (col.name || !col.titles) continue;
+    this.columnTitlesToNames(table.tableSchema.columns, defaultLang);
+
+    this.validateDuplicateColumns(
+      table.tableSchema.columns.filter((col) => col.name !== undefined)
+    );
+    return undefined;
+  }
+
+  private headerRowToTitles(
+    vals: string[],
+    columns: CsvwColumnDescription[],
+    defaultLang: string,
+    firstRow: boolean
+  ) {
+    for (let j = 0; j < vals.length; ++j) {
+      if (!vals[j]) continue;
+      let modified = false;
+      let col = columns[j];
+      if (!col) {
+        col = {};
+        columns[j] = col;
+      }
+      if (col.titles === undefined) col.titles = [vals[j]];
+      else if (Array.isArray(col.titles)) {
+        if (col.titles.includes(vals[j])) return;
+        col.titles.push(vals[j]);
+        modified = true;
+      } else if (typeof col.titles === 'string') {
+        if (col.titles !== vals[j]) {
+          col.titles = [col.titles, vals[j]];
+          modified = true;
+        }
+      } else if (col.titles[defaultLang] === undefined) {
+        col.titles[defaultLang] = vals[j];
+        modified = Object.keys(col.titles).length > 1;
+      } else if (typeof col.titles[defaultLang] === 'string') {
+        if (col.titles[defaultLang] !== vals[j]) {
+          col.titles[defaultLang] = [col.titles[defaultLang], vals[j]];
+          modified = true;
+        }
+      } else if (!col.titles[defaultLang].includes(vals[j])) {
+        col.titles[defaultLang].push(vals[j]);
+        modified = true;
+      }
+
+      if (modified && firstRow) {
+        const title = coerceArray(
+          typeof col.titles === 'object' && !Array.isArray(col.titles)
+            ? col.titles[defaultLang]
+            : col.titles
+        )[0];
+        if (title === vals[j]) {
+          this.issueTracker.addWarning(
+            `Column title language is different from header in the CSV file "${vals[j]}"@${defaultLang}`
+          );
+        } else {
+          this.issueTracker.addWarning(
+            `Column title "${title}" is different from header in the CSV file "${vals[j]}"`
+          );
+        }
+      }
+    }
+  }
+
+  private columnTitlesToNames(
+    columns: CsvwColumnDescription[],
+    defaultLang: string
+  ) {
+    for (let i = 0; i < columns.length; ++i) {
+      const col = columns[i];
+      if (col.name) continue;
+      if (!col.titles) {
+        col.name = '_col.' + (i + 1);
+        continue;
+      }
       if (typeof col.titles === 'string') col.name = col.titles;
       else if (Array.isArray(col.titles)) col.name = col.titles[0];
       else {
@@ -576,7 +632,18 @@ export class Csvw2RdfConvertor {
         ? encodeURIComponent(col.name).replaceAll('-', '%2D')
         : '_col.' + (i + 1);
     }
-    return undefined;
+  }
+
+  private validateDuplicateColumns(columns: CsvwColumnDescription[]) {
+    for (let i = 0; i < columns.length; ++i) {
+      for (let j = 0; j < i; ++j) {
+        if (columns[i].name === columns[j].name) {
+          this.issueTracker.addError(
+            `Duplicate column name "${columns[i].name}"`
+          );
+        }
+      }
+    }
   }
 
   /**
@@ -957,12 +1024,7 @@ export class Csvw2RdfConvertor {
     dtUri: string,
     lang?: string
   ): Literal {
-    if (
-      value.startsWith(invalidValuePrefix) &&
-      (numericTypes.has(dtUri) ||
-        dtUri === xsd + 'boolean' ||
-        dateTypes.has(dtUri))
-    ) {
+    if (dtUri !== xsd + 'string' && value.startsWith(invalidValuePrefix)) {
       return literal(
         value.slice(invalidValuePrefix.length),
         namedNode(xsd + 'string')
@@ -1003,7 +1065,8 @@ export class Csvw2RdfConvertor {
       value = this.numberParser.parse(
         value,
         dt.format as CsvwNumberFormat,
-        dtUri
+        dtUri,
+        dt
       );
     } else if (dateTypes.has(dtUri)) {
       value = this.formatDate(value, dtUri, dt);
@@ -1016,7 +1079,7 @@ export class Csvw2RdfConvertor {
           this.issueTracker.addWarning(
             `Value "${value}" does not match the format "${dt.format}"`
           );
-          value = invalidValuePrefix + value;
+          return invalidValuePrefix + value;
         }
       } else {
         if (value === 'true' || value === '1') value = 'true';
@@ -1025,7 +1088,7 @@ export class Csvw2RdfConvertor {
           this.issueTracker.addWarning(
             `Value "${value}" does not match the format "true|false" or "1|0"`
           );
-          value = invalidValuePrefix + value;
+          return invalidValuePrefix + value;
         }
       }
     } else if (
@@ -1038,10 +1101,43 @@ export class Csvw2RdfConvertor {
         this.issueTracker.addWarning(
           `Value "${value}" does not match the format "${dt.format}"`
         );
+        if (dtUri !== xsd + 'string') {
+          return invalidValuePrefix + value;
+        }
       }
     }
 
+    const valLength = this.getValueLength(value, dtUri);
+    if (dt.length !== undefined && dt.length !== valLength) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not match the length "${dt.length}"`
+      );
+      return invalidValuePrefix + value;
+    } else if (dt.minLength !== undefined && dt.minLength > valLength) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not match the minLength "${dt.minLength}"`
+      );
+      return invalidValuePrefix + value;
+    } else if (dt.maxLength !== undefined && dt.maxLength < valLength) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not match the maxLength "${dt.maxLength}"`
+      );
+      return invalidValuePrefix + value;
+    }
+
     return value;
+  }
+
+  private getValueLength(value: string, dtUri: string) {
+    if (value === undefined) return 0;
+    switch (dtUri) {
+      case xsd + 'hexBinary':
+        return value.length / 2;
+      case xsd + 'base64Binary':
+        return atob(value).length;
+      default:
+        return value.length;
+    }
   }
 
   private formatDate(value: string, dtUri: string, dt: CsvwDatatype) {
@@ -1056,6 +1152,11 @@ export class Csvw2RdfConvertor {
       }
       return invalidValuePrefix + value;
     }
+
+    if (!this.validateDateMinMax(date, dtUri, dt)) {
+      return invalidValuePrefix + value;
+    }
+
     let resultFormat =
       dtUri === xsd + 'date'
         ? 'yyyy-MM-dd'
@@ -1079,6 +1180,49 @@ export class Csvw2RdfConvertor {
       value = format(date, resultFormat);
     }
     return value;
+  }
+
+  private validateDateMinMax(
+    value: Date,
+    dtUri: string,
+    dt: CsvwDatatype
+  ): boolean {
+    const minimum = dt.minimum ?? dt.minInclusive ?? undefined;
+    const maximum = dt.maximum ?? dt.maxInclusive ?? undefined;
+    const minExclusive = dt.minExclusive ?? undefined;
+    const maxExclusive = dt.maxExclusive ?? undefined;
+
+    if (minimum !== undefined && value < parseDate(minimum as string, dtUri)) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the minimum "${minimum}"`
+      );
+      return false;
+    }
+    if (maximum !== undefined && value > parseDate(maximum as string, dtUri)) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the maximum "${maximum}"`
+      );
+      return false;
+    }
+    if (
+      minExclusive !== undefined &&
+      value <= parseDate(minExclusive as string, dtUri)
+    ) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the minimum exclusive "${minExclusive}"`
+      );
+      return false;
+    }
+    if (
+      maxExclusive !== undefined &&
+      value >= parseDate(maxExclusive as string, dtUri)
+    ) {
+      this.issueTracker.addWarning(
+        `Value "${value}" does not meet the maximum exclusive "${maxExclusive}"`
+      );
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -1228,6 +1372,11 @@ export class Csvw2RdfConvertor {
     uri = this.expandIri(uri);
     uri = URL.parse(uri)?.href ?? baseIRI + uri;
     if (this.options.templateIRIs) {
+      const parsed = URL.parse(uri) as URL;
+      uri = parsed.href.replace(
+        parsed.hostname,
+        uts46.toUnicode(parsed.hostname)
+      );
       uri = decodeURI(uri);
     }
     return namedNode(uri);

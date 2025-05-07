@@ -2,16 +2,13 @@ import { Csvw2RdfContext } from '../csvw2rdf/context.js';
 import { coerceArray } from '../utils/coerce.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
 
-export function validateIdAndType(
+export function validateType(
   object: { '@id'?: string; '@type'?: string },
   expectedType: string,
   { issueTracker }: Csvw2RdfContext
 ) {
-  if (object['@id']?.startsWith('_:')) {
-    issueTracker.addError(expectedType + ' cannot have a blank node as id');
-  }
   if (object['@type'] && object['@type'] !== expectedType) {
-    issueTracker.addError(expectedType + ' must have type TableGroup');
+    issueTracker.addError(expectedType + ' must have type ' + expectedType);
   }
 }
 

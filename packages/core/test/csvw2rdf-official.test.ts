@@ -32,13 +32,19 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.default.resetMocks();
   });
 
-  // skip: #149, #93, #100, #107, #148
+  const skippedTests = [
+    // JSON-LD specification conflicts with the idea of the test
+    93, 99, 100, 101, 135, 136, 270, 271, 272, 274,
+    // CSVW default names (_col1, _col2, ...) expected instead of CSV header titles
+    107,
+    148, 149, 278,
+    // comment in header
+    286, 287, 296, 297, 298, 299, 300, 301,
+  ];
 
-  const i = 86;
-
-  for (const entry of manifest.entries
-    .filter((e) => e.type === EntryType.TestWithWarnings)
-    .slice(0, 86)) {
+  for (const entry of manifest.entries.filter(
+    (e) => !skippedTests.includes(+e.id.slice(-3))
+  )) {
     test('#' + entry.id.slice(-3) + ': ' + entry.name, async () => {
       const options: Csvw2RdfOptions = {
         pathOverrides: [
@@ -59,7 +65,6 @@ describe('CSVW -> RDF Official tests', () => {
           );
           const [stream, issueTracker] = await runConversion(options, entry);
           const actual = await rdfStreamToArray(stream);
-          console.log(issueTracker.getWarnings());
           expect(actual).toBeRdfIsomorphic(expected);
           if (entry.type === EntryType.TestWithWarnings) {
             expect(issueTracker.getWarnings()).not.toHaveLength(0);

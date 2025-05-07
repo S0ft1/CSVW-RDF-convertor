@@ -50,7 +50,7 @@ export async function normalizeDescriptor(
     );
     parsedDescriptor['@id'] = url;
   }
-  removeInvalidIdsAndLangmaps(parsedDescriptor, issueTracker);
+  validateIdsTypesLangmaps(parsedDescriptor, issueTracker);
   validateLanguage(parsedDescriptor as NodeObject, issueTracker);
   const originalCtx = parsedDescriptor['@context'];
 
@@ -72,7 +72,7 @@ export async function normalizeDescriptor(
     { documentLoader: docLoader }
   )) as CompactedExpandedCsvwDescriptor;
   const [internal, idMap]: [CompactedCsvwDescriptor, Map<string, Quad[]>] =
-    await splitExternalProps(compactedExpanded);
+    await splitExternalProps(compactedExpanded, issueTracker);
 
   return new DescriptorWrapper(
     (await compactCsvwNs(
@@ -87,9 +87,10 @@ export async function normalizeDescriptor(
 /**
  * Removes `@id` properties which are not strings from the descriptor, as well as invalid language maps.
  * This is needed because the JSON-LD parser throws errors but we want to ignore them.
+ * Also validates `@id` and `@type` properties to ensure they are not blank nodes.
  * @param obj descriptor as parsed expanded JSON-LD
  */
-function removeInvalidIdsAndLangmaps(
+function validateIdsTypesLangmaps(
   obj: Record<string, any>,
   issueTracker: IssueTracker
 ) {
@@ -98,6 +99,24 @@ function removeInvalidIdsAndLangmaps(
       if (typeof obj[key] !== 'string') {
         issueTracker.addWarning(`Invalid @id: ${JSON.stringify(obj[key])}`);
         obj[key] = '';
+      } else if (obj[key].startsWith('_:')) {
+        issueTracker.addError('@id cannot be a blank node');
+      }
+    } else if (key === '@type') {
+      if (
+        !URL.canParse(obj[key]) &&
+        ![
+          'Column',
+          'Dialect',
+          'Table',
+          'TableGroup',
+          'Schema',
+          'Template',
+        ].includes(obj[key])
+      ) {
+        issueTracker.addError(`Invalid @type: ${JSON.stringify(obj[key])}`);
+      } else if (obj[key].startsWith('_:')) {
+        issueTracker.addError('@type cannot be a blank node');
       }
     } else if (key === 'titles' || key === csvwNs + '#title') {
       const titles = obj[key] ?? obj[csvwNs + '#title'];
@@ -115,8 +134,19 @@ function removeInvalidIdsAndLangmaps(
           }
         }
       }
-    } else if (typeof obj[key] === 'object') {
-      removeInvalidIdsAndLangmaps(obj[key], issueTracker);
+    } else if (key === '@language') {
+      if (!('@value' in obj)) {
+        issueTracker.addError(
+          `A @language property must not be used on an object unless it also has a @value property.`
+        );
+      }
+    } else if (
+      key.startsWith('@') &&
+      !['@set', '@list', '@value', '@context'].includes(key)
+    ) {
+      issueTracker.addError(`Invalid keyword property: ${key}`);
+    } else if (typeof obj[key] === 'object' && key !== '@context') {
+      validateIdsTypesLangmaps(obj[key], issueTracker);
     }
   }
 }
@@ -178,7 +208,7 @@ async function loadReferencedSubdescriptors(
           if (parsed['@id'] && typeof parsed['@id'] !== 'string') {
             parsed['@id'] = refContainer['@id'];
           }
-          removeInvalidIdsAndLangmaps(parsed, issueTracker);
+          validateIdsTypesLangmaps(parsed, issueTracker);
           validateLanguage(parsed as NodeObject, issueTracker);
           const subdescriptor = await jsonld.expand(
             { '@context': originalCtx as any, [csvwNs + key]: parsed },
@@ -240,6 +270,7 @@ let externalSubjCounter = 0;
  */
 async function splitExternalProps(
   object: any,
+  issueTracker: IssueTracker,
   quadMap: Map<string, Quad[]> = new Map()
 ): Promise<[any, Map<string, Quad[]>]> {
   if (typeof object !== 'object' || object === null) {
@@ -248,7 +279,7 @@ async function splitExternalProps(
   if (Array.isArray(object)) {
     const result = [];
     for (const item of object) {
-      result.push((await splitExternalProps(item, quadMap))[0]);
+      result.push((await splitExternalProps(item, issueTracker, quadMap))[0]);
     }
     return [result, quadMap];
   }
@@ -264,12 +295,19 @@ async function splitExternalProps(
           external[csvwNs + '#note'] = note;
         }
       } else {
-        internal[key] = (await splitExternalProps(object[key], quadMap))[0];
+        internal[key] = (
+          await splitExternalProps(object[key], issueTracker, quadMap)
+        )[0];
       }
     } else if (key.startsWith('@')) {
-      internal[key] = (await splitExternalProps(object[key], quadMap))[0];
+      internal[key] = (
+        await splitExternalProps(object[key], issueTracker, quadMap)
+      )[0];
       if (key !== '@id') {
         external[key] = object[key];
+      }
+      if (key === '@type' && object[key].startsWith('_:')) {
+        issueTracker.addError('@type cannot be a blank node', false);
       }
     } else {
       external[key] = object[key];

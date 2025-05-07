@@ -1,4 +1,7 @@
-import { CsvwNumberFormat } from '../types/descriptor/datatype.js';
+import {
+  CsvwDatatype,
+  CsvwNumberFormat,
+} from '../types/descriptor/datatype.js';
 import { IssueTracker } from './issue-tracker.js';
 import { commonPrefixes, invalidValuePrefix } from './prefix.js';
 
@@ -39,14 +42,69 @@ const extents: Record<string, [number, number]> = {
 export class NumberParser {
   constructor(private issueTracker: IssueTracker) {}
 
+  private constraintToNumber(
+    value: string | number | undefined
+  ): number | undefined {
+    if (typeof value === 'string') {
+      if (value === 'INF') return Infinity;
+      if (value === '-INF') return -Infinity;
+      return +value;
+    }
+    return value ?? undefined;
+  }
+
+  private validateMinMax(value: number, dt: CsvwDatatype) {
+    const minimum = this.constraintToNumber(dt.minimum ?? dt.minInclusive);
+    const maximum = this.constraintToNumber(dt.maximum ?? dt.maxInclusive);
+    const minExclusive = this.constraintToNumber(dt.minExclusive);
+    const maxExclusive = this.constraintToNumber(dt.maxExclusive);
+    if (minimum !== undefined && value < minimum) {
+      this.issueTracker.addWarning(
+        `The value "${value}" does not meet the minimum "${minimum}".`
+      );
+      return false;
+    }
+    if (maximum !== undefined && value > maximum) {
+      this.issueTracker.addWarning(
+        `The value "${value}" does not meet the maximum "${maximum}".`
+      );
+      return false;
+    }
+    if (minExclusive !== undefined && value <= minExclusive) {
+      this.issueTracker.addWarning(
+        `The value "${value}" does not meet the exclusive minimum "${dt.minExclusive}".`
+      );
+      return false;
+    }
+    if (maxExclusive !== undefined && value >= maxExclusive) {
+      this.issueTracker.addWarning(
+        `The value "${value}" does not meet the exclusive minimum "${dt.minExclusive}".`
+      );
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * Parse a number from a string using the given format.
    */
-  parse(value: string, format: CsvwNumberFormat, dtUri: string): string {
+  parse(
+    value: string,
+    format: CsvwNumberFormat,
+    dtUri: string,
+    dt: CsvwDatatype
+  ): string {
     if (
       (dtUri === xsd + 'float' || dtUri === xsd + 'double') &&
       (value === 'INF' || value === 'NaN' || value === '-INF')
     ) {
+      if (
+        (value === 'INF' && !this.validateMinMax(Infinity, dt)) ||
+        (value === '-INF' && !this.validateMinMax(-Infinity, dt))
+      ) {
+        return invalidValuePrefix + value;
+      }
       return value;
     }
 
@@ -73,6 +131,11 @@ export class NumberParser {
       }
       return invalidValuePrefix + value;
     }
+
+    if (!this.validateMinMax(transformedNumber, dt)) {
+      return invalidValuePrefix + value;
+    }
+
     if (transformedNumber === 0 && value.startsWith('-')) return '-0';
     return transformedNumber + '';
   }
@@ -151,6 +214,8 @@ export class NumberParser {
         return null;
       }
       res += '.' + decRes;
+    } else if (decimalPattern && decimalPattern.includes('0')) {
+      return null;
     }
     if (exp) {
       const expRes = this.castInteger(exp, expPattern ?? '', groupChar);
@@ -200,6 +265,7 @@ export class NumberParser {
     pattern: string,
     groupChar: string
   ): string | null {
+    pattern = this.expandDecimalGroupings(pattern, decimals.length);
     let res = '';
     let pI = 0;
 
@@ -217,7 +283,11 @@ export class NumberParser {
           res += d;
           pI++;
         } else {
-          while (pI < pattern.length && pattern[pI] === '#') ++pI;
+          while (
+            pI < pattern.length &&
+            (pattern[pI] === '#' || pattern[pI] === ',')
+          )
+            ++pI;
           dI--;
         }
       } else if (p === ',') {
@@ -225,11 +295,6 @@ export class NumberParser {
           return null;
         }
         pI++;
-      } else if (p === undefined && this.isNumberChar(d)) {
-        if (decimals.endsWith('0')) return null;
-        res += d;
-      } else if (p === undefined && d === groupChar) {
-        continue;
       } else {
         return null;
       }
@@ -247,22 +312,21 @@ export class NumberParser {
     groupChar: string
   ): string | null {
     let res = '';
-    let pI = pattern.length - 1;
-    let pEnd = 0;
-    let iEnd = 0;
     let sign = '';
 
     if (pattern[0] === '+' || pattern[0] === '-') {
-      pEnd = 1;
+      pattern = pattern.slice(1);
       if (integer[0] !== '-' && integer[0] !== '+') {
         return null;
       }
     }
     if (integer[0] === '-' || integer[0] === '+') {
-      iEnd = 1;
       sign = integer[0];
+      integer = integer.slice(1);
     }
-    for (let iI = integer.length - 1; iI >= iEnd; --iI) {
+    pattern = this.expandIntGroupings(pattern, integer.length);
+    let pI = pattern.length - 1;
+    for (let iI = integer.length - 1; iI >= 0; --iI) {
       const p = pattern[pI];
       const d = integer[iI];
       if (p === '0') {
@@ -276,7 +340,7 @@ export class NumberParser {
           res = d + res;
           pI--;
         } else {
-          while (pI >= pEnd && pattern[pI] === '#') pI--;
+          while (pI >= 0 && (pattern[pI] === '#' || pattern[pI] === ',')) pI--;
           iI++;
         }
       } else if (p === ',') {
@@ -288,20 +352,49 @@ export class NumberParser {
         if (integer.startsWith('0')) return null;
         res = d + res;
       } else if (p === undefined && d === groupChar) {
-        continue;
+        return null;
       } else {
         return null;
       }
     }
-    if (
-      pI >= pEnd &&
-      pattern.slice(0, pI + 1).replace(/[#,]/g, '').length !== 0
-    )
+    if (pI >= 0 && pattern.slice(0, pI + 1).replace(/[#,]/g, '').length !== 0) {
       return null;
+    }
     return sign + res;
   }
 
   private isNumberChar(char: string): boolean {
     return char >= '0' && char <= '9';
+  }
+
+  private expandIntGroupings(pattern: string, toSize: number): string {
+    const tokens = pattern.split(',');
+    if (tokens.length === 1) return pattern;
+    const correctGroups = tokens.length > 2 ? 2 : 1;
+    const correct = tokens.slice(-correctGroups);
+    const groupSize = correct[0].length;
+    const first = tokens
+      .slice(0, -correctGroups)
+      .join('')
+      .padStart(toSize, '#'); // the length is slight overkill
+
+    for (let i = 0; i < first.length; i += groupSize) {
+      correct.unshift(
+        first.slice(Math.max(first.length - i - groupSize, 0), first.length - i)
+      );
+    }
+    return correct.join(',');
+  }
+  private expandDecimalGroupings(pattern: string, toSize: number): string {
+    const [first, ...rest] = pattern.split(',');
+    if (rest.length === 0) return pattern;
+    const correct = [first];
+    const groupSize = first.length;
+    const last = rest.join('').padEnd(toSize, '#'); // the length is slight overkill
+
+    for (let i = 0; i < last.length; i += groupSize) {
+      correct.push(last.slice(i, i + groupSize));
+    }
+    return correct.join(',');
   }
 }
