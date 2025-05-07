@@ -4,7 +4,7 @@ import {
   langMapArraySchema,
   PropertySchema,
   validateAllowedKeys,
-  validateIdAndType,
+  validateType,
   validateObject,
 } from './generic.js';
 import {
@@ -43,7 +43,7 @@ export function validateColumn(
   validateObject(c, columnSchema, 'Column', ctx);
   validateInheritedProperties(c, 'Column', ctx);
   validateAllowedKeys(c, columnKeys, 'Column', ctx);
-  validateIdAndType(c, 'Column', ctx);
+  validateType(c, 'Column', ctx);
   if (c.name && !c.name.match(uriVarRegex)) {
     ctx.issueTracker.addWarning(`Column name "${c.name}" is invalid`);
     delete c.name;

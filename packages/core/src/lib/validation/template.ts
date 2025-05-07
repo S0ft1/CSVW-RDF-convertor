@@ -1,6 +1,6 @@
 import { Csvw2RdfContext } from '../csvw2rdf/context.js';
 import { CsvwTransformationDefinition } from '../types/descriptor/transformation-definition.js';
-import { validateAllowedKeys, validateIdAndType } from './generic.js';
+import { validateAllowedKeys, validateType } from './generic.js';
 
 const templateKeys = [
   'notes',
@@ -19,5 +19,5 @@ export function validateTemplate(
 ) {
   if (!template || typeof template !== 'object') return;
   validateAllowedKeys(template, templateKeys, 'Template', ctx);
-  validateIdAndType(template, 'Template', ctx);
+  validateType(template, 'Template', ctx);
 }

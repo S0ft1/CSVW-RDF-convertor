@@ -3,11 +3,7 @@ import { CsvwSchemaDescription } from '../types/descriptor/schema-description.js
 import { coerceArray } from '../utils/coerce.js';
 import { validateColumn } from './column.js';
 import { validateForeignKey } from './foreign-key.js';
-import {
-  validateAllowedKeys,
-  validateArray,
-  validateIdAndType,
-} from './generic.js';
+import { validateAllowedKeys, validateArray, validateType } from './generic.js';
 import { inhPropKeys } from './inherited-properties.js';
 
 const schemaKeys = [
@@ -25,7 +21,7 @@ export function validateSchema(
   schema: CsvwSchemaDescription,
   ctx: Csvw2RdfContext
 ) {
-  validateIdAndType(schema, 'Schema', ctx);
+  validateType(schema, 'Schema', ctx);
   validateAllowedKeys(schema, schemaKeys, 'Schema', ctx);
   validateArray(
     schema,

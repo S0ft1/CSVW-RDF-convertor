@@ -4,7 +4,7 @@ import { coerceArray } from '../utils/coerce.js';
 import {
   PropertySchema,
   validateAllowedKeys,
-  validateIdAndType,
+  validateType,
   validateObject,
 } from './generic.js';
 
@@ -59,7 +59,7 @@ export function validateDialect(
   dialect: CsvwDialectDescription,
   ctx: Csvw2RdfContext
 ) {
-  validateIdAndType(dialect, 'Dialect', ctx);
+  validateType(dialect, 'Dialect', ctx);
   validateObject(dialect, dialectSchema, 'Dialect', ctx);
   validateAllowedKeys(dialect, dialectKeys, 'Dialect', ctx);
 

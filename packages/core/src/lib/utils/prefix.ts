@@ -118,6 +118,17 @@ export const dateTypes = new Set([
   xsd + 'time',
   xsd + 'dateTimeStamp',
 ]);
+export const stringTypes = new Set([
+  xsd + 'string',
+  xsd + 'normalizedString',
+  xsd + 'token',
+  xsd + 'language',
+  xsd + 'NMTOKEN',
+  xsd + 'Name',
+  xsd + 'hexBinary',
+  xsd + 'base64Binary',
+]);
+
 export const dtUris: Record<CsvwBuiltinDatatype, string> = {
   any: xsd + 'anyAtomicType',
   anyAtomicType: xsd + 'anyAtomicType',

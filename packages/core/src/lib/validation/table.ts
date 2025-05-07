@@ -2,7 +2,7 @@ import { Csvw2RdfContext } from '../csvw2rdf/context.js';
 import { CsvwTableDescription } from '../types/descriptor/table.js';
 import { validateDialect } from './dialect.js';
 import {
-  validateIdAndType,
+  validateType,
   validateArray,
   PropertySchema,
   validateObject,
@@ -39,6 +39,10 @@ const tableKeys = [
 ];
 
 export function validateTable(t: CsvwTableDescription, ctx: Csvw2RdfContext) {
+  if (typeof t.url !== 'string') t.url = undefined as any;
+  if (t.url === undefined) {
+    ctx.issueTracker.addError('Table must have a url property.');
+  }
   const base =
     (Array.isArray(ctx.input.descriptor['@context']) &&
       ctx.input.descriptor['@context'][1]?.['@base']) ||
@@ -49,7 +53,7 @@ export function validateTable(t: CsvwTableDescription, ctx: Csvw2RdfContext) {
   validateInheritedProperties(t, `Table (${t.url})`, ctx);
   validateAllowedKeys(t, tableKeys, `Table (${t.url})`, ctx);
   validateChild(t, 'dialect', validateDialect, ctx);
-  validateIdAndType(t, 'Table', ctx);
+  validateType(t, 'Table', ctx);
   validateChild(t, 'tableSchema', validateSchema, ctx);
   validateArray(t, 'transformations', validateTemplate, ctx);
 }

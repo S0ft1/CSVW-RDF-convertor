@@ -107,7 +107,9 @@ export class Csvw2RdfConvertor {
       (table) => !table.url
     );
     if (tablesWithoutUrl.length > 1) {
-      throw new Error('Multiple tables without URL found in the descriptor');
+      this.issueTracker.addError(
+        'Multiple tables without URL found in the descriptor'
+      );
     }
     if (tablesWithoutUrl.length === 1) {
       tablesWithoutUrl[0].url = url;
@@ -474,10 +476,25 @@ export class Csvw2RdfConvertor {
     const headerRowCount =
       dialect.headerRowCount ?? (dialect.header ?? true ? 1 : 0);
     if (table.tableSchema === undefined) table.tableSchema = {};
-    const nonvirtualColCount =
-      (table.tableSchema.columns?.length || undefined) &&
-      table.tableSchema.columns?.filter((c) => !c.virtual).length;
-    if (table.tableSchema.columns === undefined) table.tableSchema.columns = [];
+    if (table.tableSchema.columns === undefined) {
+      table.tableSchema.columns = [];
+    }
+    const physicalColCount = table.tableSchema.columns?.length
+      ? table.tableSchema.columns.filter((c) => !c.virtual).length
+      : undefined;
+    if (
+      physicalColCount !== undefined &&
+      table.tableSchema.columns
+        .slice(0, physicalColCount)
+        .find((c) => c.virtual)
+    ) {
+      this.issueTracker.addError(
+        'Table schema has virtual columns before physical ones'
+      );
+      table.tableSchema.columns.sort(
+        (a, b) => (a.virtual ? 1 : 0) - (b.virtual ? 1 : 0)
+      );
+    }
 
     for (const col of table.tableSchema.columns) {
       if (
@@ -495,66 +512,21 @@ export class Csvw2RdfConvertor {
     for (let i = 0; i < headerRowCount; ++i) {
       const header = await stream.next();
       if (header.done) {
-        throw new Error('CSV stream ended before header was read');
+        this.issueTracker.addError('CSV stream ended before header was read');
+        return;
       }
       const vals = header.value.slice(dialect.skipColumns ?? 0);
-      if (
-        nonvirtualColCount !== undefined &&
-        vals.length !== nonvirtualColCount
-      ) {
+      if (physicalColCount !== undefined && vals.length !== physicalColCount) {
         this.issueTracker.addWarning(
-          `Header row ${i} has ${vals.length} columns, but the table schema has ${nonvirtualColCount} non-virtual columns`
+          `Header row ${i} has ${vals.length} columns, but the table schema has ${physicalColCount} non-virtual columns`
         );
       }
-
-      for (let j = 0; j < vals.length; ++j) {
-        if (!vals[j]) continue;
-        let modified = false;
-        let col = table.tableSchema.columns[j];
-        if (!col) {
-          col = {};
-          table.tableSchema.columns[j] = col;
-        }
-        if (col.titles === undefined) col.titles = [vals[j]];
-        else if (Array.isArray(col.titles)) {
-          if (col.titles.includes(vals[j])) continue;
-          col.titles.push(vals[j]);
-          modified = true;
-        } else if (typeof col.titles === 'string') {
-          if (col.titles !== vals[j]) {
-            col.titles = [col.titles, vals[j]];
-            modified = true;
-          }
-        } else if (col.titles[defaultLang] === undefined) {
-          col.titles[defaultLang] = vals[j];
-          modified = Object.keys(col.titles).length > 1;
-        } else if (typeof col.titles[defaultLang] === 'string') {
-          if (col.titles[defaultLang] !== vals[j]) {
-            col.titles[defaultLang] = [col.titles[defaultLang], vals[j]];
-            modified = true;
-          }
-        } else if (!col.titles[defaultLang].includes(vals[j])) {
-          col.titles[defaultLang].push(vals[j]);
-          modified = true;
-        }
-
-        if (modified && i === 0) {
-          const title = coerceArray(
-            typeof col.titles === 'object' && !Array.isArray(col.titles)
-              ? col.titles[defaultLang]
-              : col.titles
-          )[0];
-          if (title === vals[j]) {
-            this.issueTracker.addWarning(
-              `Column title language is different from header in the CSV file "${vals[j]}"@${defaultLang}`
-            );
-          } else {
-            this.issueTracker.addWarning(
-              `Column title "${title}" is different from header in the CSV file "${vals[j]}"`
-            );
-          }
-        }
-      }
+      this.headerRowToTitles(
+        vals,
+        table.tableSchema.columns,
+        defaultLang,
+        i === 0
+      );
     }
 
     if (!table.tableSchema.columns.length) {
@@ -566,8 +538,74 @@ export class Csvw2RdfConvertor {
       return row.value;
     }
 
-    for (let i = 0; i < table.tableSchema.columns.length; ++i) {
-      const col = table.tableSchema.columns[i];
+    this.columnTitlesToNames(table.tableSchema.columns, defaultLang);
+
+    this.validateDuplicateColumns(table.tableSchema.columns);
+    return undefined;
+  }
+
+  private headerRowToTitles(
+    vals: string[],
+    columns: CsvwColumnDescription[],
+    defaultLang: string,
+    firstRow: boolean
+  ) {
+    for (let j = 0; j < vals.length; ++j) {
+      if (!vals[j]) continue;
+      let modified = false;
+      let col = columns[j];
+      if (!col) {
+        col = {};
+        columns[j] = col;
+      }
+      if (col.titles === undefined) col.titles = [vals[j]];
+      else if (Array.isArray(col.titles)) {
+        if (col.titles.includes(vals[j])) return;
+        col.titles.push(vals[j]);
+        modified = true;
+      } else if (typeof col.titles === 'string') {
+        if (col.titles !== vals[j]) {
+          col.titles = [col.titles, vals[j]];
+          modified = true;
+        }
+      } else if (col.titles[defaultLang] === undefined) {
+        col.titles[defaultLang] = vals[j];
+        modified = Object.keys(col.titles).length > 1;
+      } else if (typeof col.titles[defaultLang] === 'string') {
+        if (col.titles[defaultLang] !== vals[j]) {
+          col.titles[defaultLang] = [col.titles[defaultLang], vals[j]];
+          modified = true;
+        }
+      } else if (!col.titles[defaultLang].includes(vals[j])) {
+        col.titles[defaultLang].push(vals[j]);
+        modified = true;
+      }
+
+      if (modified && firstRow) {
+        const title = coerceArray(
+          typeof col.titles === 'object' && !Array.isArray(col.titles)
+            ? col.titles[defaultLang]
+            : col.titles
+        )[0];
+        if (title === vals[j]) {
+          this.issueTracker.addWarning(
+            `Column title language is different from header in the CSV file "${vals[j]}"@${defaultLang}`
+          );
+        } else {
+          this.issueTracker.addWarning(
+            `Column title "${title}" is different from header in the CSV file "${vals[j]}"`
+          );
+        }
+      }
+    }
+  }
+
+  private columnTitlesToNames(
+    columns: CsvwColumnDescription[],
+    defaultLang: string
+  ) {
+    for (let i = 0; i < columns.length; ++i) {
+      const col = columns[i];
       if (col.name || !col.titles) continue;
       if (typeof col.titles === 'string') col.name = col.titles;
       else if (Array.isArray(col.titles)) col.name = col.titles[0];
@@ -587,7 +625,18 @@ export class Csvw2RdfConvertor {
         ? encodeURIComponent(col.name).replaceAll('-', '%2D')
         : '_col.' + (i + 1);
     }
-    return undefined;
+  }
+
+  private validateDuplicateColumns(columns: CsvwColumnDescription[]) {
+    for (let i = 0; i < columns.length; ++i) {
+      for (let j = 0; j < i; ++j) {
+        if (columns[i].name === columns[j].name) {
+          this.issueTracker.addError(
+            `Duplicate column name "${columns[i].name}"`
+          );
+        }
+      }
+    }
   }
 
   /**
