@@ -63,7 +63,7 @@ export const csvw2rdf: CommandModule<
   handler: async (args) => {
     args.format = args.format ?? inferFormat(args.output);
     const options: Csvw2RdfOptions = {
-      baseIRI: args.baseIri,
+      baseIRI: args.baseIri ?? args.input,
       minimal: args.minimal,
       templateIRIs: args.templateIris,
       pathOverrides: Object.entries(args.pathOverrides ?? {}),
@@ -106,7 +106,7 @@ export const csvw2rdf: CommandModule<
       throw new Error('stdin input not supported yet');
     const convertor = new Csvw2RdfConvertor(options);
     let stream: Stream<Quad>;
-    if (args.input.match(/\.csv([?#].*)?/)) {
+    if (args.input.match(/\.csv([?#].*)?$/)) {
       stream = await convertor.convertFromCsvUrl(args.input);
     } else {
       stream = await convertor.convert(

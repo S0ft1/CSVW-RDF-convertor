@@ -32,10 +32,6 @@ describe('CSVW -> RDF Official tests', () => {
     fetchMock.default.resetMocks();
   });
 
-  // skip: #149, #93, #100, #107, #148
-
-  // comment in header: #286, #287, #296-#301
-
   const skippedTests = [
     // JSON-LD specification conflicts with the idea of the test
     93, 99, 100, 101, 135, 136, 270, 271, 272, 274,

@@ -540,7 +540,9 @@ export class Csvw2RdfConvertor {
 
     this.columnTitlesToNames(table.tableSchema.columns, defaultLang);
 
-    this.validateDuplicateColumns(table.tableSchema.columns);
+    this.validateDuplicateColumns(
+      table.tableSchema.columns.filter((col) => col.name !== undefined)
+    );
     return undefined;
   }
 
@@ -606,7 +608,11 @@ export class Csvw2RdfConvertor {
   ) {
     for (let i = 0; i < columns.length; ++i) {
       const col = columns[i];
-      if (col.name || !col.titles) continue;
+      if (col.name) continue;
+      if (!col.titles) {
+        col.name = '_col.' + (i + 1);
+        continue;
+      }
       if (typeof col.titles === 'string') col.name = col.titles;
       else if (Array.isArray(col.titles)) col.name = col.titles[0];
       else {
