@@ -62,6 +62,7 @@
     "bcp47-validate": "^1.0.0",
     "csv": "^6.3.11",
     "date-fns": "^4.1.0",
+    "idna-uts46-hx": "^6.0.8",
     "jsonld": "^8.3.3",
     "memory-level": "^3.0.0",
     "mnemonist": "^0.40.2",

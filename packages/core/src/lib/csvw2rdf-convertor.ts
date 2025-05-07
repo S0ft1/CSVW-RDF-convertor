@@ -41,6 +41,7 @@ import { validateTable } from './validation/table.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { CsvLocationTracker } from './utils/code-location.js';
 import { NumberParser } from './utils/parse-number.js';
+import * as uts46 from 'idna-uts46-hx';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -1371,6 +1372,11 @@ export class Csvw2RdfConvertor {
     uri = this.expandIri(uri);
     uri = URL.parse(uri)?.href ?? baseIRI + uri;
     if (this.options.templateIRIs) {
+      const parsed = URL.parse(uri) as URL;
+      uri = parsed.href.replace(
+        parsed.hostname,
+        uts46.toUnicode(parsed.hostname)
+      );
       uri = decodeURI(uri);
     }
     return namedNode(uri);
