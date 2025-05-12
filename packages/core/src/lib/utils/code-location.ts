@@ -26,18 +26,6 @@ export abstract class LocationTracker<T extends object> {
    * Updates the location in the file being processed. If only partial location is provided,
    * less specific layers will be kept from the original location and more specific layers will be removed.
    * @param newLoc The new location to be set.
-   *
-   * @example
-   *
-   * ```ts
-   * let tracker: LocationTracker<{
-   *   table: string; // least specific layer
-   *   row: number; // more specific layer
-   *   column: number; // most specific layer
-   * }>;
-   * tracker.loc = { table: 'table1', row: 1, column: 2 };
-   * tracker.updateLocation({ row: 2 }); // { table: 'table1', row: 2 }
-   * ```
    */
   public update(newLoc: Partial<T>) {
     let keep = true;

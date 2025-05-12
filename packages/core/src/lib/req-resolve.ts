@@ -4,7 +4,13 @@ export type ResolveCsvStreamFn = (
   url: string,
   base: string
 ) => Promise<ReadableStream<string>>;
-
+/**
+ * Retrieves the linked context from the response's `Link` header if available.
+ * If multiple valid metadata files are linked, the last one is used.
+ *
+ * @param resp - The `Response` object from which to extract the linked context.
+ * @returns A promise that resolves to the URL of the linked context or `undefined` if none is found.
+ */
 export async function getLinkedContext(resp: Response) {
   const linkHeader = resp.headers.get('link');
   const contentType = resp.headers.get('content-type');
@@ -46,7 +52,14 @@ function parseLinkHeader(header: string, base: string): string[] {
   }
   return res;
 }
-
+/**
+ * Resolves a readable stream of CSV data from a given URL and base URL.
+ *
+ * @param url - The URL of the CSV resource to resolve.
+ * @param base - The base URL to resolve relative URLs.
+ * @returns A promise that resolves to a `ReadableStream` of strings.
+ * @throws An error if the fetch operation fails.
+ */
 export async function defaultResolveJsonldFn(
   url: string,
   base: string
@@ -62,6 +75,14 @@ export async function defaultResolveJsonldFn(
   const res = await resp.text();
   return res;
 }
+/**
+ * Resolves a readable stream of CSV data from a given URL and base URL.
+ *
+ * @param url - The URL of the CSV resource to resolve.
+ * @param base - The base URL to resolve relative URLs.
+ * @returns A promise that resolves to a `ReadableStream` of strings.
+ * @throws An error if the fetch operation fails.
+ */
 export async function defaultResolveStreamFn(
   url: string,
   base: string
@@ -72,12 +93,28 @@ export async function defaultResolveStreamFn(
   return stream.pipeThrough(new TextDecoderStream());
 }
 
+/**
+ * Converts a relative URL to an absolute URL using a base URL.
+ *
+ * @param url - The relative or absolute URL to resolve.
+ * @param base - The base URL to resolve relative URLs.
+ * @returns The absolute URL as a string.
+ * @throws An error if the URL is invalid.
+ */
 export function toAbsolute(url: string, base: string) {
   const parsed = URL.parse(url) ?? URL.parse(url, base);
   if (!parsed) throw new Error('Invalid URL: ' + url);
   return parsed.href;
 }
 
+/**
+ * Resolves plain text content from a given URL and base URL.
+ *
+ * @param url - The URL of the text resource to resolve.
+ * @param base - The base URL to resolve relative URLs.
+ * @returns A promise that resolves to the text content as a string.
+ * @throws An error if the fetch operation fails.
+ */
 export async function defaultResolveTextFn(
   url: string,
   base: string

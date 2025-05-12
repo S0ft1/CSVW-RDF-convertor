@@ -1,3 +1,4 @@
+
 import { Csvw2RdfContext } from '../csvw2rdf/context.js';
 import { CsvwTableDescription } from '../types/descriptor/table.js';
 import { validateDialect } from './dialect.js';
@@ -38,6 +39,15 @@ const tableKeys = [
   '@context',
 ];
 
+/**
+ * Validates a CSVW Table Description object against the defined schema and rules.
+ *
+ * @param t - The `CsvwTableDescription` object representing the table to validate.
+ * @param ctx - The `Csvw2RdfContext` providing the context for validation, including
+ *              the issue tracker and input descriptor.
+ *
+ * If any validation fails, errors are added to the issue tracker in the provided context.
+ */
 export function validateTable(t: CsvwTableDescription, ctx: Csvw2RdfContext) {
   if (typeof t.url !== 'string') t.url = undefined as any;
   if (t.url === undefined) {

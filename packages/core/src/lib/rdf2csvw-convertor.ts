@@ -10,6 +10,9 @@ import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
 import { CsvwTable } from './types/csvwTable.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
 import { defaultResolveJsonldFn } from './req-resolve.js';
+import { Engine } from 'quadstore-comunica';
+import { CsvwDatatype, CsvwNumberFormat } from './types/descriptor/datatype.js';
+import { ColumnDescriptionWithDataTypeAndFormat, CsvwColumnDescription } from './types/descriptor/column-description.js';
 
 //const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 
@@ -17,6 +20,7 @@ export class Rdf2CsvwConvertor {
   private options: Required<Rdf2CsvOptions>;
   public issueTracker: IssueTracker;
   private store: Quadstore;
+  private engine: Engine;
 
   public constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
@@ -43,30 +47,18 @@ export class Rdf2CsvwConvertor {
         this.issueTracker
       );
     }
-
     await this.openStore();
     //Now we have a descriptor either from user or from rdf data.
     const reader = Readable.from(data);
     const parser = new StreamParser({ format: 'text/turtle' });
     await this.store.putStream(reader.pipe(parser), { batchSize: 100 });
-    let tables = wrapper.isTableGroup
-      ? wrapper.getTables()
-      : ([wrapper.descriptor] as CsvwTableDescription[]);
-    let csvwTables = [] as CsvwTable[];
-    for (const table of tables) {
-      // csvwTables.push(new CsvwTable(table, wrapper.tableGroup, wrapper.descriptor.dialect, wrapper.schema, wrapper.notes));
-    }
-    /*
-        
-        const stream = await this.store.match();    
-        stream.on('data', (quad) => {
-            console.log(`Subject: ${quad.subject.value}, Predicate: ${quad.predicate.value}, Object: ${quad.object.value}`);
-        });
-        stream.on('end', () => {
-            console.log('All triples have been printed.');
-        });
-        */
 
+    const stream = await this.engine.queryBindings(
+      'SELECT ?o ?p ?s WHERE { ?o ?p ?s }',
+      { baseIRI: 'http://example.org' }
+    );
+
+    //stream.on('data', (bindings) => console.log(bindings.toString()));
     this.store.close();
     return {} as Stream; //This is a placeholder. The actual conversion logic will go here.
   }
@@ -100,6 +92,7 @@ export class Rdf2CsvwConvertor {
       backend,
       dataFactory: DataFactory as unknown as StoreOpts['dataFactory'],
     });
+    this.engine = new Engine(this.store);
     await this.store.open();
   }
 }

@@ -104,6 +104,16 @@ function findFormatedColumns(allColumns: CsvwColumnDescription[]) {
 
   }
   
+/**
+ * Transforms numeric values in a JSON table string based on the column formatting
+ * specified in the provided descriptor. The transformation is applied to columns
+ * that are identified as requiring formatting.
+ *
+ * @param jsonTable - The JSON table as a string where numeric values need to be transformed.
+ * @param descriptor - The descriptor wrapper containing metadata about the table schema and columns.
+ * @param issueTracker - An issue tracker instance to log any issues encountered during transformation.
+ * @returns The transformed JSON table as a string with formatted numeric values.
+ */
  export function transformNumbersInTable(jsonTable: string, descriptor: DescriptorWrapper, issueTracker: IssueTracker): string {
     const rgxForNumberRowInJson = `\\s*:\\s*"\\d*\\.*\\d*"`;
     const regexForNumberInJson = /"(\d*\.?\d*)"/;
