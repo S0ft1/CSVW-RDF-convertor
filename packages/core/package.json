@@ -69,12 +69,14 @@
     "n3": "^1.23.1",
     "quadstore": "^15.0.0",
     "quadstore-comunica": "^6.0.1",
+    "readable-stream": "^4.7.0",
     "url-template": "^3.1.1"
   },
   "devDependencies": {
     "@types/jsonld": "^1.5.15",
     "@types/n3": "^1.21.1",
     "@types/node": "^22.13.5",
+    "@types/readable-stream": "^4.0.18",
     "jest-fetch-mock": "^3.0.3",
     "jest-rdf": "^2.0.0"
   }

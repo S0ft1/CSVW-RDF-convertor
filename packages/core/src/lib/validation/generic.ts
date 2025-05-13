@@ -1,11 +1,11 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import { coerceArray } from '../utils/coerce.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
 
 export function validateType(
   object: { '@id'?: string; '@type'?: string },
   expectedType: string,
-  { issueTracker }: Csvw2RdfContext
+  { issueTracker }: ValidationContext
 ) {
   if (object['@type'] && object['@type'] !== expectedType) {
     issueTracker.addError(expectedType + ' must have type ' + expectedType);
@@ -23,9 +23,9 @@ export function validateArray<Obj, Key extends keyof ArrayKeys<Obj>>(
   key: Key,
   cb: (
     val: Exclude<ArrayKeys<Obj>[Key], undefined>,
-    ctx: Csvw2RdfContext
+    ctx: ValidationContext
   ) => void,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   if (object[key] === undefined || object[key] === null) return;
   object[key] = coerceArray(object[key]) as any;
@@ -52,7 +52,7 @@ export function validateObject<T extends object>(
   obj: T,
   defaults: { [key in keyof T]?: PropertySchema },
   message: string,
-  { issueTracker }: Csvw2RdfContext
+  { issueTracker }: ValidationContext
 ) {
   for (const [key, schema] of Object.entries(defaults) as Iterable<
     [keyof T, PropertySchema]
@@ -148,7 +148,7 @@ export function validateAllowedKeys(
   obj: object,
   allowedKeys: string[],
   message: string,
-  { issueTracker }: Csvw2RdfContext
+  { issueTracker }: ValidationContext
 ) {
   for (const key of Object.keys(obj)) {
     if (!allowedKeys.includes(key)) {
@@ -160,8 +160,8 @@ export function validateAllowedKeys(
 export function validateChild<T extends object, K extends keyof T>(
   obj: T,
   key: K,
-  cb: (val: Required<T>[K], ctx: Csvw2RdfContext) => void,
-  ctx: Csvw2RdfContext
+  cb: (val: Required<T>[K], ctx: ValidationContext) => void,
+  ctx: ValidationContext
 ) {
   if (obj[key] === undefined) return;
   if (!obj[key] || typeof obj[key] !== 'object') {

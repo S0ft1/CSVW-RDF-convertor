@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import { CsvwDialectDescription } from '../types/descriptor/dialect-description.js';
 import { coerceArray } from '../utils/coerce.js';
 import {
@@ -57,7 +57,7 @@ const dialectKeys = [
 
 export function validateDialect(
   dialect: CsvwDialectDescription,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   validateType(dialect, 'Dialect', ctx);
   validateObject(dialect, dialectSchema, 'Dialect', ctx);

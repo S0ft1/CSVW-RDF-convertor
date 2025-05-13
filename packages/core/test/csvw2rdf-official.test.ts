@@ -1,16 +1,14 @@
 import { Manifest, EntryType, Entry } from './types/manifest.js';
-import { Csvw2RdfConvertor } from '../src/lib/csvw2rdf-convertor.js';
+import { Csvw2RdfConvertor } from '../src/lib/csvw2rdf/convertor.js';
 import { Csvw2RdfOptions } from '../src/lib/conversion-options.js';
 import { defaultResolveJsonldFn } from '../src/lib/req-resolve.js';
 import { numericTypes } from '../src/lib/utils/prefix.js';
-
 import { createReadStream, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isAbsolute, resolve } from 'node:path';
-import { Quad } from 'quadstore';
 import { DataFactory, StreamParser } from 'n3';
-import { Stream } from '@rdfjs/types';
+import { Stream, Quad } from '@rdfjs/types';
 import { IssueTracker } from '../src/lib/utils/issue-tracker.js';
 import { Readable } from 'node:stream';
 const { literal, quad, namedNode } = DataFactory;
@@ -75,7 +73,11 @@ describe('CSVW -> RDF Official tests', () => {
         }
 
         case EntryType.NegativeTest:
-          await expect(runConversion(options, entry)).rejects.toThrow();
+          await expect(
+            runConversion(options, entry).then(([stream]) =>
+              rdfStreamToArray(stream)
+            )
+          ).rejects.toThrow();
           break;
 
         default:
@@ -95,20 +97,18 @@ async function runConversion(
     minimal: entry.option.minimal,
     baseIRI: fromCsvUrl ? TEST_HTTP_BASE : resolve(testDir, entry.action, '..'),
   });
+  convertor.issueTracker.options.collectIssues = true;
 
   if (fromCsvUrl && !entry.option.metadata) {
     setupImplicit(entry);
-    return [
-      await convertor.convertFromCsvUrl(entry.action),
-      convertor.issueTracker,
-    ];
+    return [convertor.convertFromCsvUrl(entry.action), convertor.issueTracker];
   }
   const descriptor = await readFile(
     resolve(testDir, entry.option.metadata ?? entry.action),
     'utf-8'
   );
   return [
-    await convertor.convert(descriptor, entry.option.metadata ?? entry.action),
+    convertor.convert(descriptor, entry.option.metadata ?? entry.action),
     convertor.issueTracker,
   ];
 }

@@ -12,7 +12,7 @@ export interface ConversionOptions {
 }
 
 export interface Csvw2RdfOptions extends ConversionOptions {
-  offline?: boolean;
+  /** If true (default is false), template URIs will be parsed into IRIs */
   templateIRIs?: boolean;
   minimal?: boolean;
   /** Function which loads csv files. */

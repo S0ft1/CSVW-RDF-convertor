@@ -2,11 +2,11 @@ import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
 import {
   commonPrefixes,
-  Csvw2RdfConvertor,
+  csvwDescriptorToRdf,
+  csvUrlToRdf,
   Csvw2RdfOptions,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
-  RDFSerialization,
 } from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
@@ -15,6 +15,7 @@ import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import { Quad, Stream } from '@rdfjs/types';
+import { RDFSerialization } from '../rdf-serialization.js';
 
 export const csvw2rdf: CommandModule<
   CommonArgs,
@@ -104,14 +105,13 @@ export const csvw2rdf: CommandModule<
     };
     if (args.input === undefined)
       throw new Error('stdin input not supported yet');
-    const convertor = new Csvw2RdfConvertor(options);
     let stream: Stream<Quad>;
     if (args.input.match(/\.csv([?#].*)?$/)) {
-      stream = await convertor.convertFromCsvUrl(args.input);
+      stream = csvUrlToRdf(args.input, options);
     } else {
-      stream = await convertor.convert(
+      stream = csvwDescriptorToRdf(
         (await options.resolveJsonldFn?.(args.input, '')) ?? '',
-        args.input
+        { ...options, originalUrl: args.input }
       );
     }
 

@@ -1,7 +1,7 @@
 import { CsvwInheritedProperties } from '../types/descriptor/inherited-properties.js';
 import { validateDatatype } from './datatype.js';
 import { PropertySchema, validateLang, validateObject } from './generic.js';
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 
 const inheritedPropertiesSchema: Partial<
   Record<keyof CsvwInheritedProperties, PropertySchema>
@@ -34,7 +34,7 @@ export const inhPropKeys = [
 export function validateInheritedProperties(
   props: CsvwInheritedProperties,
   message: string,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   validateObject(props, inheritedPropertiesSchema, message, ctx);
   for (const prop of ['valueUrl', 'propertyUrl', 'aboutUrl'] as const) {

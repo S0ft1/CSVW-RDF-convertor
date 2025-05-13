@@ -8,11 +8,13 @@ import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { csvwNs } from './types/descriptor/namespace.js';
 import { ConversionOptions } from './conversion-options.js';
 import { replaceUrl } from './utils/replace-url.js';
-import { Quad, Quadstore } from 'quadstore';
-import { BlankNode, NamedNode } from 'n3';
+import { BlankNode, NamedNode, DataFactory } from 'n3';
 import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
 import { IssueTracker } from './utils/issue-tracker.js';
+import { Quad } from '@rdfjs/types';
+
+const { quad, fromQuad } = DataFactory;
 
 /**
  * Normalize the JSON-LD descriptor to a specific format.
@@ -321,9 +323,18 @@ async function splitExternalProps(
     const externalId = `https://github.com/S0ft1/CSVW-RDF-convertor/externalsubj/${externalSubjCounter++}`;
     internal[csvwNs + '#note'] = externalId;
     external['@id'] = externalId;
-    quadMap.set(externalId, (await jsonld.toRDF(external)) as Quad[]);
+    quadMap.set(externalId, await jsonldToRdf(external));
   }
   return [internal, quadMap];
+}
+
+async function jsonldToRdf(node: jsonld.NodeObject): Promise<Quad[]> {
+  // these are not full Quads, but they have very similar data structure
+  const quads = (await jsonld.toRDF(node)) as Quad[];
+  return quads.map((q) => {
+    q.termType = 'Quad';
+    return fromQuad(q as any);
+  });
 }
 
 /** Class for manipulating the descriptor */
@@ -365,18 +376,15 @@ export class DescriptorWrapper {
    * @param newSubj subject for the external properties
    * @param store store to insert the external properties into
    */
-  public async setupExternalProps(
-    sourceId: string,
-    newSubj: NamedNode | BlankNode,
-    store: Quadstore
-  ) {
+  public *getExternalProps(sourceId: string, newSubj: NamedNode | BlankNode) {
     const quads = this.externalProps.get(sourceId) as Quad[];
     if (!quads) return;
-    for (const quad of quads) {
-      if (quad.subject.value === sourceId) {
-        quad.subject = newSubj;
+    for (const q of quads) {
+      if (q.subject.value === sourceId) {
+        yield quad(newSubj, q.predicate, q.object, q.graph);
+      } else {
+        yield q;
       }
-      await store.put(quad);
     }
   }
 }

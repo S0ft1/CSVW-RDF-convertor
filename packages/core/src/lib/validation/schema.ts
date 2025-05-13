@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import { CsvwSchemaDescription } from '../types/descriptor/schema-description.js';
 import { coerceArray } from '../utils/coerce.js';
 import { validateColumn } from './column.js';
@@ -19,7 +19,7 @@ const schemaKeys = [
 
 export function validateSchema(
   schema: CsvwSchemaDescription,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   validateType(schema, 'Schema', ctx);
   validateAllowedKeys(schema, schemaKeys, 'Schema', ctx);

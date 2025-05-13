@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import { CsvwColumnDescription } from '../types/descriptor/column-description.js';
 import {
   langMapArraySchema,
@@ -37,7 +37,7 @@ const uriVarRegex = /^([a-z0-9]|(%[0-9a-f]{2}))([a-z0-9_.]|(%[0-9a-f]{2}))*$/i;
 export function validateColumn(
   c: CsvwColumnDescription,
   index: number,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   ctx.issueTracker.location.update({ column: index });
   validateObject(c, columnSchema, 'Column', ctx);

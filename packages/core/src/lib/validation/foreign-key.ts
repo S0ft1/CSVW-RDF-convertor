@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import {
   CsvwForeignKeyDefinition,
   CsvwSchemaDescription,
@@ -13,7 +13,7 @@ const fkRefKeys = ['resource', 'schemaReference', 'columnReference'];
 export function validateForeignKey(
   fk: CsvwForeignKeyDefinition,
   schema: CsvwSchemaDescription,
-  { input, issueTracker }: Csvw2RdfContext
+  { input, issueTracker }: ValidationContext
 ) {
   validateAllowedKeys(fk, fkDefKeys, 'ForeignKeyDefinition', {
     input,

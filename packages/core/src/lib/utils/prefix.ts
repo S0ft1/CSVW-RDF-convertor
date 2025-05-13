@@ -55,9 +55,6 @@ export const commonPrefixes = {
   xsd: 'http://www.w3.org/2001/XMLSchema#',
 } as const;
 
-export const XSD_TEMP_PREFIX = 'XXX' as const;
-export const XSD_TEMP = `${XSD_TEMP_PREFIX}${commonPrefixes.xsd}` as const;
-
 /**
  * Looks up URI of the RDF namespace using {@link https://prefix.cc} service.
  * @param prefix - Prefix of the namespace

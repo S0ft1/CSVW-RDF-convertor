@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import { CsvwTableGroupDescription } from '../types/descriptor/table-group.js';
 import { validateDialect } from './dialect.js';
 import {
@@ -39,7 +39,7 @@ const tgKeys = [
 
 export function validateTableGroup(
   tg: CsvwTableGroupDescription,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ): void {
   validateAllowedKeys(tg, tgKeys, 'Table group', ctx);
   validateObject(tg, tgSchema, 'Table group', ctx);
