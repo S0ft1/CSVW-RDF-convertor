@@ -36,7 +36,20 @@ const tgKeys = [
   '@type',
   '@context',
 ];
-
+/**
+ * Validates a `CsvwTableGroupDescription` object against the defined schema and rules.
+ *
+ * This function performs a series of checks to ensure that the provided table group
+ * adheres to the CSVW (CSV on the Web) specifications. It validates the allowed keys,
+ * object structure, inherited properties, and child elements such as `dialect`, `tables`,
+ * and `transformations`. Additionally, it ensures that the table group contains at least
+ * one table and has the correct type.
+ *
+ * @param {CsvwTableGroupDescription} tg - The table group description object to validate.
+ * @param {ValidationContext} ctx - The context object containing validation utilities and an issue tracker.
+ *
+ * @throws Will add errors to the issue tracker in the context if validation fails.
+ */
 export function validateTableGroup(
   tg: CsvwTableGroupDescription,
   ctx: ValidationContext

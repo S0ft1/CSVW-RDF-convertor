@@ -1,3 +1,4 @@
+import { CsvwDatatype, CsvwNumberFormat } from './datatype.js';
 import { CsvwInheritedProperties } from './inherited-properties.js';
 
 /**
@@ -34,3 +35,8 @@ export interface CsvwColumnDescription extends CsvwInheritedProperties {
    */
   '@type'?: 'Column';
 }
+type DataTypeWithFormat = CsvwDatatype & Required<Pick<CsvwDatatype,'format'>>
+type NumberDataType = Omit<DataTypeWithFormat, 'format'> & { format: CsvwNumberFormat }
+export type ColumnDescriptionWithDataTypeAndFormat = CsvwColumnDescription & Required<Pick<CsvwInheritedProperties, 'datatype'>> & { datatype: NumberDataType }
+
+

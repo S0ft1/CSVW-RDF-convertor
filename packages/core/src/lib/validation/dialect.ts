@@ -54,7 +54,12 @@ const dialectKeys = [
   '@id',
   '@type',
 ];
-
+/**
+ * Validates a CSVW dialect description object against the defined schema and rules.
+ *
+ * @param dialect - The CSVW dialect description object to validate.
+ * @param ctx - The context object (`ValidationContext`) used for validation and issue tracking.
+ */
 export function validateDialect(
   dialect: CsvwDialectDescription,
   ctx: ValidationContext

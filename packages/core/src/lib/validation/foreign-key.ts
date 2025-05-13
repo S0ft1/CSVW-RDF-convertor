@@ -10,6 +10,22 @@ import { validateAllowedKeys } from './generic.js';
 const fkDefKeys = ['columnReference', 'reference'];
 const fkRefKeys = ['resource', 'schemaReference', 'columnReference'];
 
+/**
+ * Validates a foreign key definition against a given schema and context.
+ *
+ * This function ensures that the foreign key definition adheres to the expected structure
+ * and references valid columns and tables within the provided schema and input context.
+ * Any validation errors are reported to the provided issue tracker.
+ *
+ * @param fk - The foreign key definition to validate.
+ * @param schema - The schema description containing the columns and tables to validate against.
+ * @param context - The context containing the input data and issue tracker for reporting errors.
+ *   - `input`: Provides access to the tables and other input data.
+ *   - `issueTracker`: Used to log validation errors.
+ *
+ * @throws This function does not throw exceptions but logs errors to the issue tracker.
+ *
+ */
 export function validateForeignKey(
   fk: CsvwForeignKeyDefinition,
   schema: CsvwSchemaDescription,
