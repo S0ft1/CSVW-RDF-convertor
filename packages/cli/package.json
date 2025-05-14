@@ -59,6 +59,7 @@
   "dependencies": {
     "@csvw-rdf-convertor/core": "0.2.0",
     "@inquirer/prompts": "^7.3.1",
+    "@rdfjs/serializer-turtle": "^1.1.5",
     "@rdfjs/types": "^2.0.1",
     "@swc/helpers": "~0.5.11",
     "chalk": "^5.4.1",
@@ -68,6 +69,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.1",
+    "@types/rdfjs__serializer-turtle": "^1.1.0",
     "@types/yargs": "^17.0.33"
   }
 }

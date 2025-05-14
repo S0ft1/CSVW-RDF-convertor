@@ -32,7 +32,9 @@ export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
             `Missing value for path override "${value[value.length - 1]}"`
           );
         }
-        return Object.fromEntries(pairwise(value));
+        return Object.fromEntries(
+          pairwise(value.map((v, i) => (i % 2 ? v : v.slice(1))))
+        );
       },
     });
 }

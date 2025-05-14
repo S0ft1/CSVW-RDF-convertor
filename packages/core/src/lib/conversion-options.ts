@@ -6,6 +6,7 @@ import {
 
 export interface ConversionOptions {
   pathOverrides?: [string | RegExp, string][];
+  /** for loading resources */
   baseIRI?: string;
   /** Function which loads json-ld. The default implementation also interprets Link headers. */
   resolveJsonldFn?: ResolveJsonldFn;
