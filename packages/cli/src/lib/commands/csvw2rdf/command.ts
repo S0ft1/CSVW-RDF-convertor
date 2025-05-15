@@ -1,8 +1,10 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../../common.js';
 import { RDFSerialization } from '../../rdf-serialization.js';
-import { pairwise } from 'src/lib/utils/pairwise.js';
+import { pairwise } from '../../utils/pairwise.js';
 import { commonPrefixes } from '@csvw-rdf-convertor/core';
+import { ArgsWithDefaults, handler } from './handler.js';
+import { dotProps } from '../../utils/dot-props.js';
 
 export type TurtleOptions = {
   base?: string;
@@ -20,12 +22,11 @@ export type TurtleOptions = {
 
 export interface C2RArgs extends CommonArgs {
   output?: string;
-  offline?: boolean;
   minimal?: boolean;
   templateIris?: boolean;
   baseIri?: string;
   format?: RDFSerialization;
-  turtle?: TurtleOptions;
+  turtle: TurtleOptions;
 }
 
 export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
@@ -44,10 +45,6 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
       describe: 'Output file',
       type: 'string',
       defaultDescription: 'Prints to stdout',
-    },
-    offline: {
-      describe: 'Do not fetch remote context files (does not work yet)',
-      type: 'boolean',
     },
     minimal: {
       describe: 'Use minimal output',
@@ -69,7 +66,7 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
       array: true,
       type: 'string',
       describe:
-        'Prefix for turtle/TriG output. Format: --turtle.prefix :pref1 path1 :pref2 path2 ...',
+        'Prefix for turtle/TriG output. Format: --turtle.prefix pref1: path1 pref2: path2 ...',
       defaultDescription:
         'RDFa Core Initial Context (https://www.w3.org/2011/rdfa-context/rdfa-1.1)',
       coerce: (value: string[]) => {
@@ -78,28 +75,45 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
             `Missing value for path override "${value[value.length - 1]}"`
           );
         }
-        return Object.fromEntries(pairwise(value));
+        return Object.fromEntries(
+          pairwise(value).map(([p, v]) => [p.slice(0, -1), v])
+        );
       },
     },
     ['turtle.prefixLookup']: {
       describe: 'Use prefix lookup for turtle/TriG output',
       type: 'boolean',
-      default: false,
+      defaultDescription: 'false',
       conflicts: ['turtle.streaming'],
     },
     ['turtle.streaming']: {
       describe:
         'When streaming the output, some pretty printing is not possible',
       type: 'boolean',
-      default: true,
+      defaultDescription: 'true',
       conflicts: ['turtle.prefixLookup'],
     },
   },
   handler: async (args) => {
+    dotProps(args);
     args.format = args.format ?? inferFormat(args.output);
     args.baseIri ??= args.input;
     args.turtle ??= {};
     args.turtle.prefix ??= commonPrefixes;
+    if (args.turtle.prefixLookup) {
+      if (args.turtle.streaming) {
+        throw new Error(
+          'Cannot use --turtle.prefixLookup and --turtle.streaming together'
+        );
+      }
+      args.turtle.streaming = false;
+    }
+    if (args.turtle.streaming) {
+      args.turtle.prefixLookup = false;
+    }
+    args.turtle.prefixLookup ??= false;
+    args.turtle.streaming ??= true;
+    await handler(args as ArgsWithDefaults);
   },
 };
 

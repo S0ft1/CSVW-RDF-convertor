@@ -18,11 +18,11 @@ import { Readable } from 'node:stream';
 import { Quad, Stream } from '@rdfjs/types';
 import { RDFSerialization } from 'src/lib/rdf-serialization.js';
 import TurtleSerializer from '@rdfjs/serializer-turtle';
-import { PrefixMap } from '@rdfjs/prefix-map/PrefixMap.js';
+import PrefixMap from '@rdfjs/prefix-map/PrefixMap.js';
 
 const { namedNode } = N3.DataFactory;
 
-type ArgsWithDefaults = C2RArgs &
+export type ArgsWithDefaults = C2RArgs &
   Required<Pick<C2RArgs, 'turtle' | 'format'>> & {
     turtle: Required<Pick<TurtleOptions, 'prefix'>>;
   };

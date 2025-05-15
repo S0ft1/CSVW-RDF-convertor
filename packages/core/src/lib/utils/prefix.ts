@@ -1,7 +1,7 @@
 import { CsvwBuiltinDatatype } from '../types/descriptor/datatype.js';
 import { csvwNs } from '../types/descriptor/namespace.js';
 import { Quad } from '@rdfjs/types';
-import { PrefixMap } from '@rdfjs/prefix-map/PrefixMap.js';
+import PrefixMap from '@rdfjs/prefix-map/PrefixMap.js';
 import { DataFactory } from 'n3';
 
 const { namedNode } = DataFactory;
@@ -174,21 +174,23 @@ export async function lookupPrefixes(
       if (pmapValues.has(candidate)) {
         continue;
       }
-      const commonMatch = commonInverse.get(candidate);
+      const commonMatch = commonInverse.get(candidate as any);
       if (commonMatch) {
         pmap.set(commonMatch, namedNode(candidate));
         pmapValues.add(candidate);
         continue;
       }
 
-      if (lookupFailures.has(nnode.value)) {
+      if (lookupFailures.has(candidate)) {
         continue;
       }
 
       const serviceMatch = await getPrefixFromService(candidate);
       if (serviceMatch) {
-        pmap.set(serviceMatch, namedNode(nnode.value));
-        lookupFailures.add(nnode.value);
+        pmap.set(serviceMatch, namedNode(candidate));
+        pmapValues.add(candidate);
+      } else {
+        lookupFailures.add(candidate);
       }
     }
   }
@@ -201,8 +203,11 @@ export async function lookupPrefixes(
  * @returns Prefix of the namespace if found, otherwise null
  */
 export function getPrefixFromService(uri: string): Promise<string | null> {
+  if (!uri || !uri.startsWith('http')) return Promise.resolve(null);
   return (
-    fetch(`https://prefix.cc/reverse?uri=${uri}&format=json`)
+    fetch(
+      `https://prefix.cc/reverse?uri=${encodeURIComponent(uri)}&format=json`
+    )
       .then((response) => response.json() as Promise<PrefixCCResponse>)
       .then((data) => Object.keys(data)[0])
       // No registered prefix for the given URI, or prefix.cc does not respond

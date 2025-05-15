@@ -21,6 +21,19 @@ export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
       type: 'string',
       defaultDescription: 'Reads from stdin',
     })
+    .option('dev', {
+      describe:
+        'Enable development mode. This will enable additional logging and debugging features.',
+      type: 'boolean',
+      default: false,
+      hidden: true,
+      coerce: (val: boolean) => {
+        if (val) {
+          process.env.DEV_MODE = 'true';
+        }
+        return val;
+      },
+    })
     .option('pathOverrides', {
       array: true,
       describe:
