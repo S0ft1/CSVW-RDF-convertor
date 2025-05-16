@@ -5,6 +5,10 @@ import {
 } from './req-resolve.js';
 
 export interface ConversionOptions {
+  /**
+   * Replacements for matching paths. [pattern, value] pairs.
+   * If the pattern is a string, all paths starting with the string will be replaced.
+   */
   pathOverrides?: [string | RegExp, string][];
   /** for loading resources */
   baseIRI?: string;

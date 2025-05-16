@@ -1,35 +1,107 @@
 import { search, input, confirm } from '@inquirer/prompts';
 import fuzzysort from 'fuzzysort';
 import chalk from 'chalk';
+import { makeRe, MMRegExp } from 'minimatch';
+import { allUris, getPrefixCandidates } from '@csvw-rdf-convertor/core';
+import { Quad } from '@rdfjs/types';
 
-export async function getPathOverrides(descriptor: object) {
-  let overrides: Record<string, string> = {};
-  const urls = Array.from(allUrls(descriptor)).map((url) =>
-    fuzzysort.prepare(url)
+/**
+ * Get path overrides from the user.
+ * @param descriptor csvw descriptor as JSON object
+ */
+export async function getPathOverrides(
+  descriptor: unknown
+): Promise<[string | RegExp, string][]> {
+  const overrides = await getOverrides(allUris(descriptor), {
+    initial: 'Would you like to override any paths? (Empty to skip)',
+    search: 'Path to override (can use minimatch syntax):',
+    override: 'Override with:',
+    confirm: 'Are these overrides correct?',
+    list: 'Current overrides:',
+    listLine: (val, override) =>
+      chalk.red(val) + ' -> ' + chalk.green(override),
+  });
+  return overrides.map(([o, p]) => {
+    const res = [makeRe(o) || o, p] as [string | RegExp, string];
+    if (res[0] instanceof RegExp) {
+      (res[0] as MMRegExp)._glob = o;
+    }
+    return res;
+  });
+}
+
+/**
+ * Get prefixes from the user.
+ * @param quads Quads to lookup prefixes for
+ */
+export async function getPrefixes(
+  quads?: Quad[]
+): Promise<[string | RegExp, string][]> {
+  const iris = quads ? getPrefixCandidates(quads) : [];
+  const prefixes = await getOverrides(
+    iris,
+    {
+      initial: 'Would you like to add custom IRI prefixes? (Empty to skip)',
+      search: 'IRI to prefix:',
+      override: 'Prefix name: (can be empty)',
+      confirm: 'Are these prefixes correct?',
+      list: 'Current prefixes:',
+      listLine: (val, override) => '@prefix ' + override + ': ' + val + ' .',
+    },
+    true
   );
-  console.log('Would you like to override any paths? (Empty to skip)');
+  return prefixes;
+}
+
+/**
+ * Get replacements for some of the given values interactively.
+ * @param values values to get overrides for
+ * @param messages messages to show to the user
+ * @param allowEmpty is empty string an acceptable replacement
+ * @param validationFn function to validate the input
+ */
+export async function getOverrides(
+  values: Iterable<string>,
+  messages: {
+    initial: string;
+    search: string;
+    override: string;
+    confirm: string;
+    list: string;
+    listLine: (value: string, override: string) => string;
+  },
+  allowEmpty = false,
+  validationFn?: (value: string) => boolean | string
+): Promise<[string, string][]> {
+  let overrides: [string, string][] = [];
+  const prepared = Array.from(values).map((url) => fuzzysort.prepare(url));
+  console.log(messages.initial);
 
   while (true) {
-    const path = await search<string>({
-      message: 'Path to override (can use minimatch syntax):',
-      source: (term) => findTerm(term ?? '', urls),
+    const value = await search<string>({
+      message: messages.search,
+      source: (term) => findTerm(term ?? '', prepared),
     });
-    if (path) {
+    if (value) {
       const override = await input({
-        message: 'Override this with:',
-        required: true,
-        validate: (value) => URL.canParse(value) || 'Must be a valid URL',
+        message: messages.override,
+        required: !allowEmpty,
+        validate: validationFn,
       });
-      overrides[path] = override;
+      overrides.push([override, value]);
     } else {
       if (Object.keys(overrides).length > 0) {
-        printOverrides(overrides);
+        console.log('\n' + messages.list);
+        for (const [override, path] of overrides) {
+          console.log(messages.listLine(path, override));
+        }
         if (
           !(await confirm({
-            message: 'Are these overrides correct?',
+            message: messages.confirm,
           }))
         ) {
-          overrides = {};
+          console.log('Clearing...');
+          overrides = [];
           continue;
         }
       }
@@ -39,32 +111,11 @@ export async function getPathOverrides(descriptor: object) {
   return overrides;
 }
 
-function printOverrides(overrides: Record<string, string>) {
-  console.log('\nOverrides:');
-  for (const [path, override] of Object.entries(overrides)) {
-    console.log(chalk.red(path), '->', chalk.green(override));
-  }
-}
-
 function findTerm(term: string, urls: Fuzzysort.Prepared[]) {
   if (!term) return [''];
-  const results = fuzzysort.go(term, urls, { limit: 7, all: false });
-  return results.map((result) => result.target);
-}
-
-function allUrls(descriptor: unknown, bag = new Set<string>()) {
-  if (typeof descriptor === 'string') {
-    if (URL.canParse(descriptor)) {
-      bag.add(descriptor);
-    }
-  } else if (Array.isArray(descriptor)) {
-    for (const item of descriptor) {
-      allUrls(item, bag);
-    }
-  } else if (typeof descriptor === 'object' && descriptor !== null) {
-    for (const value of Object.values(descriptor)) {
-      allUrls(value, bag);
-    }
-  }
-  return bag;
+  const results = fuzzysort
+    .go(term, urls, { limit: 7, all: false })
+    .map((result) => result.target);
+  results.unshift(term);
+  return results;
 }

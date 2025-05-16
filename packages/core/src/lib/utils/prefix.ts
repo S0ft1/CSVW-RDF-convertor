@@ -153,6 +153,11 @@ export const dtUris: Record<CsvwBuiltinDatatype, string> = {
 
 export const invalidValuePrefix = '@@invalid@@';
 
+/**
+ * Lookup prefixes for the given quads using an external service.
+ * @param quads Quads to lookup prefixes for
+ * @param prefixes initial prefixes
+ */
 export async function lookupPrefixes(
   quads: Quad[],
   prefixes: Record<string, string>
@@ -166,32 +171,28 @@ export async function lookupPrefixes(
   );
   const pmapValues = new Set(Object.values(prefixes));
   const lookupFailures = new Set<string>();
-  for (const quad of quads) {
-    for (const nnode of [quad.subject, quad.predicate, quad.object].filter(
-      (n) => n.termType === 'NamedNode'
-    )) {
-      const candidate = getPrefixCandidate(nnode.value);
-      if (pmapValues.has(candidate)) {
-        continue;
-      }
-      const commonMatch = commonInverse.get(candidate as any);
-      if (commonMatch) {
-        pmap.set(commonMatch, namedNode(candidate));
-        pmapValues.add(candidate);
-        continue;
-      }
+  const candidates = getPrefixCandidates(quads);
+  for (const candidate of candidates) {
+    if (pmapValues.has(candidate)) {
+      continue;
+    }
+    const commonMatch = commonInverse.get(candidate as any);
+    if (commonMatch) {
+      pmap.set(commonMatch, namedNode(candidate));
+      pmapValues.add(candidate);
+      continue;
+    }
 
-      if (lookupFailures.has(candidate)) {
-        continue;
-      }
+    if (lookupFailures.has(candidate)) {
+      continue;
+    }
 
-      const serviceMatch = await getPrefixFromService(candidate);
-      if (serviceMatch) {
-        pmap.set(serviceMatch, namedNode(candidate));
-        pmapValues.add(candidate);
-      } else {
-        lookupFailures.add(candidate);
-      }
+    const serviceMatch = await getPrefixFromService(candidate);
+    if (serviceMatch) {
+      pmap.set(serviceMatch, namedNode(candidate));
+      pmapValues.add(candidate);
+    } else {
+      lookupFailures.add(candidate);
     }
   }
   return pmap;
@@ -215,11 +216,29 @@ export function getPrefixFromService(uri: string): Promise<string | null> {
   );
 }
 
-function getPrefixCandidate(url: string): string {
-  const hashIndex = url.indexOf('#');
-  if (hashIndex !== -1) {
-    return url.slice(0, hashIndex + 1);
+/**
+ * Get IRIs which could be replaced with prefixes.
+ * @param quads - Quads to get prefix candidates from
+ */
+export function getPrefixCandidates(quads: Quad[]): Set<string> {
+  const candidates = new Set<string>();
+  for (const quad of quads) {
+    for (const nnode of [quad.subject, quad.predicate, quad.object].filter(
+      (n) => n.termType === 'NamedNode'
+    )) {
+      const url = nnode.value;
+      const hashIndex = url.indexOf('#');
+      if (hashIndex !== -1) {
+        if (hashIndex !== 0) {
+          candidates.add(url.slice(0, hashIndex + 1));
+        }
+      } else {
+        const slashIndex = url.lastIndexOf('/');
+        if (slashIndex !== 0) {
+          candidates.add(url.slice(0, slashIndex + 1));
+        }
+      }
+    }
   }
-  const slashIndex = url.lastIndexOf('/');
-  return url.slice(0, slashIndex + 1);
+  return candidates;
 }

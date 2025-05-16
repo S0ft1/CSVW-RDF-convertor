@@ -1,20 +1,13 @@
 import { Argv } from 'yargs';
 import { pairwise } from './utils/pairwise.js';
+import { makeRe } from 'minimatch';
 
 export interface CommonArgs {
-  config?: unknown;
   input?: string;
-  pathOverrides?: Record<string, string>;
+  pathOverrides?: [string | RegExp, string][];
 }
 export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
   return yargs
-    .option('config', {
-      describe:
-        'Configuration file in JSON-LD format. May be also provided as a part of the CSVW descriptor. ' +
-        'Properties specified in the configuration file will override the corresponding properties in the CSVW descriptor.',
-      config: true,
-      type: 'string',
-    })
     .option('input', {
       alias: 'i',
       describe: 'Input file or URL.',
@@ -45,8 +38,8 @@ export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
             `Missing value for path override "${value[value.length - 1]}"`
           );
         }
-        return Object.fromEntries(
-          pairwise(value.map((v, i) => (i % 2 ? v : v.slice(1))))
+        return pairwise(value).map(
+          ([p, v]) => [makeRe(p) || p, v] as [string | RegExp, string]
         );
       },
     });

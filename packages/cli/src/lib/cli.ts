@@ -1,7 +1,6 @@
 import { registerCommonArgs } from './common.js';
 import { commands } from './commands/index.js';
 import { requireYargs } from './utils/require-yargs.js';
-
 export async function runCommands() {
   const y = registerCommonArgs(
     requireYargs()
@@ -18,6 +17,7 @@ export async function runCommands() {
   try {
     await y.parse();
   } catch (err) {
+    if ((err as Error).name === 'ExitPromptError') process.exit(0);
     if (process.env.DEV_MODE) {
       console.error(err);
     } else {
