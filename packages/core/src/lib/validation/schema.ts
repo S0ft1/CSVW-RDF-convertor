@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import { CsvwSchemaDescription } from '../types/descriptor/schema-description.js';
 import { coerceArray } from '../utils/coerce.js';
 import { validateColumn } from './column.js';
@@ -17,9 +17,17 @@ const schemaKeys = [
   '@type',
 ];
 
+/**
+ * Validates a CSVW schema description object against the defined rules and context.
+ *
+ * @param schema - The schema description object to validate. This object should conform
+ *                 to the `CsvwSchemaDescription` interface.
+ * @param ctx - The context object of type `Csvw2RdfContext` that provides utilities
+ *              and tracking for validation issues.
+ */
 export function validateSchema(
   schema: CsvwSchemaDescription,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   validateType(schema, 'Schema', ctx);
   validateAllowedKeys(schema, schemaKeys, 'Schema', ctx);

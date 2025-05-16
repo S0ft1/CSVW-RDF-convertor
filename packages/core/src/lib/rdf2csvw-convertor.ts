@@ -48,7 +48,6 @@ export class Rdf2CsvwConvertor {
         this.issueTracker
       );
     }
-
     await this.openStore();
 
     // Now we have a descriptor either from user or from rdf data.
@@ -89,7 +88,7 @@ ${table.tableSchema.columns
       //console.log(query);
 
       const stream = await this.engine.queryBindings(query, {
-        baseIRI:
+        baseIri:
           (Array.isArray(wrapper.descriptor['@context']) &&
             wrapper.descriptor['@context'][1]?.['@base']) ||
           this.options.baseIri,
@@ -201,7 +200,6 @@ ${lines.map((line) => `  ${line}`).join('\n')}
     options ??= {};
     return {
       pathOverrides: options.pathOverrides ?? [],
-      offline: options.offline ?? false,
       baseIri: options.baseIri ?? '',
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       descriptorNotProvided: options.descriptorNotProvided ?? false,

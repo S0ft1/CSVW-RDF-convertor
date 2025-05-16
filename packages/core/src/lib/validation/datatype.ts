@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import {
   CsvwDatatype,
   CsvwNumberFormat,
@@ -46,7 +46,7 @@ const datatypeSchema: Partial<Record<keyof CsvwDatatype, PropertySchema>> = {
  */
 export function validateDatatype(
   props: CsvwInheritedProperties,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   const dt = props.datatype;
   if (dt === undefined) return;
@@ -116,7 +116,7 @@ export function validateDatatype(
   }
 }
 
-function validateLengthConstraints(dt: CsvwDatatype, ctx: Csvw2RdfContext) {
+function validateLengthConstraints(dt: CsvwDatatype, ctx: ValidationContext) {
   const base = dt.base ?? 'string';
   // undefined < and > comparisons always return false, so we can afford to do this
   const { length, minLength, maxLength } = dt as Required<CsvwDatatype>;
@@ -148,7 +148,7 @@ function validateLengthConstraints(dt: CsvwDatatype, ctx: Csvw2RdfContext) {
   }
 }
 
-function validateMinMaxConstraints(dt: CsvwDatatype, ctx: Csvw2RdfContext) {
+function validateMinMaxConstraints(dt: CsvwDatatype, ctx: ValidationContext) {
   const base = dt.base ?? 'string';
   // undefined < and > comparisons always return false, so we can afford to do this
   let minExclusive = dt.minExclusive as number | string | Date;
@@ -214,7 +214,7 @@ function validateMinMaxConstraints(dt: CsvwDatatype, ctx: Csvw2RdfContext) {
   }
 }
 
-function validateDatatypeId(dt: CsvwDatatype, ctx: Csvw2RdfContext) {
+function validateDatatypeId(dt: CsvwDatatype, ctx: ValidationContext) {
   if (!dt['@id']) return;
   const id = dt['@id']
     .replace(/^xsd:/, xsd)

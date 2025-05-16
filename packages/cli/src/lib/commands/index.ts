@@ -1,5 +1,5 @@
 import { CommandModule } from 'yargs';
-import { csvw2rdf } from './csvw2rdf.js';
+import { csvw2rdf } from './csvw2rdf/command.js';
 import { rdf2csvw } from './rdf2csvw.js';
 import { validate } from './validate.js';
 import { CommonArgs } from '../common.js';

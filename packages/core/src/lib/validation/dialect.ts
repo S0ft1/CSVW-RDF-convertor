@@ -1,4 +1,4 @@
-import { Csvw2RdfContext } from '../csvw2rdf/context.js';
+import { ValidationContext } from './context.js';
 import { CsvwDialectDescription } from '../types/descriptor/dialect-description.js';
 import { coerceArray } from '../utils/coerce.js';
 import {
@@ -54,10 +54,15 @@ const dialectKeys = [
   '@id',
   '@type',
 ];
-
+/**
+ * Validates a CSVW dialect description object against the defined schema and rules.
+ *
+ * @param dialect - The CSVW dialect description object to validate.
+ * @param ctx - The context object (`ValidationContext`) used for validation and issue tracking.
+ */
 export function validateDialect(
   dialect: CsvwDialectDescription,
-  ctx: Csvw2RdfContext
+  ctx: ValidationContext
 ) {
   validateType(dialect, 'Dialect', ctx);
   validateObject(dialect, dialectSchema, 'Dialect', ctx);

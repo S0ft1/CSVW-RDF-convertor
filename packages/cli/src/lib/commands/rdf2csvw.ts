@@ -54,10 +54,6 @@ export const rdf2csvw: CommandModule<
       defaultDescription: '1000',
       conflicts: ['interactive', 'input'],
     },
-    offline: {
-      describe: 'Do not fetch remote context files',
-      type: 'boolean',
-    },
   },
   handler: async (args) => {
     if (args.interactive) {
