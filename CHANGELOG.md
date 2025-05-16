@@ -1,3 +1,14 @@
+## 0.3.0 (2025-05-16)
+
+### 🚀 Features
+
+- turtle prefixes lookup ([7d500a9](https://github.com/S0ft1/CSVW-RDF-convertor/commit/7d500a9))
+- c2r interactive mode ([5fb3d1d](https://github.com/S0ft1/CSVW-RDF-convertor/commit/5fb3d1d))
+
+### ❤️ Thank You
+
+- Filip Ježek @filipjezek
+
 ## 0.2.0 (2025-05-07)
 
 This was a version bump only, there were no code changes.
