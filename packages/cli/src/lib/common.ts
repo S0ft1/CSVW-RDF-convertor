@@ -5,6 +5,8 @@ export interface CommonArgs {
   config?: unknown;
   input?: string;
   pathOverrides?: Record<string, string>;
+  offline?: boolean;
+  baseIri?: string;
 }
 export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
   return yargs
@@ -34,5 +36,13 @@ export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
         }
         return Object.fromEntries(pairwise(value));
       },
+    })
+    .option('offline', {
+      describe: 'Do not fetch remote context files (does not work yet)',
+      type: 'boolean',
+    })
+    .option('baseIri', {
+      describe: 'Base IRI for loading resources',
+      type: 'string',
     });
 }

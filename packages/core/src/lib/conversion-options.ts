@@ -6,13 +6,13 @@ import {
 
 export interface ConversionOptions {
   pathOverrides?: [string | RegExp, string][];
-  baseIRI?: string;
+  offline?: boolean;
+  baseIri?: string;
   /** Function which loads json-ld. The default implementation also interprets Link headers. */
   resolveJsonldFn?: ResolveJsonldFn;
 }
 
 export interface Csvw2RdfOptions extends ConversionOptions {
-  offline?: boolean;
   templateIRIs?: boolean;
   minimal?: boolean;
   /** Function which loads csv files. */

@@ -1,24 +1,26 @@
-import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
 import { getPathOverrides } from './interactive/get-path-overrides.js';
-import { readFileOrUrl } from '../utils/read-file-or-url.js';
-import { isAbsolute, resolve } from 'node:path';
 import { getSchema } from './interactive/get-schema.js';
+import { readFileOrUrl } from '../utils/read-file-or-url.js';
+
 import {
   defaultResolveJsonldFn,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '@csvw-rdf-convertor/core';
-import { fileURLToPath } from 'node:url';
+
+import * as csv from 'csv';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
+import { Bindings, ResultStream } from '@rdfjs/types';
+import { fileURLToPath } from 'node:url';
+import { CommandModule } from 'yargs';
 
 export const rdf2csvw: CommandModule<
   CommonArgs,
   CommonArgs & {
-    offline?: boolean;
     outDir: string;
     interactive?: boolean;
-    input: string;
     descriptor?: string;
     bufferSize: number;
   }
@@ -70,6 +72,8 @@ export const rdf2csvw: CommandModule<
       throw new Error('stdin input not supported yet');
 
     const options: Rdf2CsvOptions = {
+      baseIri: args.baseIri ?? dirname(args.input),
+      pathOverrides: Object.entries(args.pathOverrides ?? {}),
       resolveJsonldFn: async (path, base) => {
         const url =
           URL.parse(path, base)?.href ??
@@ -87,13 +91,23 @@ export const rdf2csvw: CommandModule<
     };
     const convertor = new Rdf2CsvwConvertor(options);
 
+    // TODO: use RDF data stream instead of file content
+    let streams: { [key: string]: ResultStream<Bindings> };
     if (args.descriptor === undefined) {
-      convertor.convert(args.input);
+      streams = await convertor.convert(await readFile(args.input, 'utf-8'));
     } else {
-      convertor.convert(
-        args.input,
+      streams = await convertor.convert(
+        await readFile(args.input, 'utf-8'),
         (await options.resolveJsonldFn?.(args.descriptor, '')) ?? ''
       );
+    }
+
+    // TODO: save as CSV
+    for (const [table, stream] of Object.entries(streams)) {
+      console.log('---', table, '---');
+      for await (const bindings of stream) {
+        console.log(JSON.stringify(bindings.entries));
+      }
     }
   },
 };

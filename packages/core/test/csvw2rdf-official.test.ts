@@ -93,7 +93,7 @@ async function runConversion(
   const convertor = new Csvw2RdfConvertor({
     ...options,
     minimal: entry.option.minimal,
-    baseIRI: fromCsvUrl ? TEST_HTTP_BASE : resolve(testDir, entry.action, '..'),
+    baseIri: fromCsvUrl ? TEST_HTTP_BASE : resolve(testDir, entry.action, '..'),
   });
 
   if (fromCsvUrl && !entry.option.metadata) {

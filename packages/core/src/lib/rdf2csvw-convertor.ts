@@ -1,26 +1,30 @@
 import { Rdf2CsvOptions } from './conversion-options.js';
-import { Stream } from '@rdfjs/types';
-import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
-import { IssueTracker } from './utils/issue-tracker.js';
-import { Quadstore, StoreOpts } from 'quadstore';
-import { BlankNode, DataFactory, Literal, NamedNode, StreamParser } from 'n3';
-import { MemoryLevel } from 'memory-level';
-import { Readable } from 'stream';
 import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
-import { CsvwTable } from './types/csvwTable.js';
-import { CsvwTableDescription } from './types/descriptor/table.js';
 import { defaultResolveJsonldFn } from './req-resolve.js';
 
-//const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
+import { CsvwColumnDescription } from './types/descriptor/column-description.js';
+import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { CsvwTableDescription } from './types/descriptor/table.js';
+
+import { commonPrefixes } from './utils/prefix.js';
+import { IssueTracker } from './utils/issue-tracker.js';
+
+import { MemoryLevel } from 'memory-level';
+import { DataFactory, StreamParser } from 'n3';
+import { Quadstore, StoreOpts } from 'quadstore';
+import { Engine } from 'quadstore-comunica';
+import { Bindings, ResultStream } from '@rdfjs/types';
+import { Readable } from 'stream';
+import { parseTemplate } from 'url-template';
 
 export class Rdf2CsvwConvertor {
   private options: Required<Rdf2CsvOptions>;
   public issueTracker: IssueTracker;
   private store: Quadstore;
+  private engine: Engine;
 
   public constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
-    //this.store = {} as Quadstore;
   }
 
   /**
@@ -32,7 +36,8 @@ export class Rdf2CsvwConvertor {
   public async convert(
     data: string,
     descriptor?: string | AnyCsvwDescriptor
-  ): Promise<Stream> {
+  ): Promise<{ [key: string]: ResultStream<Bindings> }> {
+    // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
     let wrapper: DescriptorWrapper;
     if (descriptor === undefined) {
       wrapper = this.createDescriptor(data);
@@ -45,30 +50,139 @@ export class Rdf2CsvwConvertor {
     }
 
     await this.openStore();
-    //Now we have a descriptor either from user or from rdf data.
+
+    // Now we have a descriptor either from user or from rdf data.
     const reader = Readable.from(data);
     const parser = new StreamParser({ format: 'text/turtle' });
     await this.store.putStream(reader.pipe(parser), { batchSize: 100 });
-    let tables = wrapper.isTableGroup
+
+    const tables = wrapper.isTableGroup
       ? wrapper.getTables()
       : ([wrapper.descriptor] as CsvwTableDescription[]);
-    let csvwTables = [] as CsvwTable[];
-    for (const table of tables) {
-      // csvwTables.push(new CsvwTable(table, wrapper.tableGroup, wrapper.descriptor.dialect, wrapper.schema, wrapper.notes));
-    }
-    /*
-        
-        const stream = await this.store.match();    
-        stream.on('data', (quad) => {
-            console.log(`Subject: ${quad.subject.value}, Predicate: ${quad.predicate.value}, Object: ${quad.object.value}`);
-        });
-        stream.on('end', () => {
-            console.log('All triples have been printed.');
-        });
-        */
+    const streams = {} as { [key: string]: ResultStream<Bindings> };
+    let openedStreamsCount = 0;
 
-    this.store.close();
-    return {} as Stream; //This is a placeholder. The actual conversion logic will go here.
+    for (const table of tables) {
+      if (!table.tableSchema?.columns || table.suppressOutput === true)
+        continue;
+
+      // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
+      // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
+
+      // TODO: rdf lists
+      // TODO: skip columns
+      // TODO: use column titles when name is undefined
+
+      const query = `SELECT ${table.tableSchema.columns
+        .filter((column) => !column.virtual)
+        .map((column, i) => `?${column.name ?? `_col.${i + 1}`}`)
+        .join(' ')}
+WHERE {
+${table.tableSchema.columns
+  .map((_, i) =>
+    this.createTripplePatterns(table, i)
+  )
+  .filter((line) => line !== undefined)
+  .join('\n')}
+}`;
+
+      //console.log(query);
+
+      const stream = await this.engine.queryBindings(query, {
+        baseIRI:
+          (Array.isArray(wrapper.descriptor['@context']) &&
+            wrapper.descriptor['@context'][1]?.['@base']) ||
+          this.options.baseIri,
+      });
+      openedStreamsCount++;
+      streams[table.url] = stream;
+      stream.once('end', () => {
+        if (--openedStreamsCount === 0) this.store.close();
+      });
+    }
+
+    return streams;
+  }
+
+  /**
+   * Creates SPARQL tripple patterns for the use in SELECT WHERE query.
+   * @param table CSV Table
+   * @param index Index of the column
+   * @param subject Subject of the nested tripples that are referenced using aboutUrl
+   * @returns Tripple patterns for given column as string
+   */
+  private createTripplePatterns(
+    table: CsvwTableDescription,
+    index: number,
+    subject?: string,
+  ): string | undefined {
+    const column = table.tableSchema!.columns![index] as CsvwColumnDescription;
+    const name = column.name ?? `_col.${index + 1}`;
+
+    if (
+      column.aboutUrl &&
+      table.tableSchema!.columns!.find(
+        (col) => col.valueUrl == column.aboutUrl
+      ) &&
+      !subject &&
+      (typeof table.tableSchema?.primaryKey === 'string'
+        ? table.tableSchema.primaryKey !== column.name
+        : !table.tableSchema?.primaryKey?.includes(column.name!))
+    ) {
+      return undefined;
+    }
+
+    subject ??= '?_blank'
+    const predicate = column.propertyUrl
+      ? `<${this.expandIri(
+          parseTemplate(column.propertyUrl).expand({
+            _column: index + 1,
+            _source_column: index + 1,
+            _name: name,
+          })
+        )}>`
+      : `<${table.url}#${name}>`;
+    const object = `?${name}`;
+
+    const lines: string[] = [`  ${subject} ${predicate} ${object} .`];
+
+    if (column.valueUrl) {
+      table.tableSchema!.columns!.forEach((col, i) => {
+        if (col.aboutUrl === column.valueUrl) {
+          const pattern = this.createTripplePatterns(
+            table,
+            i,
+            object,
+          );
+          if (pattern) lines.push(...pattern.split('\n'));
+        }
+      });
+    }
+
+    if (!column.required) {
+      return `  OPTIONAL {
+${lines.map((line) => `  ${line}`).join('\n')}
+  }`;
+    } else {
+      return lines.map((line) => `${line}`).join('\n');
+    }
+  }
+
+  /**
+   * Expands an IRI based on the common prefixes.
+   * @param iri - IRI to be expanded
+   * @returns Expanded IRI
+   */
+  private expandIri(iri: string): string {
+    const i = iri.indexOf(':');
+    if (i === -1) return iri;
+    const prefix = iri.slice(0, i);
+    if (prefix in commonPrefixes) {
+      return (
+        commonPrefixes[prefix as keyof typeof commonPrefixes] + iri.slice(i + 1)
+      );
+    }
+    return iri;
   }
 
   /**
@@ -86,8 +200,9 @@ export class Rdf2CsvwConvertor {
   private setDefaults(options?: Rdf2CsvOptions): Required<Rdf2CsvOptions> {
     options ??= {};
     return {
-      baseIRI: options.baseIRI ?? '',
       pathOverrides: options.pathOverrides ?? [],
+      offline: options.offline ?? false,
+      baseIri: options.baseIri ?? '',
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       descriptorNotProvided: options.descriptorNotProvided ?? false,
     };
@@ -100,6 +215,7 @@ export class Rdf2CsvwConvertor {
       backend,
       dataFactory: DataFactory as unknown as StoreOpts['dataFactory'],
     });
+    this.engine = new Engine(this.store);
     await this.store.open();
   }
 }

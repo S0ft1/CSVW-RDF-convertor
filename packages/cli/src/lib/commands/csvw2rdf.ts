@@ -21,10 +21,8 @@ export const csvw2rdf: CommandModule<
   CommonArgs & {
     format?: RDFSerialization;
     output?: string;
-    offline?: boolean;
     minimal?: boolean;
     templateIris?: boolean;
-    baseIri?: string;
   }
 > = {
   command: 'csvw2rdf',
@@ -43,10 +41,6 @@ export const csvw2rdf: CommandModule<
       type: 'string',
       defaultDescription: 'Prints to stdout',
     },
-    offline: {
-      describe: 'Do not fetch remote context files (does not work yet)',
-      type: 'boolean',
-    },
     minimal: {
       describe: 'Use minimal output',
       type: 'boolean',
@@ -55,15 +49,11 @@ export const csvw2rdf: CommandModule<
       describe: 'Use template IRIs instead of URIs',
       type: 'boolean',
     },
-    baseIri: {
-      describe: 'Base IRI for loading resources',
-      type: 'string',
-    },
   },
   handler: async (args) => {
     args.format = args.format ?? inferFormat(args.output);
     const options: Csvw2RdfOptions = {
-      baseIRI: args.baseIri ?? args.input,
+      baseIri: args.baseIri ?? args.input,
       minimal: args.minimal,
       templateIRIs: args.templateIris,
       pathOverrides: Object.entries(args.pathOverrides ?? {}),
