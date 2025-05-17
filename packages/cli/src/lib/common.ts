@@ -5,7 +5,6 @@ import { makeRe } from 'minimatch';
 export interface CommonArgs {
   input?: string;
   pathOverrides?: [string | RegExp, string][];
-  baseIri?: string;
 }
 export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
   return yargs
@@ -43,9 +42,5 @@ export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
           ([p, v]) => [makeRe(p) || p, v] as [string | RegExp, string]
         );
       },
-    })
-    .option('baseIri', {
-      describe: 'Base IRI for loading resources',
-      type: 'string',
     });
 }
