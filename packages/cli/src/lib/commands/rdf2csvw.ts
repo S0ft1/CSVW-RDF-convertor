@@ -23,6 +23,7 @@ export const rdf2csvw: CommandModule<
     interactive?: boolean;
     descriptor?: string;
     bufferSize: number;
+    baseIri: string;
   }
 > = {
   command: 'rdf2csvw',
@@ -54,8 +55,14 @@ export const rdf2csvw: CommandModule<
       defaultDescription: '1000',
       conflicts: ['interactive', 'input'],
     },
+    baseIri: {
+      describe: 'Base IRI for relative quad IRIs',
+      type: 'string',
+      defaultDescription: 'The path to the input file',
+    },
   },
   handler: async (args) => {
+    if (!args.input) throw new Error('stdin input not supported yet');
     if (args.interactive) {
       const descriptor = JSON.parse(await readFileOrUrl(args.input));
       if (!args.pathOverrides) {
@@ -69,7 +76,7 @@ export const rdf2csvw: CommandModule<
 
     const options: Rdf2CsvOptions = {
       baseIri: args.baseIri ?? dirname(args.input),
-      pathOverrides: Object.entries(args.pathOverrides ?? {}),
+      pathOverrides: args.pathOverrides,
       resolveJsonldFn: async (path, base) => {
         const url =
           URL.parse(path, base)?.href ??

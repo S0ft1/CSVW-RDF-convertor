@@ -10,8 +10,7 @@ export interface ConversionOptions {
    * If the pattern is a string, all paths starting with the string will be replaced.
    */
   pathOverrides?: [string | RegExp, string][];
-  /** for loading resources */
-  baseIri?: string;
+
   /** Function which loads json-ld. The default implementation also interprets Link headers. */
   resolveJsonldFn?: ResolveJsonldFn;
 }
@@ -19,6 +18,8 @@ export interface ConversionOptions {
 export interface Csvw2RdfOptions extends ConversionOptions {
   /** If true (default is false), template URIs will be parsed into IRIs */
   templateIris?: boolean;
+  /** for loading resources */
+  baseIri?: string;
   minimal?: boolean;
   /** Function which loads csv files. */
   resolveCsvStreamFn?: ResolveCsvStreamFn;
@@ -28,4 +29,6 @@ export interface Csvw2RdfOptions extends ConversionOptions {
 
 export interface Rdf2CsvOptions extends ConversionOptions {
   descriptorNotProvided?: boolean;
+  /** for relative IRIs in quads */
+  baseIri?: string;
 }
