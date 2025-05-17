@@ -36,7 +36,7 @@ export class Rdf2CsvwConvertor {
   public async convert(
     data: string,
     descriptor?: string | AnyCsvwDescriptor
-  ): Promise<{ [key: string]: ResultStream<Bindings> }> {
+  ): Promise<{ [key: string]: [string[], ResultStream<Bindings>] }> {
     // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
     let wrapper: DescriptorWrapper;
     if (descriptor === undefined) {
@@ -58,7 +58,7 @@ export class Rdf2CsvwConvertor {
     const tables = wrapper.isTableGroup
       ? wrapper.getTables()
       : ([wrapper.descriptor] as CsvwTableDescription[]);
-    const streams = {} as { [key: string]: ResultStream<Bindings> };
+    const streams = {} as { [key: string]: [string[], ResultStream<Bindings>] };
     let openedStreamsCount = 0;
 
     for (const table of tables) {
@@ -72,15 +72,14 @@ export class Rdf2CsvwConvertor {
       // TODO: skip columns
       // TODO: use column titles when name is undefined
 
-      const query = `SELECT ${table.tableSchema.columns
+      const columnNames = table.tableSchema.columns
         .filter((column) => !column.virtual)
-        .map((column, i) => `?${column.name ?? `_col.${i + 1}`}`)
-        .join(' ')}
+        .map((column, i) => column.name ?? `_col.${i + 1}`);
+
+      const query = `SELECT ${columnNames.map((name) => `?${name}`).join(' ')}
 WHERE {
 ${table.tableSchema.columns
-  .map((_, i) =>
-    this.createTripplePatterns(table, i)
-  )
+  .map((_, i) => this.createTripplePatterns(table, i))
   .filter((line) => line !== undefined)
   .join('\n')}
 }`;
@@ -94,7 +93,7 @@ ${table.tableSchema.columns
           this.options.baseIri,
       });
       openedStreamsCount++;
-      streams[table.url] = stream;
+      streams[table.url] = [columnNames, stream];
       stream.once('end', () => {
         if (--openedStreamsCount === 0) this.store.close();
       });
@@ -113,7 +112,7 @@ ${table.tableSchema.columns
   private createTripplePatterns(
     table: CsvwTableDescription,
     index: number,
-    subject?: string,
+    subject?: string
   ): string | undefined {
     const column = table.tableSchema!.columns![index] as CsvwColumnDescription;
     const name = column.name ?? `_col.${index + 1}`;
@@ -131,7 +130,7 @@ ${table.tableSchema.columns
       return undefined;
     }
 
-    subject ??= '?_blank'
+    subject ??= '?_blank';
     const predicate = column.propertyUrl
       ? `<${this.expandIri(
           parseTemplate(column.propertyUrl).expand({
@@ -148,11 +147,7 @@ ${table.tableSchema.columns
     if (column.valueUrl) {
       table.tableSchema!.columns!.forEach((col, i) => {
         if (col.aboutUrl === column.valueUrl) {
-          const pattern = this.createTripplePatterns(
-            table,
-            i,
-            object,
-          );
+          const pattern = this.createTripplePatterns(table, i, object);
           if (pattern) lines.push(...pattern.split('\n'));
         }
       });
