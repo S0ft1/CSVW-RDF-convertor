@@ -84,7 +84,7 @@ ${table.tableSchema.columns
   .join('\n')}
 }`;
 
-      //console.log(query);
+      //console.debug(query);
 
       const stream = await this.engine.queryBindings(query, {
         baseIri:
@@ -143,6 +143,11 @@ ${table.tableSchema.columns
     const object = `?${name}`;
 
     const lines: string[] = [`  ${subject} ${predicate} ${object} .`];
+    if (column.lang) {
+      // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
+      // TODO: Should we lower our expectations if the matching language is not found?
+      lines.push(`  FILTER (LANG(${object}) = '${column.lang}')`);
+    }
 
     if (column.valueUrl) {
       table.tableSchema!.columns!.forEach((col, i) => {
