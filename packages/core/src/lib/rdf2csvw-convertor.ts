@@ -75,10 +75,10 @@ export class Rdf2CsvwConvertor {
 
       // TODO: rdf lists
       // TODO: skip columns
-      // TODO: use column titles when name is undefined
+      // TODO: row number in url templates
 
       const columnNames = table.tableSchema.columns.map(
-        (col, i) => col.name ?? `_col.${i + 1}`
+        (col, i) => col.name ?? `_col${i + 1}`
       );
       const query = this.createQuery(table, columnNames);
       //console.debug(query);
