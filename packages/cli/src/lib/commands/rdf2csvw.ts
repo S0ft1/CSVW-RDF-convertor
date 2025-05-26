@@ -6,6 +6,7 @@ import { readFileOrUrl } from '../utils/read-file-or-url.js';
 import {
   defaultResolveJsonldFn,
   LogLevel,
+  normalizeDescriptor,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '@csvw-rdf-convertor/core';
@@ -17,6 +18,9 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { fileURLToPath } from 'node:url';
 import { CommandModule } from 'yargs';
+import { IssueTracker } from '../../../../core/src/lib/utils/issue-tracker.js';
+import { CsvLocationTracker } from '../../../../core/src/lib/utils/code-location.js';
+import {findFormatedColumns, transformNumber} from '../../../../core/src/lib/utils/number-formating.js';
 
 export const rdf2csvw: CommandModule<
   CommonArgs,
@@ -126,12 +130,47 @@ export const rdf2csvw: CommandModule<
       // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
       // but it would improve performance when saving into multiple files.
       // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
+      
+      const fakeIssueTracker = new IssueTracker(new CsvLocationTracker(), {});
+      const opt: Required<Rdf2CsvOptions> = setDefaults({});
+      const descrWrapper = await normalizeDescriptor(args.descriptor as string, opt, fakeIssueTracker)
       for await (const bindings of stream) {
         const row = {} as { [key: string]: string };
         // TODO: value transformations
-        for (const [key, value] of bindings) row[key.value] = value.value;
+        for (const [key, value] of bindings) {
+          const colums = descrWrapper.descriptor.tableSchema?.columns;
+          if(colums){
+            const formatedColumns = findFormatedColumns(colums);
+            if(formatedColumns.length === 0) {
+              row[key.value] = value.value;
+            }
+            else{
+              for (const column of formatedColumns) {
+              if (column.name && column.name === key.value) {
+                row[key.value] = transformNumber(value.value, column, fakeIssueTracker);
+              }
+              else{
+                row[key.value] = value.value;
+              }
+            }
+            }
+             
+          }
+        }
         stringifier.write(row);
       }
     }
   },
 };
+
+//this is here only to create fake issue tracker
+ function setDefaults(options?: Rdf2CsvOptions): Required<Rdf2CsvOptions> {
+    options ??= {};
+    return {
+      pathOverrides: options.pathOverrides ?? [],
+      baseIri: options.baseIri ?? '',
+      logLevel: options.logLevel ?? LogLevel.Warn,
+      resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
+      descriptorNotProvided: options.descriptorNotProvided ?? false,
+    };
+  }
