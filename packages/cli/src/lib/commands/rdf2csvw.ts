@@ -5,6 +5,7 @@ import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
   defaultResolveJsonldFn,
+  LogLevel,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '@csvw-rdf-convertor/core';
@@ -77,6 +78,12 @@ export const rdf2csvw: CommandModule<
     const options: Rdf2CsvOptions = {
       baseIri: args.baseIri ?? dirname(args.input),
       pathOverrides: args.pathOverrides,
+      logLevel:
+        args.logLevel === 'debug'
+          ? LogLevel.Debug
+          : args.logLevel === 'warn'
+          ? LogLevel.Warn
+          : LogLevel.Error,
       resolveJsonldFn: async (path, base) => {
         const url =
           URL.parse(path, base)?.href ??

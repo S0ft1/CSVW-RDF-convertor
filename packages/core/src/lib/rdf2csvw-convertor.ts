@@ -1,4 +1,4 @@
-import { Rdf2CsvOptions } from './conversion-options.js';
+import { LogLevel, Rdf2CsvOptions } from './conversion-options.js';
 import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
 import { defaultResolveJsonldFn } from './req-resolve.js';
 
@@ -62,11 +62,15 @@ export class Rdf2CsvwConvertor {
 
     for (const table of tables) {
       if (!table.tableSchema?.columns) {
-        //console.warn(`Skipping table ${table.url}: no columns found`);
+        if (this.options.logLevel >= LogLevel.Warn)
+          console.warn(`Skipping table ${table.url}: no columns found`);
         continue;
       }
       if (table.suppressOutput === true) {
-        //console.warn(`Skipping table ${table.url}: suppressOutput set to true`);
+        if (this.options.logLevel >= LogLevel.Warn)
+          console.warn(
+            `Skipping table ${table.url}: suppressOutput set to true`
+          );
         continue;
       }
 
@@ -81,7 +85,7 @@ export class Rdf2CsvwConvertor {
         (col, i) => col.name ?? `_col${i + 1}`
       );
       const query = this.createQuery(table, columnNames);
-      //console.debug(query);
+      if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
       const stream = await this.engine.queryBindings(query, {
         baseIRI: '.',
@@ -285,6 +289,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
     return {
       pathOverrides: options.pathOverrides ?? [],
       baseIri: options.baseIri ?? '',
+      logLevel: options.logLevel ?? LogLevel.Warn,
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       descriptorNotProvided: options.descriptorNotProvided ?? false,
     };
