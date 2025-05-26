@@ -9,7 +9,7 @@ import {
 } from '../types/descriptor/datatype.js';
 import { IssueTracker } from './issue-tracker.js';
 
-function findFormatedColumns(allColumns: CsvwColumnDescription[]) {
+export function findFormatedColumns(allColumns: CsvwColumnDescription[]) {
   const castedColumns = [];
   for (const column of allColumns) {
     if (column.datatype) {
@@ -48,7 +48,7 @@ function patternIsValid(pattern: string): boolean {
   return true;
 }
 
-function transformNumber(
+export function transformNumber(
   value: string,
   columnDescription: ColumnDescriptionWithDataTypeAndFormat,
   issueTracker: IssueTracker
