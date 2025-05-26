@@ -3,6 +3,7 @@ import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
 import { defaultResolveJsonldFn } from './req-resolve.js';
 
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { CsvwSchemaDescription } from './types/descriptor/schema-description.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
 
 import { commonPrefixes } from './utils/prefix.js';
@@ -15,6 +16,16 @@ import { Engine } from 'quadstore-comunica';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { Readable } from 'stream';
 import { parseTemplate } from 'url-template';
+
+type CsvwSchemaDescriptionWithRequiredColumns = Omit<
+  CsvwSchemaDescription,
+  'columns'
+> &
+  Required<Pick<CsvwSchemaDescription, 'columns'>>;
+type CsvwTableDescriptionWithRequiredColumns = Omit<
+  CsvwTableDescription,
+  'tableSchema'
+> & { tableSchema: CsvwSchemaDescriptionWithRequiredColumns };
 
 export class Rdf2CsvwConvertor {
   private options: Required<Rdf2CsvOptions>;
@@ -74,6 +85,9 @@ export class Rdf2CsvwConvertor {
         continue;
       }
 
+      const tableWithRequiredColumns =
+        table as CsvwTableDescriptionWithRequiredColumns;
+
       // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
       // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
 
@@ -81,18 +95,20 @@ export class Rdf2CsvwConvertor {
       // TODO: skip columns
       // TODO: row number in url templates
 
-      const columnNames = table.tableSchema.columns.map(
+      const columnNames = tableWithRequiredColumns.tableSchema.columns.map(
         (col, i) => col.name ?? `_col${i + 1}`
       );
-      const query = this.createQuery(table, columnNames);
+      const query = this.createQuery(tableWithRequiredColumns, columnNames);
       if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
       const stream = await this.engine.queryBindings(query, {
         baseIRI: '.',
       });
       openedStreamsCount++;
-      streams[table.url] = [
-        columnNames.filter((col, i) => !table.tableSchema!.columns![i].virtual),
+      streams[tableWithRequiredColumns.url] = [
+        columnNames.filter(
+          (col, i) => !tableWithRequiredColumns.tableSchema.columns[i].virtual
+        ),
         stream,
       ];
     }
@@ -106,11 +122,20 @@ export class Rdf2CsvwConvertor {
     return streams;
   }
 
-  private createQuery(table: CsvwTableDescription, columnNames: string[]) {
+  /**
+   * Creates SPARQL query.
+   * @param table CSV Table
+   * @param columnNames Names of columns that are used in the SPARQL query
+   * @returns SPARQL query as a string
+   */
+  private createQuery(
+    table: CsvwTableDescriptionWithRequiredColumns,
+    columnNames: string[]
+  ) {
     const lines: string[] = [];
-    for (let index = 0; index < table.tableSchema!.columns!.length; index++) {
-      const column = table.tableSchema!.columns![index];
-      const referencedBy = table.tableSchema!.columns!.find((col) => {
+    for (let index = 0; index < table.tableSchema.columns.length; index++) {
+      const column = table.tableSchema.columns[index];
+      const referencedBy = table.tableSchema.columns.find((col) => {
         if (
           col.propertyUrl &&
           this.expandIri(col.propertyUrl) ===
@@ -127,8 +152,8 @@ export class Rdf2CsvwConvertor {
 
       if (
         !referencedBy ||
-        (table.tableSchema!.primaryKey &&
-          table.tableSchema!.primaryKey === column.name)
+        (table.tableSchema.primaryKey &&
+          table.tableSchema.primaryKey === column.name)
       ) {
         const patterns = this.createTriplePatterns(
           table,
@@ -145,7 +170,7 @@ export class Rdf2CsvwConvertor {
     }
 
     return `SELECT ${columnNames
-      .filter((col, i) => !table.tableSchema!.columns![i].virtual)
+      .filter((col, i) => !table.tableSchema.columns[i].virtual)
       .map((name) => `?${name}`)
       .join(' ')}
 WHERE {
@@ -154,19 +179,21 @@ ${lines.join('\n')}
   }
 
   /**
-   * Creates SPARQL triple patterns for the use in SELECT WHERE query.
+   * Creates SPARQL triple patterns for use in SELECT WHERE query.
+   * Triples are created recursively if there are references between the columns.
    * @param table CSV Table
-   * @param index Index of the column
-   * @param subject Subject of the nested triples that are referenced using aboutUrl
-   * @returns Triple patterns for given column as string
+   * @param columnNames Names of columns that are used in the SPARQL query
+   * @param index Index of the column for which triples are created
+   * @param subject Subject of the triple, it must match the other end of the reference between columns
+   * @returns Triple patterns for given column as a string
    */
   private createTriplePatterns(
-    table: CsvwTableDescription,
+    table: CsvwTableDescriptionWithRequiredColumns,
     columnNames: string[],
     index: number,
     subject: string
   ): string {
-    const column = table.tableSchema!.columns![index];
+    const column = table.tableSchema.columns[index];
 
     const predicate = column.propertyUrl
       ? `<${this.expandIri(
@@ -178,7 +205,7 @@ ${lines.join('\n')}
         )}>`
       : `<${table.url}#${columnNames[index]}>`;
 
-    const referencingIndex = table.tableSchema!.columns!.findIndex(
+    const referencingIndex = table.tableSchema.columns.findIndex(
       (col) =>
         col.propertyUrl &&
         this.expandIri(col.propertyUrl) ===
@@ -218,7 +245,7 @@ ${lines.join('\n')}
         'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
     ) {
       if (column.aboutUrl) {
-        table.tableSchema!.columns!.forEach((col, i) => {
+        table.tableSchema.columns.forEach((col, i) => {
           if (col !== column && col.aboutUrl === column.aboutUrl) {
             const patterns = this.createTriplePatterns(
               table,
@@ -232,7 +259,7 @@ ${lines.join('\n')}
       }
     } else {
       if (column.valueUrl) {
-        table.tableSchema!.columns!.forEach((col, i) => {
+        table.tableSchema.columns.forEach((col, i) => {
           if (col !== column && col.aboutUrl === column.valueUrl) {
             const patterns = this.createTriplePatterns(
               table,
