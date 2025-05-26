@@ -104,13 +104,16 @@ export const rdf2csvw: CommandModule<
 
     // TODO: use RDF data stream instead of file content
     let streams: { [key: string]: [string[], ResultStream<Bindings>] };
-
+    let descriptor = '';
+      if (args.descriptor) {
+      descriptor = await options.resolveJsonldFn?.(args.descriptor, '') ?? '';
+      }
     if (args.descriptor === undefined) {
       streams = await convertor.convert(await readFile(args.input, 'utf-8'));
     } else {
       streams = await convertor.convert(
         await readFile(args.input, 'utf-8'),
-        (await options.resolveJsonldFn?.(args.descriptor, '')) ?? ''
+        descriptor
       );
     }
 
@@ -131,10 +134,6 @@ export const rdf2csvw: CommandModule<
 
       const fakeIssueTracker = new IssueTracker(new CsvLocationTracker(), {});
       const opt: Required<Rdf2CsvOptions> = setDefaults({});
-      let descriptor = '';
-      if (args.descriptor) {
-      descriptor = await options.resolveJsonldFn?.(args.descriptor, '') ?? '';
-      }
       const descrWrapper = await normalizeDescriptor(descriptor, opt, fakeIssueTracker)
       for await (const bindings of stream) {
         const row = {} as { [key: string]: string };
