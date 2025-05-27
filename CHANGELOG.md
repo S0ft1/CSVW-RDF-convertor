@@ -1,3 +1,14 @@
+## 0.4.0 (2025-05-26)
+
+### 🚀 Features
+
+- RDF conversion to tabular representation with descriptor ([4eedc41](https://github.com/S0ft1/CSVW-RDF-convertor/commit/4eedc41))
+- Basic CSV serialization implemented. ([d852e8d](https://github.com/S0ft1/CSVW-RDF-convertor/commit/d852e8d))
+
+### ❤️ Thank You
+
+- d-kral
+
 ## 0.3.0 (2025-05-16)
 
 ### 🚀 Features
