@@ -18,7 +18,6 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { fileURLToPath } from 'node:url';
 import { CommandModule } from 'yargs';
-import { CsvLocationTracker, IssueTracker, findFormatedColumns, transformNumber } from '@csvw-rdf-convertor/core';
 export const rdf2csvw: CommandModule<
   CommonArgs,
   CommonArgs & {
@@ -132,46 +131,12 @@ export const rdf2csvw: CommandModule<
       // but it would improve performance when saving into multiple files.
       // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
 
-      const fakeIssueTracker = new IssueTracker(new CsvLocationTracker(), {});
-      const opt: Required<Rdf2CsvOptions> = setDefaults({});
-      const descrWrapper = await normalizeDescriptor(descriptor, opt, fakeIssueTracker)
       for await (const bindings of stream) {
         const row = {} as { [key: string]: string };
         // TODO: value transformations
-        for (const [key, value] of bindings) {
-          const colums = descrWrapper.descriptor.tableSchema?.columns;
-          if (colums) {
-            const formatedColumns = findFormatedColumns(colums);
-            if (formatedColumns.length === 0) {
-              row[key.value] = value.value;
-            }
-            else {
-              for (const column of formatedColumns) {
-                if (column.name && column.name === key.value) {
-                  row[key.value] = transformNumber(value.value, column, fakeIssueTracker);
-                }
-                else {
-                  row[key.value] = value.value;
-                }
-              }
-            }
-
-          }
-        }
+        for (const [key, value] of bindings) row[key.value] = value.value;
         stringifier.write(row);
       }
     }
   },
 };
-
-//this is here only to create fake issue tracker
-function setDefaults(options?: Rdf2CsvOptions): Required<Rdf2CsvOptions> {
-  options ??= {};
-  return {
-    pathOverrides: options.pathOverrides ?? [],
-    baseIri: options.baseIri ?? '',
-    logLevel: options.logLevel ?? LogLevel.Warn,
-    resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
-    descriptorNotProvided: options.descriptorNotProvided ?? false,
-  };
-}

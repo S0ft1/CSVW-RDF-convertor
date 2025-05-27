@@ -1,6 +1,6 @@
 import { DescriptorWrapper } from '../descriptor.js';
 import {
-  ColumnDescriptionWithDataTypeAndFormat,
+  ColumnDescriptionWithNumberDataTypeAndFormat,
   CsvwColumnDescription,
 } from '../types/descriptor/column-description.js';
 import {
@@ -12,17 +12,34 @@ import { IssueTracker } from './issue-tracker.js';
 export function findFormatedColumns(allColumns: CsvwColumnDescription[]) {
   const castedColumns = [];
   for (const column of allColumns) {
-    if (column.datatype) {
+    castedColumns.push(convertColumnToNumberFormattedColumn(column));
+  }
+  return castedColumns;
+}
+
+export function isNumberColumn(column: CsvwColumnDescription){
+  if (column.datatype) {
       const dataType = column.datatype as CsvwDatatype;
       if (dataType.format) {
         const format = dataType.format as CsvwNumberFormat;
         if (format.pattern) {
-          castedColumns.push(column as ColumnDescriptionWithDataTypeAndFormat);
+          return true;
         }
       }
     }
-  }
-  return castedColumns;
+    return false;
+}
+
+export function convertColumnToNumberFormattedColumn(column: CsvwColumnDescription){
+  if (column.datatype) {
+      const dataType = column.datatype as CsvwDatatype;
+      if (dataType.format) {
+        const format = dataType.format as CsvwNumberFormat;
+        if (format.pattern) {
+          return column as ColumnDescriptionWithNumberDataTypeAndFormat;
+        }
+      }
+    }
 }
 
 function patternIsValid(pattern: string): boolean {
@@ -50,7 +67,7 @@ function patternIsValid(pattern: string): boolean {
 
 export function transformNumber(
   value: string,
-  columnDescription: ColumnDescriptionWithDataTypeAndFormat,
+  columnDescription: ColumnDescriptionWithNumberDataTypeAndFormat,
   issueTracker: IssueTracker
 ): string {
   if (columnDescription.datatype.format.pattern) {
@@ -138,6 +155,8 @@ function transformNumberInner(
  * @param issueTracker - An issue tracker instance to log any issues encountered during transformation.
  * @returns The transformed JSON table as a string with formatted numeric values.
  */
+
+/*
 export function transformNumbersInTable(
   jsonTable: string,
   descriptor: DescriptorWrapper,
@@ -164,3 +183,4 @@ export function transformNumbersInTable(
   }
   return jsonTable;
 }
+*/

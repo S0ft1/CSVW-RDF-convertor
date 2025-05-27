@@ -16,13 +16,14 @@ import { Engine } from 'quadstore-comunica';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { Readable } from 'stream';
 import { parseTemplate } from 'url-template';
+import { transformStream } from './transformation-stream.js';
 
 type CsvwSchemaDescriptionWithRequiredColumns = Omit<
   CsvwSchemaDescription,
   'columns'
 > &
   Required<Pick<CsvwSchemaDescription, 'columns'>>;
-type CsvwTableDescriptionWithRequiredColumns = Omit<
+export type CsvwTableDescriptionWithRequiredColumns = Omit<
   CsvwTableDescription,
   'tableSchema'
 > & { tableSchema: CsvwSchemaDescriptionWithRequiredColumns };
@@ -101,9 +102,9 @@ export class Rdf2CsvwConvertor {
       const query = this.createQuery(tableWithRequiredColumns, columnNames);
       if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
-      const stream = await this.engine.queryBindings(query, {
+      const stream = transformStream(await this.engine.queryBindings(query, {
         baseIRI: '.',
-      });
+      }), tableWithRequiredColumns,columnNames, this.issueTracker);
       openedStreamsCount++;
       streams[tableWithRequiredColumns.url] = [
         columnNames.filter(
@@ -112,13 +113,11 @@ export class Rdf2CsvwConvertor {
         stream,
       ];
     }
-
     for (const [, [, stream]] of Object.entries(streams)) {
       stream.once('end', () => {
         if (--openedStreamsCount === 0) this.store.close();
       });
     }
-
     return streams;
   }
 
