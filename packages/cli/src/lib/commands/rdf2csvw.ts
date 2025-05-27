@@ -6,7 +6,6 @@ import { readFileOrUrl } from '../utils/read-file-or-url.js';
 import {
   defaultResolveJsonldFn,
   LogLevel,
-  normalizeDescriptor,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '@csvw-rdf-convertor/core';
@@ -115,7 +114,6 @@ export const rdf2csvw: CommandModule<
         descriptor
       );
     }
-
     for (const [tableName, [columnNames, stream]] of Object.entries(streams)) {
       if (args.outDir) await mkdir(args.outDir, { recursive: true });
 
@@ -126,15 +124,15 @@ export const rdf2csvw: CommandModule<
       // TODO: Set delimiter and other properties according to descriptor
       const stringifier = csv.stringify({ header: true, columns: columnNames });
       stringifier.pipe(outputStream);
-
       // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
       // but it would improve performance when saving into multiple files.
       // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
 
       for await (const bindings of stream) {
         const row = {} as { [key: string]: string };
-        // TODO: value transformations
-        for (const [key, value] of bindings) row[key.value] = value.value;
+        for (const [key, value] of bindings) {
+          row[key.value] = value.value;
+        }
         stringifier.write(row);
       }
     }

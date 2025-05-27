@@ -11,15 +11,19 @@ import { IssueTracker } from "./utils/issue-tracker.js";
 
 
 export function transformStream(stream: ResultStream<Bindings>, tableDescription: CsvwTableDescriptionWithRequiredColumns, columnNames: string[], issueTracker: IssueTracker): ResultStream<Bindings> {
-    
+
     const transformedStream = new Readable({
         objectMode: true,
         read() { }
     });
 
+    //This part is called when the stream is piped to another stream and gets data.
     stream.on("data", (bindings) => {
-        for (let i = 0; i < tableDescription.tableSchema.columns.length; i++) {
+        for (let i = 0; i < tableDescription.tableSchema.columns.length && !tableDescription.tableSchema.columns[i].virtual; i++) {
             const column = tableDescription.tableSchema.columns[i];
+             if (!bindings.get(columnNames[i])) {
+                continue;
+            }
             let value = bindings.get(columnNames[i]).value;
             if (isDateFormatedColumn(column)) {
                 let convertedDateColumn = convertColumnToDateFormattedColumn(column);
@@ -29,7 +33,7 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
                     break;
                 }
             }
-            else if(isNumberColumn(column)) {
+            else if (isNumberColumn(column)) {
                 let convertedNumberColumn = convertColumnToNumberFormattedColumn(column);
                 if (convertedNumberColumn) {
                     let formattedValue = transformNumber(value, convertedNumberColumn, issueTracker);
@@ -39,17 +43,17 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
             }
         }
         transformedStream.push(bindings);
-});
+    });
 
 
-stream.on("end", () => {
-    transformedStream.push(null);
-});
+    stream.on("end", () => {
+        transformedStream.push(null);
+    });
 
-stream.on("error", (err) => {
-    transformedStream.destroy(err);
-});
+    stream.on("error", (err) => {
+        transformedStream.destroy(err);
+    });
 
-return transformedStream;
+    return transformedStream;
 }
 
