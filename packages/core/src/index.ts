@@ -9,6 +9,9 @@ export {
   commonPrefixes,
   lookupPrefixes,
   getPrefixCandidates,
+  customPrefix,
 } from './lib/utils/prefix.js';
 export * from './lib/utils/rdf-stream-to-array.js';
 export * from './lib/utils/all-uris.js';
+export * from './lib/utils/rdf-serialization.js';
+export { ValidationError, type Issue } from './lib/utils/issue-tracker.js';

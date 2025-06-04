@@ -8,6 +8,8 @@ import {
   lookupPrefixes,
   rdfStreamToArray,
   commonPrefixes,
+  defaultResolveTextFn,
+  RDFSerialization,
 } from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
@@ -17,7 +19,6 @@ import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import { Quad, Stream } from '@rdfjs/types';
-import { RDFSerialization } from 'src/lib/rdf-serialization.js';
 import TurtleSerializer from '@rdfjs/serializer-turtle';
 import PrefixMap from '@rdfjs/prefix-map/PrefixMap.js';
 import {
@@ -82,30 +83,35 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
 }
 
 function getOptions(args: C2RArgs): Csvw2RdfOptions {
+  const getUrl = (path: string, base: string) =>
+    URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   return {
     baseIri: args.baseIri,
     minimal: args.minimal,
     templateIris: args.templateIris,
     pathOverrides: args.pathOverrides ?? [],
     resolveJsonldFn: async (path, base) => {
-      const url =
-        URL.parse(path, base)?.href ??
-        URL.parse(path)?.href ??
-        resolve(base, path);
+      const url = getUrl(path, base);
       if (!isAbsolute(url) && URL.canParse(url)) {
         if (url.startsWith('file:')) {
           return readFile(fileURLToPath(url), 'utf-8');
         }
         return defaultResolveJsonldFn(url, base);
       }
-
+      return await readFile(url, 'utf-8');
+    },
+    resolveWkfFn: async (path, base) => {
+      const url = getUrl(path, base);
+      if (!isAbsolute(url) && URL.canParse(url)) {
+        if (url.startsWith('file:')) {
+          return readFile(fileURLToPath(url), 'utf-8');
+        }
+        return defaultResolveTextFn(url, base);
+      }
       return await readFile(url, 'utf-8');
     },
     resolveCsvStreamFn: (path, base) => {
-      const url =
-        URL.parse(path, base)?.href ??
-        URL.parse(path)?.href ??
-        resolve(base, path);
+      const url = getUrl(path, base);
       if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
         if (url.startsWith('file:')) {
           return Promise.resolve(
