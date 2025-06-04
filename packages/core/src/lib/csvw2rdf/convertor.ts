@@ -1,4 +1,4 @@
-import { Csvw2RdfOptions } from '../conversion-options.js';
+import { Csvw2RdfOptions, LogLevel } from '../conversion-options.js';
 import { CSVParser } from '../csv-parser.js';
 import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
 import {
@@ -1237,6 +1237,7 @@ export class Csvw2RdfConvertor {
       baseIri: options.baseIri ?? '',
       templateIris: options.templateIris ?? false,
       minimal: options.minimal ?? false,
+      logLevel: options.logLevel ?? LogLevel.Warn,
     };
   }
 

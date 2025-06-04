@@ -10,6 +10,7 @@ import {
   commonPrefixes,
   defaultResolveTextFn,
   RDFSerialization,
+  LogLevel,
 } from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
@@ -90,6 +91,12 @@ function getOptions(args: C2RArgs): Csvw2RdfOptions {
     minimal: args.minimal,
     templateIris: args.templateIris,
     pathOverrides: args.pathOverrides ?? [],
+    logLevel:
+      args.logLevel === 'debug'
+        ? LogLevel.Debug
+        : args.logLevel === 'warn'
+        ? LogLevel.Warn
+        : LogLevel.Error,
     resolveJsonldFn: async (path, base) => {
       const url = getUrl(path, base);
       if (!isAbsolute(url) && URL.canParse(url)) {

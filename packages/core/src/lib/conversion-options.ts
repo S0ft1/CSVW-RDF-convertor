@@ -13,6 +13,16 @@ export interface ConversionOptions {
 
   /** Function which loads json-ld. The default implementation also interprets Link headers. */
   resolveJsonldFn?: ResolveJsonldFn;
+
+  /** Level of information shown to the user during logging. */
+  logLevel?: LogLevel;
+}
+
+/** Levels of information shown to the user during logging. */
+export enum LogLevel {
+  Error = 0,
+  Warn = 1,
+  Debug = 2,
 }
 
 export interface Csvw2RdfOptions extends ConversionOptions {

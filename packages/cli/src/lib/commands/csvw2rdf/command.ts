@@ -11,15 +11,15 @@ export type TurtleOptions = {
   base?: string;
   prefix?: Record<string, string>;
 } & (
-  | {
+    | {
       prefixLookup?: true;
       streaming?: false;
     }
-  | {
+    | {
       prefixLookup?: false;
       streaming?: true;
     }
-);
+  );
 
 export interface C2RArgs extends CommonArgs {
   output?: string;

@@ -4,6 +4,7 @@ import { makeRe } from 'minimatch';
 
 export interface CommonArgs {
   input?: string;
+  logLevel?: string;
   pathOverrides?: [string | RegExp, string][];
 }
 export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
@@ -14,14 +15,14 @@ export function registerCommonArgs(yargs: Argv): Argv<CommonArgs> {
       type: 'string',
       defaultDescription: 'Reads from stdin',
     })
-    .option('dev', {
-      describe:
-        'Enable development mode. This will enable additional logging and debugging features.',
-      type: 'boolean',
-      default: false,
+    .option('logLevel', {
+      describe: 'Set level of information shown during logging.',
+      type: 'string',
+      choices: ['error', 'warn', 'debug'],
+      default: 'warn',
       hidden: true,
-      coerce: (val: boolean) => {
-        if (val) {
+      coerce: (val: string) => {
+        if (val === 'debug') {
           process.env.DEV_MODE = 'true';
         }
         return val;

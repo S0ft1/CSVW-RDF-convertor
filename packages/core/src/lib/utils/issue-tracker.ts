@@ -22,7 +22,7 @@ export interface IssueTrackerOptions {
   /** If true (default), issues will be collected in internal arrays for later retrieval */
   collectIssues?: boolean;
 }
-type IssueTrackerOptionsWithDefaults = Required<
+export type IssueTrackerOptionsWithDefaults = Required<
   Omit<IssueTrackerOptions, 'eventEmitter'>
 > &
   IssueTrackerOptions;

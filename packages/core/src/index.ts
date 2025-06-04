@@ -14,4 +14,6 @@ export {
 export * from './lib/utils/rdf-stream-to-array.js';
 export * from './lib/utils/all-uris.js';
 export * from './lib/utils/rdf-serialization.js';
-export { ValidationError, type Issue } from './lib/utils/issue-tracker.js';
+export * from './lib/utils/issue-tracker.js';
+export * from './lib/utils/code-location.js';
+export * from './lib/utils/number-formating.js';

@@ -5,17 +5,18 @@ import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
   defaultResolveJsonldFn,
+  LogLevel,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '@csvw-rdf-convertor/core';
 
 import * as csv from 'csv';
+import fs from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { fileURLToPath } from 'node:url';
 import { CommandModule } from 'yargs';
-
 export const rdf2csvw: CommandModule<
   CommonArgs,
   CommonArgs & {
@@ -40,7 +41,6 @@ export const rdf2csvw: CommandModule<
       alias: 'o',
       describe: 'Output directory',
       type: 'string',
-      default: '.',
       coerce: resolve,
     },
     descriptor: {
@@ -77,6 +77,12 @@ export const rdf2csvw: CommandModule<
     const options: Rdf2CsvOptions = {
       baseIri: args.baseIri ?? dirname(args.input),
       pathOverrides: args.pathOverrides,
+      logLevel:
+        args.logLevel === 'debug'
+          ? LogLevel.Debug
+          : args.logLevel === 'warn'
+            ? LogLevel.Warn
+            : LogLevel.Error,
       resolveJsonldFn: async (path, base) => {
         const url =
           URL.parse(path, base)?.href ??
@@ -95,21 +101,39 @@ export const rdf2csvw: CommandModule<
     const convertor = new Rdf2CsvwConvertor(options);
 
     // TODO: use RDF data stream instead of file content
-    let streams: { [key: string]: ResultStream<Bindings> };
+    let streams: { [key: string]: [string[], ResultStream<Bindings>] };
+    let descriptor = '';
+      if (args.descriptor) {
+      descriptor = await options.resolveJsonldFn?.(args.descriptor, '') ?? '';
+      }
     if (args.descriptor === undefined) {
       streams = await convertor.convert(await readFile(args.input, 'utf-8'));
     } else {
       streams = await convertor.convert(
         await readFile(args.input, 'utf-8'),
-        (await options.resolveJsonldFn?.(args.descriptor, '')) ?? ''
+        descriptor
       );
     }
+    for (const [tableName, [columnNames, stream]] of Object.entries(streams)) {
+      if (args.outDir) await mkdir(args.outDir, { recursive: true });
 
-    // TODO: save as CSV
-    for (const [table, stream] of Object.entries(streams)) {
-      console.log('---', table, '---');
+      const outputStream = args.outDir
+        ? fs.createWriteStream(resolve(args.outDir, tableName))
+        : process.stdout;
+
+      // TODO: Set delimiter and other properties according to descriptor
+      const stringifier = csv.stringify({ header: true, columns: columnNames });
+      stringifier.pipe(outputStream);
+      // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
+      // but it would improve performance when saving into multiple files.
+      // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
+
       for await (const bindings of stream) {
-        console.log(JSON.stringify(bindings.entries));
+        const row = {} as { [key: string]: string };
+        for (const [key, value] of bindings) {
+          row[key.value] = value.value;
+        }
+        stringifier.write(row);
       }
     }
   },

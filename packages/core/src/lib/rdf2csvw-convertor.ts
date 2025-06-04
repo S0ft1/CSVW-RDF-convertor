@@ -1,9 +1,9 @@
-import { Rdf2CsvOptions } from './conversion-options.js';
+import { LogLevel, Rdf2CsvOptions } from './conversion-options.js';
 import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
 import { defaultResolveJsonldFn } from './req-resolve.js';
 
-import { CsvwColumnDescription } from './types/descriptor/column-description.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { CsvwSchemaDescription } from './types/descriptor/schema-description.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
 
 import { commonPrefixes } from './utils/prefix.js';
@@ -16,6 +16,17 @@ import { Engine } from 'quadstore-comunica';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { Readable } from 'stream';
 import { parseTemplate } from 'url-template';
+import { transformStream } from './transformation-stream.js';
+
+type CsvwSchemaDescriptionWithRequiredColumns = Omit<
+  CsvwSchemaDescription,
+  'columns'
+> &
+  Required<Pick<CsvwSchemaDescription, 'columns'>>;
+export type CsvwTableDescriptionWithRequiredColumns = Omit<
+  CsvwTableDescription,
+  'tableSchema'
+> & { tableSchema: CsvwSchemaDescriptionWithRequiredColumns };
 
 export class Rdf2CsvwConvertor {
   private options: Required<Rdf2CsvOptions>;
@@ -36,7 +47,7 @@ export class Rdf2CsvwConvertor {
   public async convert(
     data: string,
     descriptor?: string | AnyCsvwDescriptor
-  ): Promise<{ [key: string]: ResultStream<Bindings> }> {
+  ): Promise<{ [key: string]: [string[], ResultStream<Bindings>] }> {
     // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
     let wrapper: DescriptorWrapper;
     if (descriptor === undefined) {
@@ -58,104 +69,207 @@ export class Rdf2CsvwConvertor {
     const tables = wrapper.isTableGroup
       ? wrapper.getTables()
       : ([wrapper.descriptor] as CsvwTableDescription[]);
-    const streams = {} as { [key: string]: ResultStream<Bindings> };
+    const streams = {} as { [key: string]: [string[], ResultStream<Bindings>] };
     let openedStreamsCount = 0;
 
     for (const table of tables) {
-      if (!table.tableSchema?.columns || table.suppressOutput === true)
+      if (!table.tableSchema?.columns) {
+        if (this.options.logLevel >= LogLevel.Warn)
+          console.warn(`Skipping table ${table.url}: no columns found`);
         continue;
+      }
+      if (table.suppressOutput === true) {
+        if (this.options.logLevel >= LogLevel.Warn)
+          console.warn(
+            `Skipping table ${table.url}: suppressOutput set to true`
+          );
+        continue;
+      }
+
+      const tableWithRequiredColumns =
+        table as CsvwTableDescriptionWithRequiredColumns;
 
       // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
       // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
 
       // TODO: rdf lists
       // TODO: skip columns
-      // TODO: use column titles when name is undefined
+      // TODO: row number in url templates
 
-      const query = `SELECT ${table.tableSchema.columns
-        .filter((column) => !column.virtual)
-        .map((column, i) => `?${column.name ?? `_col.${i + 1}`}`)
-        .join(' ')}
-WHERE {
-${table.tableSchema.columns
-  .map((_, i) =>
-    this.createTripplePatterns(table, i)
-  )
-  .filter((line) => line !== undefined)
-  .join('\n')}
-}`;
+      const columnNames = tableWithRequiredColumns.tableSchema.columns.map(
+        (col, i) => col.name ?? `_col${i + 1}`
+      );
+      const query = this.createQuery(tableWithRequiredColumns, columnNames);
+      if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
-      //console.log(query);
-
-      const stream = await this.engine.queryBindings(query, {
-        baseIri:
-          (Array.isArray(wrapper.descriptor['@context']) &&
-            wrapper.descriptor['@context'][1]?.['@base']) ||
-          this.options.baseIri,
-      });
+      const stream = transformStream(await this.engine.queryBindings(query, {
+        baseIRI: '.',
+      }), tableWithRequiredColumns,columnNames, this.issueTracker);
       openedStreamsCount++;
-      streams[table.url] = stream;
+      streams[tableWithRequiredColumns.url] = [
+        columnNames.filter(
+          (col, i) => !tableWithRequiredColumns.tableSchema.columns[i].virtual
+        ),
+        stream,
+      ];
+    }
+    for (const [, [, stream]] of Object.entries(streams)) {
       stream.once('end', () => {
         if (--openedStreamsCount === 0) this.store.close();
       });
     }
-
     return streams;
   }
 
   /**
-   * Creates SPARQL tripple patterns for the use in SELECT WHERE query.
+   * Creates SPARQL query.
    * @param table CSV Table
-   * @param index Index of the column
-   * @param subject Subject of the nested tripples that are referenced using aboutUrl
-   * @returns Tripple patterns for given column as string
+   * @param columnNames Names of columns that are used in the SPARQL query
+   * @returns SPARQL query as a string
    */
-  private createTripplePatterns(
-    table: CsvwTableDescription,
-    index: number,
-    subject?: string,
-  ): string | undefined {
-    const column = table.tableSchema!.columns![index] as CsvwColumnDescription;
-    const name = column.name ?? `_col.${index + 1}`;
+  private createQuery(
+    table: CsvwTableDescriptionWithRequiredColumns,
+    columnNames: string[]
+  ) {
+    const lines: string[] = [];
+    for (let index = 0; index < table.tableSchema.columns.length; index++) {
+      const column = table.tableSchema.columns[index];
+      const referencedBy = table.tableSchema.columns.find((col) => {
+        if (
+          col.propertyUrl &&
+          this.expandIri(col.propertyUrl) ===
+            'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+        )
+          return (
+            col !== column && col.aboutUrl && col.aboutUrl === column.aboutUrl
+          );
+        else
+          return (
+            col !== column && col.valueUrl && col.valueUrl === column.aboutUrl
+          );
+      });
 
-    if (
-      column.aboutUrl &&
-      table.tableSchema!.columns!.find(
-        (col) => col.valueUrl == column.aboutUrl
-      ) &&
-      !subject &&
-      (typeof table.tableSchema?.primaryKey === 'string'
-        ? table.tableSchema.primaryKey !== column.name
-        : !table.tableSchema?.primaryKey?.includes(column.name!))
-    ) {
-      return undefined;
+      if (
+        !referencedBy ||
+        (table.tableSchema.primaryKey &&
+          table.tableSchema.primaryKey === column.name)
+      ) {
+        const patterns = this.createTriplePatterns(
+          table,
+          columnNames,
+          index,
+          column.propertyUrl &&
+            this.expandIri(column.propertyUrl) ===
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+            ? `?${columnNames[index]}`
+            : '?_blank'
+        );
+        lines.push(...patterns.split('\n'));
+      }
     }
 
-    subject ??= '?_blank'
+    return `SELECT ${columnNames
+      .filter((col, i) => !table.tableSchema.columns[i].virtual)
+      .map((name) => `?${name}`)
+      .join(' ')}
+WHERE {
+${lines.join('\n')}
+}`;
+  }
+
+  /**
+   * Creates SPARQL triple patterns for use in SELECT WHERE query.
+   * Triples are created recursively if there are references between the columns.
+   * @param table CSV Table
+   * @param columnNames Names of columns that are used in the SPARQL query
+   * @param index Index of the column for which triples are created
+   * @param subject Subject of the triple, it must match the other end of the reference between columns
+   * @returns Triple patterns for given column as a string
+   */
+  private createTriplePatterns(
+    table: CsvwTableDescriptionWithRequiredColumns,
+    columnNames: string[],
+    index: number,
+    subject: string
+  ): string {
+    const column = table.tableSchema.columns[index];
+
     const predicate = column.propertyUrl
       ? `<${this.expandIri(
           parseTemplate(column.propertyUrl).expand({
             _column: index + 1,
             _source_column: index + 1,
-            _name: name,
+            _name: columnNames[index],
           })
         )}>`
-      : `<${table.url}#${name}>`;
-    const object = `?${name}`;
+      : `<${table.url}#${columnNames[index]}>`;
 
-    const lines: string[] = [`  ${subject} ${predicate} ${object} .`];
+    const referencingIndex = table.tableSchema.columns.findIndex(
+      (col) =>
+        col.propertyUrl &&
+        this.expandIri(col.propertyUrl) ===
+          'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+        col.aboutUrl == column.valueUrl
+    );
+    let object: string;
+    if (
+      column.valueUrl &&
+      parseTemplate(column.valueUrl).expand({
+        _column: index + 1,
+        _source_column: index + 1,
+        _name: columnNames[index],
+      }) === column.valueUrl
+    ) {
+      if (
+        column.datatype === 'anyURI' ||
+        predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
+      )
+        object = `<${this.expandIri(column.valueUrl)}>`;
+      else object = `"${column.valueUrl}"`;
+    } else {
+      if (referencingIndex !== -1) object = `?${columnNames[referencingIndex]}`;
+      else object = `?${columnNames[index]}`;
+    }
 
-    if (column.valueUrl) {
-      table.tableSchema!.columns!.forEach((col, i) => {
-        if (col.aboutUrl === column.valueUrl) {
-          const pattern = this.createTripplePatterns(
-            table,
-            i,
-            object,
-          );
-          if (pattern) lines.push(...pattern.split('\n'));
-        }
-      });
+    const lines = [`  ${subject} ${predicate} ${object} .`];
+    if (column.lang) {
+      // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
+      // TODO: Should we lower our expectations if the matching language is not found?
+      lines.push(`  FILTER (LANG(${object}) = '${column.lang}')`);
+    }
+
+    if (
+      column.propertyUrl &&
+      this.expandIri(column.propertyUrl) ===
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    ) {
+      if (column.aboutUrl) {
+        table.tableSchema.columns.forEach((col, i) => {
+          if (col !== column && col.aboutUrl === column.aboutUrl) {
+            const patterns = this.createTriplePatterns(
+              table,
+              columnNames,
+              i,
+              subject
+            );
+            lines.push(...patterns.split('\n'));
+          }
+        });
+      }
+    } else {
+      if (column.valueUrl) {
+        table.tableSchema.columns.forEach((col, i) => {
+          if (col !== column && col.aboutUrl === column.valueUrl) {
+            const patterns = this.createTriplePatterns(
+              table,
+              columnNames,
+              i,
+              object
+            );
+            lines.push(...patterns.split('\n'));
+          }
+        });
+      }
     }
 
     if (!column.required) {
@@ -201,6 +315,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
     return {
       pathOverrides: options.pathOverrides ?? [],
       baseIri: options.baseIri ?? '',
+      logLevel: options.logLevel ?? LogLevel.Warn,
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       descriptorNotProvided: options.descriptorNotProvided ?? false,
     };
