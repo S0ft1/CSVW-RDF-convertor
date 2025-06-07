@@ -5,6 +5,7 @@ import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
   defaultResolveJsonldFn,
+  defaultResolveStreamFn,
   LogLevel,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
@@ -12,11 +13,13 @@ import {
 
 import * as csv from 'csv';
 import fs from 'node:fs';
-import { dirname, isAbsolute, resolve } from 'node:path';
 import { mkdir, readFile } from 'node:fs/promises';
-import { Bindings, ResultStream } from '@rdfjs/types';
+import { isAbsolute, resolve } from 'node:path';
+import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
+import { Bindings, ResultStream } from '@rdfjs/types';
 import { CommandModule } from 'yargs';
+
 export const rdf2csvw: CommandModule<
   CommonArgs,
   CommonArgs & {
@@ -24,7 +27,6 @@ export const rdf2csvw: CommandModule<
     interactive?: boolean;
     descriptor?: string;
     bufferSize: number;
-    baseIri: string;
   }
 > = {
   command: 'rdf2csvw',
@@ -55,11 +57,6 @@ export const rdf2csvw: CommandModule<
       defaultDescription: '1000',
       conflicts: ['interactive', 'input'],
     },
-    baseIri: {
-      describe: 'Base IRI for relative quad IRIs',
-      type: 'string',
-      defaultDescription: 'The path to the input file',
-    },
   },
   handler: async (args) => {
     if (!args.input) throw new Error('stdin input not supported yet');
@@ -75,14 +72,14 @@ export const rdf2csvw: CommandModule<
       throw new Error('stdin input not supported yet');
 
     const options: Rdf2CsvOptions = {
-      baseIri: args.baseIri ?? dirname(args.input),
-      pathOverrides: args.pathOverrides,
+      baseIri: args.baseIri ?? args.input,
+      pathOverrides: args.pathOverrides ?? [],
       logLevel:
         args.logLevel === 'debug'
           ? LogLevel.Debug
           : args.logLevel === 'warn'
-            ? LogLevel.Warn
-            : LogLevel.Error,
+          ? LogLevel.Warn
+          : LogLevel.Error,
       resolveJsonldFn: async (path, base) => {
         const url =
           URL.parse(path, base)?.href ??
@@ -97,26 +94,43 @@ export const rdf2csvw: CommandModule<
 
         return await readFile(url, 'utf-8');
       },
+      resolveRdfStreamFn: (path, base) => {
+        const url =
+          URL.parse(path, base)?.href ??
+          URL.parse(path)?.href ??
+          resolve(base, path);
+        if (
+          !isAbsolute(url) &&
+          (URL.canParse(url) || URL.canParse(url, base))
+        ) {
+          if (url.startsWith('file:')) {
+            return Promise.resolve(
+              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+            );
+          }
+          return defaultResolveStreamFn(url, base);
+        }
+        return Promise.resolve(
+          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
+        );
+      },
     };
     const convertor = new Rdf2CsvwConvertor(options);
 
-    // TODO: use RDF data stream instead of file content
     let streams: { [key: string]: [string[], ResultStream<Bindings>] };
     let descriptor = '';
-      if (args.descriptor) {
-      descriptor = await options.resolveJsonldFn?.(args.descriptor, '') ?? '';
-      }
-    if (args.descriptor === undefined) {
-      streams = await convertor.convert(await readFile(args.input, 'utf-8'));
-    } else {
-      streams = await convertor.convert(
-        await readFile(args.input, 'utf-8'),
-        descriptor
-      );
+    if (args.descriptor) {
+      descriptor = (await options.resolveJsonldFn?.(args.descriptor, '')) ?? '';
     }
-    for (const [tableName, [columnNames, stream]] of Object.entries(streams)) {
-      if (args.outDir) await mkdir(args.outDir, { recursive: true });
+    if (args.descriptor === undefined) {
+      streams = await convertor.convert(args.input);
+    } else {
+      streams = await convertor.convert(args.input, descriptor);
+    }
 
+    if (args.outDir) await mkdir(args.outDir, { recursive: true });
+
+    for (const [tableName, [columnNames, stream]] of Object.entries(streams)) {
       const outputStream = args.outDir
         ? fs.createWriteStream(resolve(args.outDir, tableName))
         : process.stdout;

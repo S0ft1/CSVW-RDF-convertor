@@ -26,7 +26,6 @@ export interface C2RArgs extends CommonArgs {
   output?: string;
   minimal?: boolean;
   templateIris?: boolean;
-  baseIri?: string;
   format?: RDFSerialization;
   turtle: TurtleOptions;
   interactive: boolean;
@@ -56,10 +55,6 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
     templateIris: {
       describe: 'Use template IRIs instead of URIs',
       type: 'boolean',
-    },
-    baseIri: {
-      describe: 'Base IRI for loading resources',
-      type: 'string',
     },
     interactive: {
       describe: 'Interactive mode',

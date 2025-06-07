@@ -129,9 +129,11 @@ function getOptions(args: C2RArgs): Csvw2RdfOptions {
 }
 
 const n3Formats: Record<RDFSerialization, string> = {
+  // TODO: Implement 'application/ld+json'
   jsonld: 'text/turtle',
   nquads: 'application/n-quads',
   ntriples: 'application/n-triples',
+  // TODO: Implement 'application/rdf+xml'
   rdfxml: 'text/turtle',
   trig: 'application/trig',
   turtle: 'text/turtle',
