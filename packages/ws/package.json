@@ -1,0 +1,74 @@
+{
+  "name": "@csvw-rdf-convertor/ws",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/js:swc",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "outputPath": "packages/ws/dist",
+          "main": "packages/ws/src/index.ts",
+          "tsConfig": "packages/ws/tsconfig.app.json",
+          "skipTypeCheck": true,
+          "stripLeadingPaths": true
+        },
+        "configurations": {
+          "development": {},
+          "production": {}
+        }
+      },
+      "serve": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@csvw-rdf-convertor/ws:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@csvw-rdf-convertor/ws:build:development"
+          },
+          "production": {
+            "buildTarget": "@csvw-rdf-convertor/ws:build:production"
+          }
+        }
+      },
+      "test": {
+        "options": {
+          "passWithNoTests": true
+        }
+      },
+      "docker-build": {
+        "dependsOn": [
+          "build"
+        ],
+        "command": "docker build -f packages/ws/Dockerfile . -t @csvw-rdf-convertor/ws"
+      }
+    }
+  },
+  "dependencies": {
+    "@csvw-rdf-convertor/core": "0.3.0",
+    "@fastify/multipart": "^9.0.3",
+    "@rdfjs/prefix-map": "^0.1.2",
+    "@rdfjs/serializer-turtle": "^1.1.5",
+    "@rdfjs/types": "^2.0.1",
+    "@swc/helpers": "^0.5.17",
+    "fastify": "^5.3.3",
+    "minimatch": "^10.0.1",
+    "n3": "^1.25.2",
+    "tmp-promise": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "@types/rdfjs__serializer-turtle": "^1.1.0"
+  }
+}

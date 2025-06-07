@@ -1,8 +1,7 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../../common.js';
-import { RDFSerialization } from '../../rdf-serialization.js';
 import { pairwise } from '../../utils/pairwise.js';
-import { commonPrefixes } from '@csvw-rdf-convertor/core';
+import { commonPrefixes, RDFSerialization } from '@csvw-rdf-convertor/core';
 import { ArgsWithDefaults, handler } from './handler.js';
 import { dotProps } from '../../utils/dot-props.js';
 import { confirm, input, select } from '@inquirer/prompts';
