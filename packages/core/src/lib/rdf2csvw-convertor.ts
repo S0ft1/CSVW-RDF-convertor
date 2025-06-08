@@ -77,6 +77,7 @@ export class Rdf2CsvwConvertor {
       // TODO: By default, N3.Parser parses a permissive superset of Turtle, TriG, N-Triples, and N-Quads. For strict compatibility with any of those languages, pass a format argument upon creation.
       parser = new StreamParser();
     }
+    const useNamedGraphs = url.match(/\.(nq|trig)([?#].*)?$/) !== null;
 
     for await (const chunk of readableStream) {
       parser.write(chunk);
@@ -118,7 +119,7 @@ export class Rdf2CsvwConvertor {
       const columnNames = tableWithRequiredColumns.tableSchema.columns.map(
         (col, i) => col.name ?? `_col${i + 1}`
       );
-      const query = this.createQuery(tableWithRequiredColumns, columnNames);
+      const query = this.createQuery(tableWithRequiredColumns, columnNames, useNamedGraphs);
       if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
       const stream = transformStream(
@@ -149,11 +150,13 @@ export class Rdf2CsvwConvertor {
    * Creates SPARQL query.
    * @param table CSV Table
    * @param columnNames Names of columns that are used in the SPARQL query
+   * @param useNamedGraphs Query from named graphs in the SPARQL query
    * @returns SPARQL query as a string
    */
   private createQuery(
     table: CsvwTableDescriptionWithRequiredColumns,
-    columnNames: string[]
+    columnNames: string[],
+    useNamedGraphs: boolean
   ) {
     const lines: string[] = [];
     for (let index = 0; index < table.tableSchema.columns.length; index++) {
@@ -197,7 +200,13 @@ export class Rdf2CsvwConvertor {
       .map((name) => `?${name}`)
       .join(' ')}
 WHERE {
-${lines.join('\n')}
+${
+  !useNamedGraphs
+    ? lines.join('\n')
+    : `  GRAPH ?_graph {
+${lines.map((line) => `  ${line}`).join('\n')}
+  }`
+}
 }`;
   }
 
