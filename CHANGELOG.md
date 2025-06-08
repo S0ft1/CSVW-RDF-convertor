@@ -1,6 +1,12 @@
 ## 0.4.1 (2025-06-08)
 
-This was a version bump only, there were no code changes.
+### 🩹 Fixes
+
+- Support for N-Triples, JSON-LD, RDF/XML added. ([ccf7d01](https://github.com/S0ft1/CSVW-RDF-convertor/commit/ccf7d01))
+
+### ❤️ Thank You
+
+- d-kral
 
 ## 0.4.0 (2025-05-26)
 
