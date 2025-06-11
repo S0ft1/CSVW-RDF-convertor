@@ -1,8 +1,7 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../../common.js';
-import { RDFSerialization } from '../../rdf-serialization.js';
 import { pairwise } from '../../utils/pairwise.js';
-import { commonPrefixes } from '@csvw-rdf-convertor/core';
+import { commonPrefixes, RDFSerialization } from '@csvw-rdf-convertor/core';
 import { ArgsWithDefaults, handler } from './handler.js';
 import { dotProps } from '../../utils/dot-props.js';
 import { confirm, input, select } from '@inquirer/prompts';
@@ -26,7 +25,6 @@ export interface C2RArgs extends CommonArgs {
   output?: string;
   minimal?: boolean;
   templateIris?: boolean;
-  baseIri?: string;
   format?: RDFSerialization;
   turtle: TurtleOptions;
   interactive: boolean;
@@ -56,10 +54,6 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
     templateIris: {
       describe: 'Use template IRIs instead of URIs',
       type: 'boolean',
-    },
-    baseIri: {
-      describe: 'Base IRI for loading resources',
-      type: 'string',
     },
     interactive: {
       describe: 'Interactive mode',

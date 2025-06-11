@@ -7,6 +7,11 @@ import { DataFactory } from 'n3';
 const { namedNode } = DataFactory;
 
 /**
+ * Custom prefix for the CSVW RDF convertor.
+ */
+export const customPrefix = 'https://github.com/S0ft1/CSVW-RDF-convertor/ns/';
+
+/**
  * RDFa Core Initial Context
  * @see https://www.w3.org/2011/rdfa-context/rdfa-1.1
  */

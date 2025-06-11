@@ -1,6 +1,10 @@
 import { LogLevel, Rdf2CsvOptions } from './conversion-options.js';
 import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
-import { defaultResolveJsonldFn } from './req-resolve.js';
+import {
+  defaultResolveJsonldFn,
+  defaultResolveStreamFn,
+} from './req-resolve.js';
+import { transformStream } from './transformation-stream.js';
 
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { CsvwSchemaDescription } from './types/descriptor/schema-description.js';
@@ -13,10 +17,10 @@ import { MemoryLevel } from 'memory-level';
 import { DataFactory, StreamParser } from 'n3';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
+import { JsonLdParser } from 'jsonld-streaming-parser';
 import { Bindings, ResultStream } from '@rdfjs/types';
-import { Readable } from 'stream';
+import { RdfXmlParser } from 'rdfxml-streaming-parser';
 import { parseTemplate } from 'url-template';
-import { transformStream } from './transformation-stream.js';
 
 type CsvwSchemaDescriptionWithRequiredColumns = Omit<
   CsvwSchemaDescription,
@@ -40,18 +44,18 @@ export class Rdf2CsvwConvertor {
 
   /**
    * Main conversion function. Converts the rdf data to csvw format.
-   * @param data Input rdf data to convert
+   * @param url Url of rdf data to convert
    * @param descriptor CSVW descriptor to use for the conversion. If not provided, a new descriptor will be created from the rdf data.
    * @returns A stream of csvw data.
    */
   public async convert(
-    data: string,
+    url: string,
     descriptor?: string | AnyCsvwDescriptor
   ): Promise<{ [key: string]: [string[], ResultStream<Bindings>] }> {
     // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
     let wrapper: DescriptorWrapper;
     if (descriptor === undefined) {
-      wrapper = this.createDescriptor(data);
+      wrapper = this.createDescriptor(url);
     } else {
       wrapper = await normalizeDescriptor(
         descriptor,
@@ -62,9 +66,25 @@ export class Rdf2CsvwConvertor {
     await this.openStore();
 
     // Now we have a descriptor either from user or from rdf data.
-    const reader = Readable.from(data);
-    const parser = new StreamParser({ format: 'text/turtle' });
-    await this.store.putStream(reader.pipe(parser), { batchSize: 100 });
+    // TODO: What if we do not have enough memory to hold all the quads in the store?
+    const readableStream = await this.options.resolveRdfStreamFn(url, '');
+    let parser;
+    if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
+      parser = new RdfXmlParser();
+    } else if (url.match(/\.jsonld([?#].*)?$/)) {
+      parser = new JsonLdParser();
+    } else {
+      // TODO: By default, N3.Parser parses a permissive superset of Turtle, TriG, N-Triples, and N-Quads. For strict compatibility with any of those languages, pass a format argument upon creation.
+      parser = new StreamParser();
+    }
+    const useNamedGraphs = url.match(/\.(nq|trig)([?#].*)?$/) !== null;
+
+    for await (const chunk of readableStream) {
+      parser.write(chunk);
+    }
+    parser.end();
+
+    await this.store.putStream(parser);
 
     const tables = wrapper.isTableGroup
       ? wrapper.getTables()
@@ -99,12 +119,17 @@ export class Rdf2CsvwConvertor {
       const columnNames = tableWithRequiredColumns.tableSchema.columns.map(
         (col, i) => col.name ?? `_col${i + 1}`
       );
-      const query = this.createQuery(tableWithRequiredColumns, columnNames);
+      const query = this.createQuery(tableWithRequiredColumns, columnNames, useNamedGraphs);
       if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
-      const stream = transformStream(await this.engine.queryBindings(query, {
-        baseIRI: '.',
-      }), tableWithRequiredColumns,columnNames, this.issueTracker);
+      const stream = transformStream(
+        await this.engine.queryBindings(query, {
+          baseIRI: '.',
+        }),
+        tableWithRequiredColumns,
+        columnNames,
+        this.issueTracker
+      );
       openedStreamsCount++;
       streams[tableWithRequiredColumns.url] = [
         columnNames.filter(
@@ -125,11 +150,13 @@ export class Rdf2CsvwConvertor {
    * Creates SPARQL query.
    * @param table CSV Table
    * @param columnNames Names of columns that are used in the SPARQL query
+   * @param useNamedGraphs Query from named graphs in the SPARQL query
    * @returns SPARQL query as a string
    */
   private createQuery(
     table: CsvwTableDescriptionWithRequiredColumns,
-    columnNames: string[]
+    columnNames: string[],
+    useNamedGraphs: boolean
   ) {
     const lines: string[] = [];
     for (let index = 0; index < table.tableSchema.columns.length; index++) {
@@ -173,7 +200,13 @@ export class Rdf2CsvwConvertor {
       .map((name) => `?${name}`)
       .join(' ')}
 WHERE {
-${lines.join('\n')}
+${
+  !useNamedGraphs
+    ? lines.join('\n')
+    : `  GRAPH ?_graph {
+${lines.map((line) => `  ${line}`).join('\n')}
+  }`
+}
 }`;
   }
 
@@ -317,6 +350,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       baseIri: options.baseIri ?? '',
       logLevel: options.logLevel ?? LogLevel.Warn,
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
+      resolveRdfStreamFn: options.resolveRdfStreamFn ?? defaultResolveStreamFn,
       descriptorNotProvided: options.descriptorNotProvided ?? false,
     };
   }
