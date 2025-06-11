@@ -17,29 +17,29 @@ export function findFormatedColumns(allColumns: CsvwColumnDescription[]) {
   return castedColumns;
 }
 
-export function isNumberColumn(column: CsvwColumnDescription){
+export function isNumberColumn(column: CsvwColumnDescription) {
   if (column.datatype) {
-      const dataType = column.datatype as CsvwDatatype;
-      if (dataType.format) {
-        const format = dataType.format as CsvwNumberFormat;
-        if (format.pattern) {
-          return true;
-        }
+    const dataType = column.datatype as CsvwDatatype;
+    if (dataType.format) {
+      const format = dataType.format as CsvwNumberFormat;
+      if (format.pattern) {
+        return true;
       }
     }
-    return false;
+  }
+  return false;
 }
 
-export function convertColumnToNumberFormattedColumn(column: CsvwColumnDescription){
+export function convertColumnToNumberFormattedColumn(column: CsvwColumnDescription) {
   if (column.datatype) {
-      const dataType = column.datatype as CsvwDatatype;
-      if (dataType.format) {
-        const format = dataType.format as CsvwNumberFormat;
-        if (format.pattern) {
-          return column as ColumnDescriptionWithNumberDataTypeAndFormat;
-        }
+    const dataType = column.datatype as CsvwDatatype;
+    if (dataType.format) {
+      const format = dataType.format as CsvwNumberFormat;
+      if (format.pattern) {
+        return column as ColumnDescriptionWithNumberDataTypeAndFormat;
       }
     }
+  }
 }
 
 function patternIsValid(pattern: string): boolean {
@@ -70,6 +70,16 @@ export function transformNumber(
   columnDescription: ColumnDescriptionWithNumberDataTypeAndFormat,
   issueTracker: IssueTracker
 ): string {
+/*
+  if (value === 'NaN') {
+    return 'NaN';
+  }
+  if (value === 'Infinity') {
+    return 'Infinity';
+  }
+  if (value === '-Infinity') {
+    return '-Infinity';
+  }*/
   if (columnDescription.datatype.format.pattern) {
     if (!patternIsValid(columnDescription.datatype.format.pattern)) {
       issueTracker.addError(
@@ -91,18 +101,9 @@ export function transformNumber(
       const decimalPattern = splittedPattern[1];
       const reversedIntegerPart = integerPart.split('').reverse().join('');
       const reversedIntegerPattern = integerPattern.split('').reverse().join('');
-      return (
-        transformNumberInner(
-          reversedIntegerPattern,
-          reversedIntegerPart,
-          groupChar
-        )
-          .split('')
-          .reverse()
-          .join('') +
-        decimalChar +
-        transformNumberInner(decimalPattern, decimalPart, groupChar)
-      );
+      let transformedNumber = transformNumberInner(reversedIntegerPattern, reversedIntegerPart, groupChar).split('').reverse().join('') + decimalChar + transformNumberInner(decimalPattern, decimalPart, groupChar)
+      let stringTransformedNumber = +transformedNumber;
+      return stringTransformedNumber.toString();
     } else {
       issueTracker.addError(
         `Too many decimal characters in value: ${value}`,
@@ -134,6 +135,10 @@ function transformNumberInner(
       numberIndex++;
     } else if (pattern[i] == ',' && !patternLongerThanNumber) {
       transformedPart += groupChar;
+    }
+    else if (pattern[i]== 'E' || pattern[i] == 'e') {
+      // Exponential notation, we will not handle this for now
+      transformedPart += 'E';
     }
   }
   /*
