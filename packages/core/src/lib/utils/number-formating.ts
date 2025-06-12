@@ -1,4 +1,3 @@
-import { DescriptorWrapper } from '../descriptor.js';
 import {
   ColumnDescriptionWithNumberDataTypeAndFormat,
   CsvwColumnDescription,
