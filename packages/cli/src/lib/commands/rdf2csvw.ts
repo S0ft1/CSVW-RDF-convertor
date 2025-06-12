@@ -14,7 +14,7 @@ import {
 import * as csv from 'csv';
 import fs from 'node:fs';
 import { mkdir, readFile } from 'node:fs/promises';
-import { isAbsolute, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { Bindings, ResultStream } from '@rdfjs/types';
@@ -72,7 +72,7 @@ export const rdf2csvw: CommandModule<
       throw new Error('stdin input not supported yet');
 
     const options: Rdf2CsvOptions = {
-      baseIri: args.baseIri ?? args.input,
+      baseIri: args.baseIri ?? dirname(args.input),
       pathOverrides: args.pathOverrides ?? [],
       logLevel:
         args.logLevel === 'debug'

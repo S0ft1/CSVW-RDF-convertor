@@ -119,10 +119,15 @@ export class Rdf2CsvwConvertor {
       const columnNames = tableWithRequiredColumns.tableSchema.columns.map(
         (col, i) => col.name ?? `_col${i + 1}`
       );
-      const query = this.createQuery(tableWithRequiredColumns, columnNames, useNamedGraphs);
+      const query = this.createQuery(
+        tableWithRequiredColumns,
+        columnNames,
+        useNamedGraphs
+      );
       if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
       const stream = transformStream(
+        // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
         await this.engine.queryBindings(query, {
           baseIRI: '.',
         }),
@@ -203,8 +208,14 @@ WHERE {
 ${
   !useNamedGraphs
     ? lines.join('\n')
-    : `  GRAPH ?_graph {
+    : `  {
 ${lines.map((line) => `  ${line}`).join('\n')}
+  }
+  UNION
+  {
+    GRAPH ?_graph {
+${lines.map((line) => `    ${line}`).join('\n')}
+    }
   }`
 }
 }`;
