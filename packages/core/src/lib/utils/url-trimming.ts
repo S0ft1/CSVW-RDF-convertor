@@ -2,7 +2,7 @@ import { IssueTracker } from "./issue-tracker.js";
 
 
 
-export function trimUrl(value:string, templateUrl:string, columnName:string,issueTracker:IssueTracker): string {
+export function trimUrl(value:string, templateUrl:string, columnName:string, issueTracker:IssueTracker): string {
     const matches = [...templateUrl.matchAll(/{(.*?)}/g)].map(match => match[1]);
     let foundIndex = matches.indexOf(columnName);
     if(foundIndex==-1){

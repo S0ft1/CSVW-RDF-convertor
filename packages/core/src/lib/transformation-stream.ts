@@ -22,15 +22,7 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
         for (let i = 0; i < tableDescription.tableSchema.columns.length && !tableDescription.tableSchema.columns[i].virtual; i++) {
             const column = tableDescription.tableSchema.columns[i];
             if (!bindings.get(columnNames[i])) {
-                //console.log("prazdno1");
-                continue;
-            }
-            let value = bindings.get(columnNames[i]).value;
-            //console.log("Value for column", columnNames[i], ":", value);
-            if(value === undefined || value === null || value === "") {
-               // console.log("prazdno");
                 if(column.null){
-                   // console.log(column.null);
                     if(column.null instanceof Array){
                         bindings = bindings.set(columnNames[i], factory.literal(column.null[0]));
                     }
@@ -38,13 +30,17 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
                         bindings = bindings.set(columnNames[i], factory.literal(column.null));
                     }
                 }
+                else{
+                    continue;
+                }
             }
-            else if (isDateFormatedColumn(column)) {
+
+            let value = bindings.get(columnNames[i]).value;       
+            if (isDateFormatedColumn(column)) {
                 let convertedDateColumn = convertColumnToDateFormattedColumn(column);
                 if (convertedDateColumn) {
                     let formattedValue = formatDate(value, convertedDateColumn.datatype.format);
                     bindings = bindings.set(columnNames[i], factory.literal(formattedValue));
-                    break;
                 }
             }
             else if (isNumberColumn(column)) {
@@ -52,13 +48,11 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
                 if (convertedNumberColumn) {
                     let formattedValue = transformNumber(value, convertedNumberColumn, issueTracker);
                     bindings = bindings.set(columnNames[i], factory.literal(formattedValue));
-                    break;
                 }
             }
             else if(column.valueUrl){
                 let formattedValue = trimUrl(value, column.valueUrl,columnNames[i],issueTracker);
                 bindings = bindings.set(columnNames[i], factory.literal(formattedValue));
-                break;
             }
         }
         transformedStream.push(bindings);

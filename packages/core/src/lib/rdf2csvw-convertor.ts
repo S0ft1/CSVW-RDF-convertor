@@ -21,6 +21,7 @@ import { JsonLdParser } from 'jsonld-streaming-parser';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { RdfXmlParser } from 'rdfxml-streaming-parser';
 import { parseTemplate } from 'url-template';
+import { CsvLocationTracker } from './utils/code-location.js';
 
 type CsvwSchemaDescriptionWithRequiredColumns = Omit<
   CsvwSchemaDescription,
@@ -34,7 +35,10 @@ export type CsvwTableDescriptionWithRequiredColumns = Omit<
 
 export class Rdf2CsvwConvertor {
   private options: Required<Rdf2CsvOptions>;
-  public issueTracker: IssueTracker;
+   private location = new CsvLocationTracker();
+  public issueTracker = new IssueTracker(this.location, {
+    collectIssues: false
+  });
   private store: Quadstore;
   private engine: Engine;
 
