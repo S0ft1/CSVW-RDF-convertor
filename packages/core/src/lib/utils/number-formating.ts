@@ -69,22 +69,14 @@ export function transformNumber(
   columnDescription: ColumnDescriptionWithNumberDataTypeAndFormat,
   issueTracker: IssueTracker
 ): string {
-/*
-  if (value === 'NaN') {
-    return 'NaN';
-  }
-  if (value === 'Infinity') {
-    return 'Infinity';
-  }
-  if (value === '-Infinity') {
-    return '-Infinity';
-  }*/
+
   if (columnDescription.datatype.format.pattern) {
     if (!patternIsValid(columnDescription.datatype.format.pattern)) {
       issueTracker.addError(
         `Invalid pattern: ${columnDescription.datatype.format.pattern} take a look at https://www.unicode.org/reports/tr35/tr35-39/tr35-numbers.html#Number_Patterns`,
         true
       );
+      return value;
     }
     const splitted = value.split('.');
     if (splitted.length == 1) {
@@ -100,7 +92,8 @@ export function transformNumber(
       const decimalPattern = splittedPattern[1];
       const reversedIntegerPart = integerPart.split('').reverse().join('');
       const reversedIntegerPattern = integerPattern.split('').reverse().join('');
-      let transformedNumber = transformNumberInner(reversedIntegerPattern, reversedIntegerPart, groupChar).split('').reverse().join('') + decimalChar + transformNumberInner(decimalPattern, decimalPart, groupChar)
+      let transformedNumber = transformNumberInner(reversedIntegerPattern, reversedIntegerPart, groupChar).split('').reverse().join('') 
+      + decimalChar + transformNumberInner(decimalPattern, decimalPart, groupChar) //merging the integer and decimal parts on decimalChar
       let stringTransformedNumber = +transformedNumber;
       return stringTransformedNumber.toString();
     } else {
@@ -136,8 +129,7 @@ function transformNumberInner(
       transformedPart += groupChar;
     }
     else if (pattern[i]== 'E' || pattern[i] == 'e') {
-      // Exponential notation, we will not handle this for now
-      transformedPart += 'E';
+      transformedPart += 'E'; //this will be taken care later using + operation at let stringTransformedNumber = +transformedNumber;
     }
   }
   /*

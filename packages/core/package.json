@@ -73,7 +73,8 @@
     "quadstore-comunica": "^6.0.1",
     "rdfxml-streaming-parser": "^3.0.1",
     "readable-stream": "^4.7.0",
-    "url-template": "^3.1.1"
+    "url-template": "^3.1.1",
+    "rdf-data-factory": "2.0.2"
   },
   "devDependencies": {
     "@types/jsonld": "^1.5.15",

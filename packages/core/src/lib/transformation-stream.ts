@@ -8,11 +8,11 @@ import { CsvwTableDescriptionWithRequiredColumns } from "./rdf2csvw-convertor.js
 import { convertColumnToNumberFormattedColumn, isNumberColumn, transformNumber } from "./utils/number-formating.js";
 import { IssueTracker } from "./utils/issue-tracker.js";
 import { DataFactory } from 'rdf-data-factory'
+import { trimUrl } from "./utils/url-trimming.js";
 const factory = new DataFactory();
 
 
 export function transformStream(stream: ResultStream<Bindings>, tableDescription: CsvwTableDescriptionWithRequiredColumns, columnNames: string[], issueTracker: IssueTracker): ResultStream<Bindings> {
-
     const transformedStream = new Readable({
         objectMode: true,
         read() { },
@@ -21,11 +21,25 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
     stream.on("data", (bindings) => {
         for (let i = 0; i < tableDescription.tableSchema.columns.length && !tableDescription.tableSchema.columns[i].virtual; i++) {
             const column = tableDescription.tableSchema.columns[i];
-             if (!bindings.get(columnNames[i])) {
+            if (!bindings.get(columnNames[i])) {
+                //console.log("prazdno1");
                 continue;
             }
             let value = bindings.get(columnNames[i]).value;
-            if (isDateFormatedColumn(column)) {
+            //console.log("Value for column", columnNames[i], ":", value);
+            if(value === undefined || value === null || value === "") {
+               // console.log("prazdno");
+                if(column.null){
+                   // console.log(column.null);
+                    if(column.null instanceof Array){
+                        bindings = bindings.set(columnNames[i], factory.literal(column.null[0]));
+                    }
+                    else{
+                        bindings = bindings.set(columnNames[i], factory.literal(column.null));
+                    }
+                }
+            }
+            else if (isDateFormatedColumn(column)) {
                 let convertedDateColumn = convertColumnToDateFormattedColumn(column);
                 if (convertedDateColumn) {
                     let formattedValue = formatDate(value, convertedDateColumn.datatype.format);
@@ -41,6 +55,11 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
                     break;
                 }
             }
+            else if(column.valueUrl){
+                let formattedValue = trimUrl(value, column.valueUrl,columnNames[i],issueTracker);
+                bindings = bindings.set(columnNames[i], factory.literal(formattedValue));
+                break;
+            }
         }
         transformedStream.push(bindings);
     });
@@ -53,7 +72,7 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
     stream.on("error", (err) => {
         transformedStream.destroy(err);
     });
-
+    
     return transformedStream;
 }
 
