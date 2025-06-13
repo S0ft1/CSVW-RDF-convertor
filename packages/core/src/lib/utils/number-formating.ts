@@ -29,7 +29,9 @@ export function isNumberColumn(column: CsvwColumnDescription) {
   return false;
 }
 
-export function convertColumnToNumberFormattedColumn(column: CsvwColumnDescription) {
+export function convertColumnToNumberFormattedColumn(
+  column: CsvwColumnDescription
+) {
   if (column.datatype) {
     const dataType = column.datatype as CsvwDatatype;
     if (dataType.format) {
@@ -69,7 +71,6 @@ export function transformNumber(
   columnDescription: ColumnDescriptionWithNumberDataTypeAndFormat,
   issueTracker: IssueTracker
 ): string {
-
   if (columnDescription.datatype.format.pattern) {
     if (!patternIsValid(columnDescription.datatype.format.pattern)) {
       issueTracker.addError(
@@ -91,10 +92,22 @@ export function transformNumber(
       const integerPattern = splittedPattern[0];
       const decimalPattern = splittedPattern[1];
       const reversedIntegerPart = integerPart.split('').reverse().join('');
-      const reversedIntegerPattern = integerPattern.split('').reverse().join('');
-      let transformedNumber = transformNumberInner(reversedIntegerPattern, reversedIntegerPart, groupChar).split('').reverse().join('') 
-      + decimalChar + transformNumberInner(decimalPattern, decimalPart, groupChar) //merging the integer and decimal parts on decimalChar
-      let stringTransformedNumber = +transformedNumber;
+      const reversedIntegerPattern = integerPattern
+        .split('')
+        .reverse()
+        .join('');
+      const transformedNumber =
+        transformNumberInner(
+          reversedIntegerPattern,
+          reversedIntegerPart,
+          groupChar
+        )
+          .split('')
+          .reverse()
+          .join('') +
+        decimalChar +
+        transformNumberInner(decimalPattern, decimalPart, groupChar); //merging the integer and decimal parts on decimalChar
+      const stringTransformedNumber = +transformedNumber;
       return stringTransformedNumber.toString();
     } else {
       issueTracker.addError(
@@ -127,8 +140,7 @@ function transformNumberInner(
       numberIndex++;
     } else if (pattern[i] == ',' && !patternLongerThanNumber) {
       transformedPart += groupChar;
-    }
-    else if (pattern[i]== 'E' || pattern[i] == 'e') {
+    } else if (pattern[i] == 'E' || pattern[i] == 'e') {
       transformedPart += 'E'; //this will be taken care later using + operation at let stringTransformedNumber = +transformedNumber;
     }
   }
