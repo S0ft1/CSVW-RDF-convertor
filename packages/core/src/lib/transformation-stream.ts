@@ -37,27 +37,28 @@ export function transformStream(
       !tableDescription.tableSchema.columns[i].virtual;
       i++
     ) {
-      const column = tableDescription.tableSchema.columns[i];
+      const columnDescription = tableDescription.tableSchema.columns[i];
       if (!bindings.get(columns[i].queryVariable)) {
-        continue;
-      }
-      const value = bindings.get(columns[i].queryVariable).value;
-      if (value === undefined || value === null || value === '') {
-        if (column.null) {
-          if (column.null instanceof Array) {
+        if (columnDescription.null) {
+          if (columnDescription.null instanceof Array) {
             bindings = bindings.set(
               columns[i].queryVariable,
-              factory.literal(column.null[0])
+              factory.literal(columnDescription.null[0])
             );
           } else {
             bindings = bindings.set(
               columns[i].queryVariable,
-              factory.literal(column.null)
+              factory.literal(columnDescription.null)
             );
           }
+        } else {
+          continue;
         }
-      } else if (isDateFormatedColumn(column)) {
-        const convertedDateColumn = convertColumnToDateFormattedColumn(column);
+      }
+      const value = bindings.get(columns[i].queryVariable).value;
+      if (isDateFormatedColumn(columnDescription)) {
+        const convertedDateColumn =
+          convertColumnToDateFormattedColumn(columnDescription);
         if (convertedDateColumn) {
           const formattedValue = formatDate(
             value,
@@ -67,11 +68,10 @@ export function transformStream(
             columns[i].queryVariable,
             factory.literal(formattedValue)
           );
-          break;
         }
-      } else if (isNumberColumn(column)) {
+      } else if (isNumberColumn(columnDescription)) {
         const convertedNumberColumn =
-          convertColumnToNumberFormattedColumn(column);
+          convertColumnToNumberFormattedColumn(columnDescription);
         if (convertedNumberColumn) {
           const formattedValue = transformNumber(
             value,
@@ -82,12 +82,11 @@ export function transformStream(
             columns[i].queryVariable,
             factory.literal(formattedValue)
           );
-          break;
         }
-      } else if (column.valueUrl) {
+      } else if (columnDescription.valueUrl) {
         const formattedValue = trimUrl(
           value,
-          column.valueUrl,
+          columnDescription.valueUrl,
           columns[i].title,
           issueTracker
         );
@@ -95,7 +94,6 @@ export function transformStream(
           columns[i].queryVariable,
           factory.literal(formattedValue)
         );
-        break;
       }
     }
     transformedStream.push(bindings);
