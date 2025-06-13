@@ -139,7 +139,7 @@ export const rdf2csvw: CommandModule<
       const stringifier = csv.stringify({
         header: true,
         columns: columns.map((column) => {
-          return { key: column.queryVariable, header: column.name };
+          return { key: column.queryVariable, header: column.title };
         }),
       });
       stringifier.pipe(outputStream);

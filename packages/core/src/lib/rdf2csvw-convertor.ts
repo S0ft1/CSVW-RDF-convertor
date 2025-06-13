@@ -25,7 +25,7 @@ import { parseTemplate } from 'url-template';
 import { CsvLocationTracker } from './utils/code-location.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
-export type CsvwColumn = { name: string; queryVariable: string };
+export type CsvwColumn = { name: string; title: string; queryVariable: string };
 export type CsvwTablesStream = {
   [tableName: string]: [
     columns: CsvwColumn[],
@@ -35,9 +35,9 @@ export type CsvwTablesStream = {
 
 export class Rdf2CsvwConvertor {
   private options: Required<Rdf2CsvOptions>;
-   private location = new CsvLocationTracker();
+  private location = new CsvLocationTracker();
   public issueTracker = new IssueTracker(this.location, {
-    collectIssues: false
+    collectIssues: false,
   });
   private store: Quadstore;
   private engine: Engine;
@@ -124,33 +124,42 @@ export class Rdf2CsvwConvertor {
       // TODO: escape special chars (even the dot or percentage sign) in SPARQL query.
       const columns: CsvwColumn[] =
         tableWithRequiredColumns.tableSchema.columns.map((col, i) => {
+          const defaultLang =
+            (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
+            '@none';
+
+          let name = `_col.${i + 1}`;
           if (col.name !== undefined) {
-            return {
-              name: encodeURIComponent(col.name),
-              queryVariable: `_col${i + 1}`,
-            };
+            name = encodeURIComponent(col.name);
           } else if (col.titles !== undefined) {
             if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
-              return {
-                name: encodeURIComponent(coerceArray(col.titles)[0]),
-                queryVariable: `_col${i + 1}`,
-              };
+              name = encodeURIComponent(coerceArray(col.titles)[0]);
             } else {
               // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
-              const defaultLang =
-                (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
-                '@none';
               if (defaultLang in col.titles) {
-                return {
-                  name: encodeURIComponent(
-                    coerceArray(col.titles[defaultLang])[0]
-                  ),
-                  queryVariable: `_col${i + 1}`,
-                };
+                name = encodeURIComponent(
+                  coerceArray(col.titles[defaultLang])[0]
+                );
               }
             }
           }
-          return { name: `_col.${i + 1}`, queryVariable: `_col${i + 1}` };
+
+          let title = `_col.${i + 1}`;
+          if (col.titles !== undefined) {
+            if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
+              title = coerceArray(col.titles)[0];
+            } else {
+              // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+              if (defaultLang in col.titles) {
+                title = coerceArray(col.titles[defaultLang])[0];
+              }
+            }
+          } else if (col.name !== undefined) {
+            title = col.name;
+          }
+
+          // note that queryVariable does not contain dot that is special char in SPARQL.
+          return { name: name, title: title, queryVariable: `_col${i + 1}` };
         });
       const query = this.createQuery(
         tableWithRequiredColumns,
