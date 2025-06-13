@@ -44,3 +44,13 @@ export interface CsvwTableDescription extends CsvwInheritedProperties {
    */
   '@type'?: 'Table';
 }
+
+type CsvwSchemaDescriptionWithRequiredColumns = Omit<
+  CsvwSchemaDescription,
+  'columns'
+> &
+  Required<Pick<CsvwSchemaDescription, 'columns'>>;
+export type CsvwTableDescriptionWithRequiredColumns = Omit<
+  CsvwTableDescription,
+  'tableSchema'
+> & { tableSchema: CsvwSchemaDescriptionWithRequiredColumns };

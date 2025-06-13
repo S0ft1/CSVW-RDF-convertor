@@ -43,12 +43,6 @@ Thumbs.db
 .nx/workspace-data
 
 test-output
-out/events-listing.csv
-.gitignore
-out/senior-roles.csv
-.gitignore
-out/test155.csv
-out/tree-ops.csv
-.gitignore
-out/junior-roles.csv
-out/test158.csv
+
+in/
+out/
