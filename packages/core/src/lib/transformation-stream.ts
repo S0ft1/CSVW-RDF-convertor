@@ -87,7 +87,7 @@ export function transformStream(
         const formattedValue = trimUrl(
           value,
           columnDescription.valueUrl,
-          columns[i].title,
+          columns[i].name,
           issueTracker
         );
         bindings = bindings.set(

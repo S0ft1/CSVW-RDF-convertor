@@ -25,7 +25,7 @@ import { parseTemplate } from 'url-template';
 import { CsvLocationTracker } from './utils/code-location.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
-export type CsvwColumn = { title: string; queryVariable: string };
+export type CsvwColumn = { name: string; queryVariable: string };
 export type CsvwTablesStream = {
   [tableName: string]: [
     columns: CsvwColumn[],
@@ -126,13 +126,13 @@ export class Rdf2CsvwConvertor {
         tableWithRequiredColumns.tableSchema.columns.map((col, i) => {
           if (col.name !== undefined) {
             return {
-              title: encodeURIComponent(col.name),
+              name: encodeURIComponent(col.name),
               queryVariable: `_col${i + 1}`,
             };
           } else if (col.titles !== undefined) {
             if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
               return {
-                title: encodeURIComponent(coerceArray(col.titles)[0]),
+                name: encodeURIComponent(coerceArray(col.titles)[0]),
                 queryVariable: `_col${i + 1}`,
               };
             } else {
@@ -142,7 +142,7 @@ export class Rdf2CsvwConvertor {
                 '@none';
               if (defaultLang in col.titles) {
                 return {
-                  title: encodeURIComponent(
+                  name: encodeURIComponent(
                     coerceArray(col.titles[defaultLang])[0]
                   ),
                   queryVariable: `_col${i + 1}`,
@@ -150,7 +150,7 @@ export class Rdf2CsvwConvertor {
               }
             }
           }
-          return { title: `_col.${i + 1}`, queryVariable: `_col${i + 1}` };
+          return { name: `_col.${i + 1}`, queryVariable: `_col${i + 1}` };
         });
       const query = this.createQuery(
         tableWithRequiredColumns,
@@ -276,10 +276,10 @@ ${lines.map((line) => `    ${line}`).join('\n')}
           parseTemplate(column.propertyUrl).expand({
             _column: index + 1,
             _source_column: index + 1,
-            _name: columns[index].title,
+            _name: columns[index].name,
           })
         )}>`
-      : `<${table.url}#${columns[index].title}>`;
+      : `<${table.url}#${columns[index].name}>`;
 
     const referencingIndex = table.tableSchema.columns.findIndex(
       (col) =>
@@ -294,7 +294,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       parseTemplate(column.valueUrl).expand({
         _column: index + 1,
         _source_column: index + 1,
-        _name: columns[index].title,
+        _name: columns[index].name,
       }) === column.valueUrl
     ) {
       if (
