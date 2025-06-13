@@ -29,6 +29,7 @@ export type CsvwColumn = { name: string; title: string; queryVariable: string };
 export type CsvwTablesStream = {
   [tableName: string]: [
     columns: CsvwColumn[],
+    // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
     rowsStream: ResultStream<Bindings>
   ];
 };
@@ -56,7 +57,6 @@ export class Rdf2CsvwConvertor {
     url: string,
     descriptor?: string | AnyCsvwDescriptor
   ): Promise<CsvwTablesStream> {
-    // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
     let wrapper: DescriptorWrapper;
     if (descriptor === undefined) {
       wrapper = this.createDescriptor(url);
@@ -71,7 +71,10 @@ export class Rdf2CsvwConvertor {
 
     // Now we have a descriptor either from user or from rdf data.
     // TODO: What if we do not have enough memory to hold all the quads in the store?
-    const readableStream = await this.options.resolveRdfStreamFn(url, '');
+    const readableStream = await this.options.resolveRdfStreamFn(
+      url,
+      this.options.baseIri
+    );
     let parser;
     if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
       parser = new RdfXmlParser();

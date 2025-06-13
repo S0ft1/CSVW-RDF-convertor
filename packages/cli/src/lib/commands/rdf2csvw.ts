@@ -72,7 +72,7 @@ export const rdf2csvw: CommandModule<
       throw new Error('stdin input not supported yet');
 
     const options: Rdf2CsvOptions = {
-      baseIri: args.baseIri ?? dirname(args.input),
+      baseIri: args.baseIri,
       pathOverrides: args.pathOverrides ?? [],
       logLevel:
         args.logLevel === 'debug'
