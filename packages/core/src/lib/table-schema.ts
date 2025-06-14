@@ -12,6 +12,8 @@ export class TableSchema {
   constructor(public name: string) {}
 
   public addColumns(...columns: string[]) {
+    if (this._columns.some((column) => columns.includes(column)))
+      throw new Error('Cannot add column with an existing name');
     this._columns.push(...columns);
   }
 
@@ -22,6 +24,7 @@ export class TableSchema {
     }
     this._columns = this._columns.filter((column) => !columns.includes(column));
   }
+
   /** you need to verify foreign keys integrity yourself */
   public renameColumn(oldName: string, newName: string) {
     if (this.columns.includes(newName)) {
@@ -35,7 +38,6 @@ export class TableSchema {
     this._columns[i] = newName;
 
     if (this.primaryKey.delete(oldName)) {
-      this.primaryKey.delete(oldName);
       this.primaryKey.add(newName);
     }
   }
