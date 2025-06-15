@@ -4,6 +4,7 @@ import { getSchema } from './interactive/get-schema.js';
 import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
+  CsvwTablesStream,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
   LogLevel,
@@ -17,7 +18,6 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { Bindings, ResultStream } from '@rdfjs/types';
 import { CommandModule } from 'yargs';
 
 export const rdf2csvw: CommandModule<
@@ -72,7 +72,7 @@ export const rdf2csvw: CommandModule<
       throw new Error('stdin input not supported yet');
 
     const options: Rdf2CsvOptions = {
-      baseIri: args.baseIri ?? dirname(args.input),
+      baseIri: args.baseIri,
       pathOverrides: args.pathOverrides ?? [],
       logLevel:
         args.logLevel === 'debug'
@@ -117,7 +117,7 @@ export const rdf2csvw: CommandModule<
     };
     const convertor = new Rdf2CsvwConvertor(options);
 
-    let streams: { [key: string]: [string[], ResultStream<Bindings>] };
+    let streams: CsvwTablesStream;
     let descriptor = '';
     if (args.descriptor) {
       descriptor = (await options.resolveJsonldFn?.(args.descriptor, '')) ?? '';
@@ -130,13 +130,18 @@ export const rdf2csvw: CommandModule<
 
     if (args.outDir) await mkdir(args.outDir, { recursive: true });
 
-    for (const [tableName, [columnNames, stream]] of Object.entries(streams)) {
+    for (const [tableName, [columns, stream]] of Object.entries(streams)) {
       const outputStream = args.outDir
         ? fs.createWriteStream(resolve(args.outDir, tableName))
         : process.stdout;
 
       // TODO: Set delimiter and other properties according to descriptor
-      const stringifier = csv.stringify({ header: true, columns: columnNames });
+      const stringifier = csv.stringify({
+        header: true,
+        columns: columns.map((column) => {
+          return { key: column.queryVariable, header: column.title };
+        }),
+      });
       stringifier.pipe(outputStream);
       // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
       // but it would improve performance when saving into multiple files.
