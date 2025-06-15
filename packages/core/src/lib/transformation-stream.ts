@@ -21,7 +21,9 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
     stream.on("data", (bindings) => {
         for (let i = 0; i < tableDescription.tableSchema.columns.length && !tableDescription.tableSchema.columns[i].virtual; i++) {
             const column = tableDescription.tableSchema.columns[i];
+
             if (!bindings.get(columnNames[i])) {
+                //Null transformation
                 if(column.null){
                     if(column.null instanceof Array){
                         bindings = bindings.set(columnNames[i], factory.literal(column.null[0]));
@@ -31,6 +33,7 @@ export function transformStream(stream: ResultStream<Bindings>, tableDescription
                     }
                 }
                 else{
+                    //empty null property and no value
                     continue;
                 }
             }
