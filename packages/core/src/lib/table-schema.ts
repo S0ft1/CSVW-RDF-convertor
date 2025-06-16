@@ -1,44 +1,92 @@
-import { MultiMap } from 'mnemonist';
+import { CsvwTableDescription } from './types/descriptor/table.js';
+import { CsvwForeignKeyDefinition } from './types/descriptor/schema-description.js';
+import { ColumnSchema } from './column-schema.js';
 
-export class TableSchema {
-  private _columns: string[] = [];
-  public get columns() {
-    return this._columns as ReadonlyArray<string>;
+export class TableSchema implements CsvwTableDescription {
+  private _url: string;
+  public get url() {
+    return this._url as Readonly<string>;
   }
 
-  public primaryKey = new Set<string>();
-  public readonly foreignKeys = new MultiMap<string, Map<string, string>>(Set);
+  private _tableSchema: {
+    columns: ColumnSchema[];
+    foreignKeys: CsvwForeignKeyDefinition[];
+    primaryKey: string[];
+  };
 
-  constructor(public name: string) {}
+  constructor(url: string) {
+    this._url = url + '.csv';
+  }
 
   public addColumns(...columns: string[]) {
-    if (this._columns.some((column) => columns.includes(column)))
+    if (
+      this._tableSchema.columns.some((column) => columns.includes(column.name))
+    ) {
       throw new Error('Cannot add column with an existing name');
-    this._columns.push(...columns);
+    }
+
+    for (const columnName of columns) {
+      this._tableSchema.columns.push(new ColumnSchema(columnName));
+    }
   }
 
   /** you need to verify foreign keys integrity yourself */
   public removeColumns(...columns: string[]) {
-    if (columns.some((column) => this.primaryKey.has(column))) {
+    if (this._tableSchema.primaryKey.some((key) => columns.includes(key))) {
       throw new Error('Cannot remove a column that is part of the primary key');
     }
-    this._columns = this._columns.filter((column) => !columns.includes(column));
+
+    this._tableSchema.columns = this._tableSchema.columns.filter(
+      (column) => !columns.includes(column.name)
+    );
   }
 
   /** you need to verify foreign keys integrity yourself */
   public renameColumn(oldName: string, newName: string) {
-    if (this.columns.includes(newName)) {
+    if (this._tableSchema.columns.some((column) => column.name === newName)) {
       throw new Error('Cannot rename to an existing column');
     }
 
-    const i = this._columns.indexOf(oldName);
-    if (i === -1) {
+    const column = this._tableSchema.columns.find(
+      (column) => column.name === oldName
+    );
+    if (column === undefined) {
       throw new Error('Column not found');
     }
-    this._columns[i] = newName;
 
-    if (this.primaryKey.delete(oldName)) {
-      this.primaryKey.add(newName);
+    column.renameColumn(newName);
+
+    const i = this._tableSchema.primaryKey.indexOf(oldName);
+    if (i !== -1) {
+      this._tableSchema.primaryKey[i] = newName;
     }
+  }
+
+  public addForeignKey() {
+    // TODO: implement method
+    throw new Error('Method not implemented.');
+  }
+
+  public removeForeignKey() {
+    // TODO: implement method
+    throw new Error('Method not implemented.');
+  }
+
+  public addPrimaryKey(columnName: string) {
+    if (!this._tableSchema.columns.some((column) => column.name === columnName))
+      throw new Error('Column with the given name does not exists');
+    if (this._tableSchema.primaryKey.some((key) => key === columnName))
+      throw new Error('Column is already part of the primary key');
+
+    this._tableSchema.primaryKey.push(columnName);
+  }
+
+  public removePrimaryKey(columnName: string) {
+    if (!this._tableSchema.primaryKey.some((key) => key === columnName))
+      throw new Error('Column is not part of the primary key');
+
+    this._tableSchema.primaryKey = this._tableSchema.primaryKey.filter(
+      (key) => key !== columnName
+    );
   }
 }
