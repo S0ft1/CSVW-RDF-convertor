@@ -1,3 +1,15 @@
+## 0.5.0 (2025-06-16)
+
+### 🚀 Features
+
+- Values and template urls transformations added ([f4a7617](https://github.com/S0ft1/CSVW-RDF-convertor/commit/f4a7617))
+- Titles in the header of csv tables. ([51398b3](https://github.com/S0ft1/CSVW-RDF-convertor/commit/51398b3))
+
+### ❤️ Thank You
+
+- S0ft1
+- d-kral
+
 ## 0.4.2 (2025-06-11)
 
 This was a version bump only, there were no code changes.
