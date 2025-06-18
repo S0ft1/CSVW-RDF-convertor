@@ -153,6 +153,11 @@ export const dtUris: Record<CsvwBuiltinDatatype, string> = {
 
 export const invalidValuePrefix = '@@invalid@@';
 
+/**
+ * Create a prefix map using the {@link https://prefix.cc} service.
+ * @param quads - Array of RDF quads to check for prefixes
+ * @param prefixes - Initial prefixes to use
+ */
 export async function lookupPrefixes(
   quads: Quad[],
   prefixes: Record<string, string>
