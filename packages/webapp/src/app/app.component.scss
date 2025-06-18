@@ -1,0 +1,20 @@
+@use '@angular/material' as mat;
+
+mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  @include mat.toolbar-overrides(
+    (
+      container-background-color: var(--mat-sys-secondary-container),
+      container-text-color: var(--mat-sys-on-secondary-container),
+    )
+  );
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+  a {
+    text-decoration: none;
+  }
+}

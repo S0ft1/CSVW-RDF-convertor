@@ -1,4 +1,4 @@
-import { Csvw2RdfOptions } from '../conversion-options.js';
+import { Csvw2RdfOptions, LogLevel } from '../conversion-options.js';
 import { CSVParser } from '../csv-parser.js';
 import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
 import {
@@ -151,7 +151,7 @@ export class Csvw2RdfConvertor {
     this.used = true;
     this.resolveMetadata(url)
       .then(([wrapper, resolvedUrl]) => {
-        this.options.baseIRI = resolvedUrl;
+        this.options.baseIri = resolvedUrl;
         const tablesWithoutUrl = Array.from(wrapper.getTables()).filter(
           (table) => !table.url
         );
@@ -173,8 +173,8 @@ export class Csvw2RdfConvertor {
   }
 
   private convertInner(): Promise<void> {
-    if (!this.options.baseIRI) {
-      this.options.baseIRI = this.input.descriptor['@id'] ?? '';
+    if (!this.options.baseIri) {
+      this.options.baseIri = this.input.descriptor['@id'] ?? '';
     }
 
     if (this.input.isTableGroup) {
@@ -237,7 +237,7 @@ export class Csvw2RdfConvertor {
     csvUrl: string
   ): Promise<[DescriptorWrapper, string]> {
     let expandedUrl = replaceUrl(csvUrl, this.options.pathOverrides);
-    expandedUrl = new URL(expandedUrl, this.options.baseIRI || expandedUrl)
+    expandedUrl = new URL(expandedUrl, this.options.baseIri || expandedUrl)
       .href;
 
     // metadata in a document linked to using a Link header associated with the tabular data file.
@@ -289,7 +289,7 @@ export class Csvw2RdfConvertor {
     try {
       const descriptor = await this.options.resolveJsonldFn(
         url,
-        this.options.baseIRI
+        this.options.baseIri
       );
       const wrapper = await normalizeDescriptor(
         JSON.parse(descriptor),
@@ -322,7 +322,7 @@ export class Csvw2RdfConvertor {
     url = new URL('/.well-known/csvm', url).href;
     url = replaceUrl(url, this.options.pathOverrides);
     try {
-      const text = await this.options.resolveWkfFn(url, this.options.baseIRI);
+      const text = await this.options.resolveWkfFn(url, this.options.baseIri);
       if (!text) return Csvw2RdfConvertor.defaultWKs;
       return text
         .split('\n')
@@ -364,7 +364,7 @@ export class Csvw2RdfConvertor {
     //4.6
     let rowNum = 0;
     const csvStream = (
-      await this.options.resolveCsvStreamFn(ctx.table.url, this.options.baseIRI)
+      await this.options.resolveCsvStreamFn(ctx.table.url, this.options.baseIri)
     ).pipeThrough(new CSVParser(ctx.dialect));
     const iter = csvStream[Symbol.asyncIterator]();
     const maybeRow1 = await this.processCsvHeader(iter, ctx);
@@ -1234,9 +1234,10 @@ export class Csvw2RdfConvertor {
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
       resolveWkfFn: options.resolveWkfFn ?? defaultResolveTextFn,
-      baseIRI: options.baseIRI ?? '',
-      templateIRIs: options.templateIRIs ?? false,
+      baseIri: options.baseIri ?? '',
+      templateIris: options.templateIris ?? false,
       minimal: options.minimal ?? false,
+      logLevel: options.logLevel ?? LogLevel.Warn,
     };
   }
 
@@ -1263,14 +1264,14 @@ export class Csvw2RdfConvertor {
    * @param srcCol - Source column number ({@link Csvw2RdfConvertor#location} column + {@link CsvwDialectDescription#skipColumns})
    * @param srcRow - Source row number ({@link Csvw2RdfConvertor#location} row + {@link CsvwDialectDescription#headerRowCount} + {@link CsvwDialectDescription#skipRows})
    * @param colVals - Column values
-   * @param baseIRI - Base IRI
+   * @param baseIri - Base IRI
    * @returns Expanded URI node
    */
   private templateUri(
     template: Template,
     srcCol: number,
     srcRow: number,
-    baseIRI: string,
+    baseIri: string,
     ctx: TableContext
   ): NamedNode {
     let uri = template.expand({
@@ -1282,8 +1283,8 @@ export class Csvw2RdfConvertor {
       _name: decodeURIComponent(ctx.col.name as string),
     });
     uri = this.expandIri(uri);
-    uri = URL.parse(uri)?.href ?? baseIRI + uri;
-    if (this.options.templateIRIs) {
+    uri = URL.parse(uri)?.href ?? baseIri + uri;
+    if (this.options.templateIris) {
       const parsed = URL.parse(uri) as URL;
       uri = parsed.href.replace(
         parsed.hostname,

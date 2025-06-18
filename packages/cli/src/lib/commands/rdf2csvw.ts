@@ -1,24 +1,30 @@
-import { CommandModule } from 'yargs';
 import { CommonArgs } from '../common.js';
 import { getPathOverrides } from './interactive/get-path-overrides.js';
-import { readFileOrUrl } from '../utils/read-file-or-url.js';
-import { isAbsolute, resolve } from 'node:path';
 import { getSchema } from './interactive/get-schema.js';
+import { readFileOrUrl } from '../utils/read-file-or-url.js';
+
 import {
+  CsvwTablesStream,
   defaultResolveJsonldFn,
+  defaultResolveStreamFn,
+  LogLevel,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '@csvw-rdf-convertor/core';
+
+import * as csv from 'csv';
+import fs from 'node:fs';
+import { mkdir, readFile } from 'node:fs/promises';
+import { dirname, isAbsolute, resolve } from 'node:path';
+import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { readFile } from 'node:fs/promises';
+import { CommandModule } from 'yargs';
 
 export const rdf2csvw: CommandModule<
   CommonArgs,
   CommonArgs & {
-    offline?: boolean;
     outDir: string;
     interactive?: boolean;
-    input: string;
     descriptor?: string;
     bufferSize: number;
   }
@@ -37,7 +43,6 @@ export const rdf2csvw: CommandModule<
       alias: 'o',
       describe: 'Output directory',
       type: 'string',
-      default: '.',
       coerce: resolve,
     },
     descriptor: {
@@ -52,12 +57,9 @@ export const rdf2csvw: CommandModule<
       defaultDescription: '1000',
       conflicts: ['interactive', 'input'],
     },
-    offline: {
-      describe: 'Do not fetch remote context files',
-      type: 'boolean',
-    },
   },
   handler: async (args) => {
+    if (!args.input) throw new Error('stdin input not supported yet');
     if (args.interactive) {
       const descriptor = JSON.parse(await readFileOrUrl(args.input));
       if (!args.pathOverrides) {
@@ -70,6 +72,14 @@ export const rdf2csvw: CommandModule<
       throw new Error('stdin input not supported yet');
 
     const options: Rdf2CsvOptions = {
+      baseIri: args.baseIri,
+      pathOverrides: args.pathOverrides ?? [],
+      logLevel:
+        args.logLevel === 'debug'
+          ? LogLevel.Debug
+          : args.logLevel === 'warn'
+          ? LogLevel.Warn
+          : LogLevel.Error,
       resolveJsonldFn: async (path, base) => {
         const url =
           URL.parse(path, base)?.href ??
@@ -84,16 +94,66 @@ export const rdf2csvw: CommandModule<
 
         return await readFile(url, 'utf-8');
       },
+      resolveRdfStreamFn: (path, base) => {
+        const url =
+          URL.parse(path, base)?.href ??
+          URL.parse(path)?.href ??
+          resolve(base, path);
+        if (
+          !isAbsolute(url) &&
+          (URL.canParse(url) || URL.canParse(url, base))
+        ) {
+          if (url.startsWith('file:')) {
+            return Promise.resolve(
+              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+            );
+          }
+          return defaultResolveStreamFn(url, base);
+        }
+        return Promise.resolve(
+          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
+        );
+      },
     };
     const convertor = new Rdf2CsvwConvertor(options);
 
+    let streams: CsvwTablesStream;
+    let descriptor = '';
+    if (args.descriptor) {
+      descriptor = (await options.resolveJsonldFn?.(args.descriptor, '')) ?? '';
+    }
     if (args.descriptor === undefined) {
-      convertor.convert(args.input);
+      streams = await convertor.convert(args.input);
     } else {
-      convertor.convert(
-        args.input,
-        (await options.resolveJsonldFn?.(args.descriptor, '')) ?? ''
-      );
+      streams = await convertor.convert(args.input, descriptor);
+    }
+
+    if (args.outDir) await mkdir(args.outDir, { recursive: true });
+
+    for (const [tableName, [columns, stream]] of Object.entries(streams)) {
+      const outputStream = args.outDir
+        ? fs.createWriteStream(resolve(args.outDir, tableName))
+        : process.stdout;
+
+      // TODO: Set delimiter and other properties according to descriptor
+      const stringifier = csv.stringify({
+        header: true,
+        columns: columns.map((column) => {
+          return { key: column.queryVariable, header: column.title };
+        }),
+      });
+      stringifier.pipe(outputStream);
+      // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
+      // but it would improve performance when saving into multiple files.
+      // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
+
+      for await (const bindings of stream) {
+        const row = {} as { [key: string]: string };
+        for (const [key, value] of bindings) {
+          row[key.value] = value.value;
+        }
+        stringifier.write(row);
+      }
     }
   },
 };

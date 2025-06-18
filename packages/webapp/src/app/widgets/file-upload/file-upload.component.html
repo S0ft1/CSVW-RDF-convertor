@@ -1,0 +1,24 @@
+<div class="drop-area" [class.dragging]="dragging()">
+  <label [for]="id">{{ label() }}</label>
+  @if (!editableNames()) {
+  <div class="handles">
+    @for (f of value; track f.name) {
+    <app-file-handle></app-file-handle>
+    }
+  </div>
+  }
+  <button matButton="tonal" [attr.aria-controls]="id" (click)="fileInp.click()">
+    {{ buttonLabel() }}
+  </button>
+  <input
+    [id]="id"
+    type="file"
+    [disabled]="isDisabled()"
+    (change)="onFileSelected($event)"
+    [multiple]="multiple()"
+    #fileInp
+  />
+  @if (editableNames()) {
+  <div class="handles full"></div>
+  }
+</div>

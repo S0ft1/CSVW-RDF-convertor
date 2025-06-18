@@ -37,6 +37,8 @@ export interface CsvwColumnDescription extends CsvwInheritedProperties {
 }
 type DataTypeWithFormat = CsvwDatatype & Required<Pick<CsvwDatatype,'format'>>
 type NumberDataType = Omit<DataTypeWithFormat, 'format'> & { format: CsvwNumberFormat }
-export type ColumnDescriptionWithDataTypeAndFormat = CsvwColumnDescription & Required<Pick<CsvwInheritedProperties, 'datatype'>> & { datatype: NumberDataType }
 
+export type ColumnDescriptionWithNumberDataTypeAndFormat = CsvwColumnDescription & Required<Pick<CsvwInheritedProperties, 'datatype'>> & { datatype: NumberDataType }
 
+type DateDataType = Omit<DataTypeWithFormat, 'format'> & { format: string }
+export type ColumnDescriptionWithDateDataTypeAndFormat = CsvwColumnDescription & Required<Pick<CsvwInheritedProperties, 'datatype'>> & { datatype: DateDataType }

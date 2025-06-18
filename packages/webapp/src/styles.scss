@@ -1,0 +1,39 @@
+@use '@angular/material' as mat;
+/* You can add global styles to this file, and also import other style files */
+
+* {
+  box-sizing: border-box;
+}
+html {
+  @include mat.theme(
+    (
+      color: mat.$blue-palette,
+      typography: Roboto,
+      density: -1,
+    )
+  );
+}
+html,
+body {
+  padding: 0;
+  min-height: 100vh;
+  margin: 0;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+body {
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  color-scheme: light dark;
+  padding-bottom: 1px;
+
+  &.dark {
+    color-scheme: dark;
+  }
+  &.light {
+    color-scheme: light;
+  }
+}
+
+a {
+  color: inherit;
+}

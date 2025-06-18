@@ -1,0 +1,44 @@
+<header>Convert CSVW to RDF</header>
+<mat-stepper linear>
+  <mat-step label="Upload files" [stepControl]="filesFG">
+    <form [formGroup]="filesFG">
+      <section class="main-input">
+        <header>Main file input</header>
+        <mat-tab-group
+          [mat-stretch-tabs]="false"
+          mat-align-tabs="center"
+          (selectedTabChange)="onMFTabChange($event)"
+          dynamicHeight
+        >
+          <mat-tab label="Local file">
+            <app-file-upload
+              formControlName="mainFile"
+              label="Descriptor or CSV file"
+            />
+          </mat-tab>
+          <mat-tab label="URL">
+            <mat-form-field>
+              <mat-label>Descriptor or CSV url</mat-label>
+              <input matInput type="url" formControlName="mainFileUrl" />
+            </mat-form-field>
+          </mat-tab>
+        </mat-tab-group>
+      </section>
+      <section class="other-uploads">
+        <header>Other uploads (optional)</header>
+        <app-file-upload
+          formControlName="otherFiles"
+          label="Additional files"
+          buttonLabel="Choose files"
+          [multiple]="true"
+        />
+        <app-file-upload formControlName="configFile" label="Config file" />
+      </section>
+      <section class="buttons">
+        <button matButton matStepperNext [disabled]="!filesFG.valid">
+          Next
+        </button>
+      </section>
+    </form>
+  </mat-step>
+</mat-stepper>

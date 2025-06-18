@@ -31,7 +31,7 @@ export async function normalizeDescriptor(
   const docLoader = async (url: string) => {
     url = replaceUrl(url, options.pathOverrides);
     return {
-      document: JSON.parse(await options.resolveJsonldFn(url, options.baseIRI)),
+      document: JSON.parse(await options.resolveJsonldFn(url, options.baseIri)),
       documentUrl: url,
     };
   };
@@ -204,7 +204,7 @@ async function loadReferencedSubdescriptors(
               (base + refContainer['@id']) as string,
               options.pathOverrides
             ),
-            options.baseIRI
+            options.baseIri
           );
           const parsed = JSON.parse(doc);
           if (parsed['@id'] && typeof parsed['@id'] !== 'string') {

@@ -1,0 +1,23 @@
+input {
+  display: none;
+}
+
+.drop-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 20px;
+
+  &.dragging {
+    border: 2px dashed #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+  }
+}
+
+button {
+  margin-left: auto;
+}
+
+.handles.full {
+  flex-basis: 100%;
+}

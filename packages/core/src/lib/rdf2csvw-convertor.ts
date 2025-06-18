@@ -1,45 +1,65 @@
-import { Rdf2CsvOptions } from './conversion-options.js';
-import { Stream } from '@rdfjs/types';
-import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
-import { IssueTracker } from './utils/issue-tracker.js';
-import { Quadstore, StoreOpts } from 'quadstore';
-import { BlankNode, DataFactory, Literal, NamedNode, StreamParser } from 'n3';
-import { MemoryLevel } from 'memory-level';
-import { Readable } from 'stream';
+import { LogLevel, Rdf2CsvOptions } from './conversion-options.js';
 import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
-import { CsvwTable } from './types/csvwTable.js';
-import { CsvwTableDescription } from './types/descriptor/table.js';
-import { defaultResolveJsonldFn } from './req-resolve.js';
-import { Engine } from 'quadstore-comunica';
-import { CsvwDatatype, CsvwNumberFormat } from './types/descriptor/datatype.js';
-import { ColumnDescriptionWithDataTypeAndFormat, CsvwColumnDescription } from './types/descriptor/column-description.js';
+import {
+  defaultResolveJsonldFn,
+  defaultResolveStreamFn,
+} from './req-resolve.js';
+import { transformStream } from './transformation-stream.js';
 
-//const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
+import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
+import { CsvwTableDescription } from './types/descriptor/table.js';
+
+import { coerceArray } from './utils/coerce.js';
+import { commonPrefixes } from './utils/prefix.js';
+import { IssueTracker } from './utils/issue-tracker.js';
+
+import { MemoryLevel } from 'memory-level';
+import { DataFactory, StreamParser } from 'n3';
+import { Quadstore, StoreOpts } from 'quadstore';
+import { Engine } from 'quadstore-comunica';
+import { JsonLdParser } from 'jsonld-streaming-parser';
+import { Bindings, ResultStream } from '@rdfjs/types';
+import { RdfXmlParser } from 'rdfxml-streaming-parser';
+import { parseTemplate } from 'url-template';
+import { CsvLocationTracker } from './utils/code-location.js';
+
+// TODO: Can these types be improved for better readability and ease of use?
+export type CsvwColumn = { name: string; title: string; queryVariable: string };
+export type CsvwTablesStream = {
+  [tableName: string]: [
+    columns: CsvwColumn[],
+    // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
+    rowsStream: ResultStream<Bindings>
+  ];
+};
 
 export class Rdf2CsvwConvertor {
   private options: Required<Rdf2CsvOptions>;
-  public issueTracker: IssueTracker;
+  private location = new CsvLocationTracker();
+  public issueTracker = new IssueTracker(this.location, {
+    collectIssues: false,
+  });
   private store: Quadstore;
   private engine: Engine;
 
   public constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
-    //this.store = {} as Quadstore;
   }
 
   /**
    * Main conversion function. Converts the rdf data to csvw format.
-   * @param data Input rdf data to convert
+   * @param url Url of rdf data to convert
    * @param descriptor CSVW descriptor to use for the conversion. If not provided, a new descriptor will be created from the rdf data.
    * @returns A stream of csvw data.
    */
   public async convert(
-    data: string,
+    url: string,
     descriptor?: string | AnyCsvwDescriptor
-  ): Promise<Stream> {
+  ): Promise<CsvwTablesStream> {
     let wrapper: DescriptorWrapper;
     if (descriptor === undefined) {
-      wrapper = this.createDescriptor(data);
+      wrapper = this.createDescriptor(url);
     } else {
       wrapper = await normalizeDescriptor(
         descriptor,
@@ -48,19 +68,324 @@ export class Rdf2CsvwConvertor {
       );
     }
     await this.openStore();
-    //Now we have a descriptor either from user or from rdf data.
-    const reader = Readable.from(data);
-    const parser = new StreamParser({ format: 'text/turtle' });
-    await this.store.putStream(reader.pipe(parser), { batchSize: 100 });
 
-    const stream = await this.engine.queryBindings(
-      'SELECT ?o ?p ?s WHERE { ?o ?p ?s }',
-      { baseIRI: 'http://example.org' }
+    // Now we have a descriptor either from user or from rdf data.
+    // TODO: What if we do not have enough memory to hold all the quads in the store?
+    const readableStream = await this.options.resolveRdfStreamFn(
+      url,
+      this.options.baseIri
     );
+    let parser;
+    if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
+      parser = new RdfXmlParser();
+    } else if (url.match(/\.jsonld([?#].*)?$/)) {
+      parser = new JsonLdParser();
+    } else {
+      // TODO: By default, N3.Parser parses a permissive superset of Turtle, TriG, N-Triples, and N-Quads. For strict compatibility with any of those languages, pass a format argument upon creation.
+      parser = new StreamParser();
+    }
+    const useNamedGraphs = url.match(/\.(nq|trig)([?#].*)?$/) !== null;
 
-    //stream.on('data', (bindings) => console.log(bindings.toString()));
-    this.store.close();
-    return {} as Stream; //This is a placeholder. The actual conversion logic will go here.
+    for await (const chunk of readableStream) {
+      parser.write(chunk);
+    }
+    parser.end();
+
+    await this.store.putStream(parser);
+
+    const tables = wrapper.isTableGroup
+      ? wrapper.getTables()
+      : ([wrapper.descriptor] as CsvwTableDescription[]);
+    const streams = {} as CsvwTablesStream;
+    let openedStreamsCount = 0;
+
+    for (const table of tables) {
+      // TODO: use IssueTracker
+      if (!table.tableSchema?.columns) {
+        if (this.options.logLevel >= LogLevel.Warn)
+          console.warn(`Skipping table ${table.url}: no columns found`);
+        continue;
+      }
+      if (table.suppressOutput === true) {
+        if (this.options.logLevel >= LogLevel.Warn)
+          console.warn(
+            `Skipping table ${table.url}: suppressOutput set to true`
+          );
+        continue;
+      }
+
+      const tableWithRequiredColumns =
+        table as CsvwTableDescriptionWithRequiredColumns;
+
+      // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
+      // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
+
+      // TODO: rdf lists
+      // TODO: skip columns
+      // TODO: row number in url templates
+
+      // TODO: escape special chars (even the dot or percentage sign) in SPARQL query.
+      const columns: CsvwColumn[] =
+        tableWithRequiredColumns.tableSchema.columns.map((col, i) => {
+          const defaultLang =
+            (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
+            '@none';
+
+          let name = `_col.${i + 1}`;
+          if (col.name !== undefined) {
+            name = encodeURIComponent(col.name);
+          } else if (col.titles !== undefined) {
+            if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
+              name = encodeURIComponent(coerceArray(col.titles)[0]);
+            } else {
+              // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+              if (defaultLang in col.titles) {
+                name = encodeURIComponent(
+                  coerceArray(col.titles[defaultLang])[0]
+                );
+              }
+            }
+          }
+
+          let title = `_col.${i + 1}`;
+          if (col.titles !== undefined) {
+            if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
+              title = coerceArray(col.titles)[0];
+            } else {
+              // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+              if (defaultLang in col.titles) {
+                title = coerceArray(col.titles[defaultLang])[0];
+              }
+            }
+          } else if (col.name !== undefined) {
+            title = col.name;
+          }
+
+          // note that queryVariable does not contain dot that is special char in SPARQL.
+          return { name: name, title: title, queryVariable: `_col${i + 1}` };
+        });
+      const query = this.createQuery(
+        tableWithRequiredColumns,
+        columns,
+        useNamedGraphs
+      );
+      if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
+
+      const stream = transformStream(
+        // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
+        await this.engine.queryBindings(query, {
+          baseIRI: '.',
+        }),
+        tableWithRequiredColumns,
+        columns,
+        this.issueTracker
+      );
+      openedStreamsCount++;
+      streams[tableWithRequiredColumns.url] = [
+        columns.filter(
+          (col, i) => !tableWithRequiredColumns.tableSchema.columns[i].virtual
+        ),
+        stream,
+      ];
+    }
+    for (const [, [, stream]] of Object.entries(streams)) {
+      stream.once('end', () => {
+        if (--openedStreamsCount === 0) this.store.close();
+      });
+    }
+    return streams;
+  }
+
+  /**
+   * Creates SPARQL query.
+   * @param table CSV Table
+   * @param columns Columns including virtual ones
+   * @param useNamedGraphs Query from named graphs in the SPARQL query
+   * @returns SPARQL query as a string
+   */
+  private createQuery(
+    table: CsvwTableDescriptionWithRequiredColumns,
+    columns: CsvwColumn[],
+    useNamedGraphs: boolean
+  ) {
+    const lines: string[] = [];
+    for (let index = 0; index < table.tableSchema.columns.length; index++) {
+      const column = table.tableSchema.columns[index];
+      const referencedBy = table.tableSchema.columns.find((col) => {
+        if (
+          col.propertyUrl &&
+          this.expandIri(col.propertyUrl) ===
+            'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+        )
+          return (
+            col !== column && col.aboutUrl && col.aboutUrl === column.aboutUrl
+          );
+        else
+          return (
+            col !== column && col.valueUrl && col.valueUrl === column.aboutUrl
+          );
+      });
+
+      if (
+        !referencedBy ||
+        (table.tableSchema.primaryKey &&
+          table.tableSchema.primaryKey === column.name)
+      ) {
+        const patterns = this.createTriplePatterns(
+          table,
+          columns,
+          index,
+          column.propertyUrl &&
+            this.expandIri(column.propertyUrl) ===
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+            ? `?${columns[index].queryVariable}`
+            : '?_blank'
+        );
+        lines.push(...patterns.split('\n'));
+      }
+    }
+
+    return `SELECT ${columns
+      .filter((col, i) => !table.tableSchema.columns[i].virtual)
+      .map((column) => `?${column.queryVariable}`)
+      .join(' ')}
+WHERE {
+${
+  !useNamedGraphs
+    ? lines.join('\n')
+    : `  {
+${lines.map((line) => `  ${line}`).join('\n')}
+  }
+  UNION
+  {
+    GRAPH ?_graph {
+${lines.map((line) => `    ${line}`).join('\n')}
+    }
+  }`
+}
+}`;
+  }
+
+  /**
+   * Creates SPARQL triple patterns for use in SELECT WHERE query.
+   * Triples are created recursively if there are references between the columns.
+   * @param table CSV Table
+   * @param columns Columns including virtual ones
+   * @param index Index of the column for which triples are created
+   * @param subject Subject of the triple, it must match the other end of the reference between columns
+   * @returns Triple patterns for given column as a string
+   */
+  private createTriplePatterns(
+    table: CsvwTableDescriptionWithRequiredColumns,
+    columns: CsvwColumn[],
+    index: number,
+    subject: string
+  ): string {
+    const column = table.tableSchema.columns[index];
+
+    const predicate = column.propertyUrl
+      ? `<${this.expandIri(
+          parseTemplate(column.propertyUrl).expand({
+            _column: index + 1,
+            _source_column: index + 1,
+            _name: columns[index].name,
+          })
+        )}>`
+      : `<${table.url}#${columns[index].name}>`;
+
+    const referencingIndex = table.tableSchema.columns.findIndex(
+      (col) =>
+        col.propertyUrl &&
+        this.expandIri(col.propertyUrl) ===
+          'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+        col.aboutUrl == column.valueUrl
+    );
+    let object: string;
+    if (
+      column.valueUrl &&
+      parseTemplate(column.valueUrl).expand({
+        _column: index + 1,
+        _source_column: index + 1,
+        _name: columns[index].name,
+      }) === column.valueUrl
+    ) {
+      if (
+        column.datatype === 'anyURI' ||
+        predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
+      )
+        object = `<${this.expandIri(column.valueUrl)}>`;
+      else object = `"${column.valueUrl}"`;
+    } else {
+      if (referencingIndex !== -1)
+        object = `?${columns[referencingIndex].queryVariable}`;
+      else object = `?${columns[index].queryVariable}`;
+    }
+
+    const lines = [`  ${subject} ${predicate} ${object} .`];
+    if (column.lang) {
+      // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
+      // TODO: Should we lower our expectations if the matching language is not found?
+      lines.push(`  FILTER (LANG(${object}) = '${column.lang}')`);
+    }
+
+    if (
+      column.propertyUrl &&
+      this.expandIri(column.propertyUrl) ===
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    ) {
+      if (column.aboutUrl) {
+        table.tableSchema.columns.forEach((col, i) => {
+          if (col !== column && col.aboutUrl === column.aboutUrl) {
+            const patterns = this.createTriplePatterns(
+              table,
+              columns,
+              i,
+              subject
+            );
+            lines.push(...patterns.split('\n'));
+          }
+        });
+      }
+    } else {
+      if (column.valueUrl) {
+        table.tableSchema.columns.forEach((col, i) => {
+          if (col !== column && col.aboutUrl === column.valueUrl) {
+            const patterns = this.createTriplePatterns(
+              table,
+              columns,
+              i,
+              object
+            );
+            lines.push(...patterns.split('\n'));
+          }
+        });
+      }
+    }
+
+    if (!column.required) {
+      return `  OPTIONAL {
+${lines.map((line) => `  ${line}`).join('\n')}
+  }`;
+    } else {
+      return lines.map((line) => `${line}`).join('\n');
+    }
+  }
+
+  /**
+   * Expands an IRI based on the common prefixes.
+   * @param iri - IRI to be expanded
+   * @returns Expanded IRI
+   */
+  private expandIri(iri: string): string {
+    const i = iri.indexOf(':');
+    if (i === -1) return iri;
+    const prefix = iri.slice(0, i);
+    if (prefix in commonPrefixes) {
+      return (
+        commonPrefixes[prefix as keyof typeof commonPrefixes] + iri.slice(i + 1)
+      );
+    }
+    return iri;
   }
 
   /**
@@ -78,9 +403,11 @@ export class Rdf2CsvwConvertor {
   private setDefaults(options?: Rdf2CsvOptions): Required<Rdf2CsvOptions> {
     options ??= {};
     return {
-      baseIRI: options.baseIRI ?? '',
       pathOverrides: options.pathOverrides ?? [],
+      baseIri: options.baseIri ?? '',
+      logLevel: options.logLevel ?? LogLevel.Warn,
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
+      resolveRdfStreamFn: options.resolveRdfStreamFn ?? defaultResolveStreamFn,
       descriptorNotProvided: options.descriptorNotProvided ?? false,
     };
   }
