@@ -19,7 +19,6 @@
     ]
   },
   "neverConnectToCloud": true,
-  "nxCloudId": "67a9e63d4626b120dd8ff944",
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
@@ -61,6 +60,11 @@
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
+    },
+    "@angular-devkit/build-angular:application": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "release": {
@@ -75,6 +79,19 @@
         "cacheableOperations": ["build", "lint", "test", "e2e"],
         "useDaemonProcess": false
       }
+    }
+  },
+  "generators": {
+    "@nx/angular:component": {
+      "style": "scss",
+      "changeDetection": "OnPush",
+      "type": "component"
+    },
+    "@nx/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
     }
   }
 }

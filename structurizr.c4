@@ -1,0 +1,140 @@
+workspace {
+
+    model {
+        # People
+        user = person "User" "A user who needs to convert and validate data"
+        
+        # External Systems
+        prefixCc = softwareSystem "prefix.cc" "External service for prefix resolution" "External System"
+        
+        # Main System
+        dataSystem = softwareSystem "CSVW RDF Convertor" "System for converting and validating data between different formats" {
+            
+            # Containers (Interfaces)
+            webService = container "Web Service" "Web Service" "Web Service" "Web Browser"
+            webApp = container "Web Application" "Web-based user interface" "Web Application" "Web Browser"
+            cli = container "CLI Tool" "Command-line interface" "Command Line Application"
+            vscodeExtension = container "VS Code Extension" "Visual Studio Code extension" "VS Code Extension"
+            
+            # Core Library Container
+            coreLibrary = container "Core Library" "Central library containing all business logic" "Library" {
+                
+                # C2R Components
+                c2rFunction = component "C2R" "Main function for CSVW to RDF conversion"
+                descriptorWrapper = component "Descriptor Wrapper" "Normalizes descriptors for processing"
+                csvParser = component "CSV Parser" "Parses CSV data"
+                c2rConverter = component "C2R Converter" "Validates and converts CSVW data to RDF"
+                prefixService = component "Prefix Service" "Looks up prefixes for RDF URIs"
+                
+                # Validate Components
+                validateFunction = component "Validate" "Main function for CSVW validation"
+                
+                # R2C Components
+                r2cFunction = component "R2C" "Main function for RDF to CSVW conversion"
+                schemaBuilder = component "Schema Builder" "Builds relational schemas for RDF to CSVW conversion"
+                r2cConverter = component "R2C Converter" "Converts RDF data to CSVW format"
+            }
+        }
+        
+        # Relationships - System Context
+        user -> dataSystem "Uses for data conversion and validation"
+        dataSystem -> prefixCc "Sends requests for prefix resolution"
+        
+        # Relationships - Container Level
+        user -> webService "Makes API calls to"
+        user -> webApp "Uses web interface"
+        user -> cli "Executes commands via"
+        user -> vscodeExtension "Uses extension in VS Code"
+        
+        webService -> coreLibrary "Uses"
+        webApp -> coreLibrary "Uses"
+        cli -> coreLibrary "Uses"
+        vscodeExtension -> coreLibrary "Uses"
+        
+        coreLibrary -> prefixCc "Makes requests to"
+        
+        # Relationships - Component Level
+        # C2R Function relationships
+        c2rFunction -> descriptorWrapper "Uses to normalize descriptors"
+        c2rFunction -> csvParser "Uses to parse CSV data"
+        c2rFunction -> c2rConverter "Uses to convert and validate"
+        
+        prefixService -> prefixCc "Makes requests to"
+        
+        # Validate Function relationships
+        validateFunction -> descriptorWrapper "Uses to normalize descriptors"
+        validateFunction -> csvParser "Uses to parse data"
+        validateFunction -> c2rConverter "Uses for validation"
+        
+        # R2C Function relationships
+        r2cFunction -> schemaBuilder "Uses to build schemas"
+        r2cFunction -> r2cConverter "Uses to convert RDF to CSVW"
+
+        
+        # Interface to Core Library relationships
+        webService -> c2rFunction "Calls"
+        webService -> validateFunction "Calls"
+        webService -> r2cFunction "Calls"
+        
+        webApp -> c2rFunction "Calls"
+        webApp -> validateFunction "Calls"
+        webApp -> r2cFunction "Calls"
+        
+        cli -> c2rFunction "Calls"
+        cli -> validateFunction "Calls"
+        cli -> r2cFunction "Calls"
+        cli -> prefixService "Gets prefixes using"
+        
+        vscodeExtension -> c2rFunction "Calls"
+        vscodeExtension -> validateFunction "Calls"
+        vscodeExtension -> r2cFunction "Calls"
+    }
+
+    views {
+        # System Context Diagram
+        systemContext dataSystem "SystemContext" {
+            include *
+            autoLayout lr
+            title "Data Conversion System - System Context"
+            description "High-level view showing the system's relationship with users and external services"
+        }
+        
+        # Container Diagram
+        container dataSystem "Containers" {
+            include *
+            autoLayout
+            title "Data Conversion System - Container Diagram"
+            description "Shows the different interfaces and the core library"
+        }
+        
+        # Component Diagram for Core Library
+        component coreLibrary "Components" {
+            include cli c2rFunction-> r2cFunction-> validateFunction-> prefixService prefixCc
+            autoLayout
+            title "Core Library - Component Diagram"
+            description "Detailed view of the core library's internal components and their relationships"
+        }
+        
+        # Styles
+        styles {
+            element "Person" {
+                color #ffffff
+                background #1168bd
+                shape Person
+            }
+            element "External System" {
+                background #999999
+                color #ffffff
+            }
+            element "Web Browser" {
+                shape WebBrowser
+            }
+            element "Library" {
+                background #85bbf0
+            }
+            element "Component" {
+                background #85bbf0
+            }
+        }
+    }
+}

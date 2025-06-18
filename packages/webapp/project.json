@@ -1,0 +1,96 @@
+{
+  "name": "@csvw-rdf-convertor/webapp",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "packages/webapp/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/webapp/dist",
+        "index": "packages/webapp/src/index.html",
+        "browser": "packages/webapp/src/main.ts",
+        "polyfills": [],
+        "tsConfig": "packages/webapp/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "packages/webapp/public"
+          }
+        ],
+        "styles": ["packages/webapp/src/styles.scss"],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "options": {
+        "forceEsbuild": false,
+        "prebundle": {
+          "exclude": ["@csvw-rdf-convertor/core"]
+        }
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "@csvw-rdf-convertor/webapp:build:production"
+        },
+        "development": {
+          "buildTarget": "@csvw-rdf-convertor/webapp:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "buildTarget": "@csvw-rdf-convertor/webapp:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/webapp/jest.config.ts"
+      }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "@csvw-rdf-convertor/webapp:build:development",
+        "port": 4200,
+        "staticFilePath": "packages/webapp/dist/browser",
+        "spa": true
+      }
+    }
+  }
+}

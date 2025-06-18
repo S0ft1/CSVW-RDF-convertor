@@ -2,6 +2,7 @@
   "compilerOptions": {
     "composite": true,
     "declarationMap": true,
+    "declaration": true,
     "emitDeclarationOnly": true,
     "importHelpers": true,
     "isolatedModules": true,
@@ -13,7 +14,7 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "strictPropertyInitialization" : false,
+    "strictPropertyInitialization": false,
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022"
