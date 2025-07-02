@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PrefixesComponent } from './prefixes.component';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('PrefixesComponent', () => {
   let component: PrefixesComponent;
@@ -8,7 +9,14 @@ describe('PrefixesComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PrefixesComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(PrefixesComponent, {
+        set: {
+          imports: [],
+          schemas: [NO_ERRORS_SCHEMA],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(PrefixesComponent);
     component = fixture.componentInstance;

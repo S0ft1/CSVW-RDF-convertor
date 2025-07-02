@@ -16,17 +16,18 @@ const dialectSchema: Partial<
   doubleQuote: { type: 'boolean' },
   encoding: {
     type: 'string',
-    validate: (val) =>
+    validate: (val: string) =>
       [
         'ascii',
         'utf8',
+        'utf-8',
         'utf16le',
         'ucs2',
         'base64',
         'latin1',
         'binary',
         'hex',
-      ].includes(val),
+      ].includes(val.toLowerCase()),
   },
   header: { type: 'boolean' },
   headerRowCount: { type: 'number', validate: (val) => val >= 0 },

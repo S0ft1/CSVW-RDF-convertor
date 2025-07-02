@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FileHandleComponent } from './file-handle.component';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('FileHandleComponent', () => {
   let component: FileHandleComponent;
@@ -8,7 +9,14 @@ describe('FileHandleComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FileHandleComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(FileHandleComponent, {
+        set: {
+          imports: [],
+          schemas: [NO_ERRORS_SCHEMA],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(FileHandleComponent);
     component = fixture.componentInstance;

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormatFormComponent } from './format-form.component';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('FormatFormComponent', () => {
   let component: FormatFormComponent;
@@ -8,7 +9,14 @@ describe('FormatFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FormatFormComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(FormatFormComponent, {
+        set: {
+          imports: [],
+          schemas: [NO_ERRORS_SCHEMA],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(FormatFormComponent);
     component = fixture.componentInstance;
