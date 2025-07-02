@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PathOverrideComponent } from './path-override.component';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 describe('PathOverrideComponent', () => {
   let component: PathOverrideComponent;
@@ -12,7 +13,7 @@ describe('PathOverrideComponent', () => {
     })
       .overrideComponent(PathOverrideComponent, {
         set: {
-          imports: [],
+          imports: [MatAutocompleteModule],
           schemas: [NO_ERRORS_SCHEMA],
         },
       })

@@ -50,3 +50,4 @@ out/
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+__screenshots__/

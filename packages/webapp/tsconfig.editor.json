@@ -7,5 +7,5 @@
     "moduleResolution": "bundler",
     "module": "ES2022"
   },
-  "exclude": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts"]
+  "exclude": ["src/test-setup.ts", "src/**/*.test.ts", "src/**/*.spec.ts"]
 }
