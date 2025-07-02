@@ -178,6 +178,7 @@ export class Rdf2CsvwConvertor {
         }),
         tableWithRequiredColumns,
         columns,
+        table,
         this.issueTracker
       );
       openedStreamsCount++;

@@ -10,9 +10,10 @@ export class GlobalEventService {
   public drop = fromEvent(window, 'drop').pipe(share());
   public dragging = merge(
     this.dragLeave.pipe(map(() => -1)),
-    this.dragEnter.pipe(map(() => 1))
+    this.dragEnter.pipe(map(() => 1)),
+    this.drop.pipe(map(() => 0))
   ).pipe(
-    scan((acc, val) => acc + val),
+    scan((acc, val) => val && acc + val),
     map((x) => x > 0),
     startWith(false),
     share()

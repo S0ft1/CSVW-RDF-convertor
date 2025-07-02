@@ -1,1 +1,40 @@
-<p>files-form works!</p>
+<form [formGroup]="form()">
+  <section class="main-input">
+    <header>Main file input</header>
+    <mat-tab-group
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="center"
+      (selectedTabChange)="onMFTabChange($event)"
+      dynamicHeight
+    >
+      <mat-tab label="Local file">
+        <app-file-upload
+          formControlName="mainFile"
+          label="Descriptor or CSV file"
+          accept=".csv,.json"
+        />
+      </mat-tab>
+      <mat-tab label="URL">
+        <mat-form-field>
+          <mat-label>Descriptor or CSV url</mat-label>
+          <input matInput type="url" formControlName="mainFileUrl" />
+        </mat-form-field>
+      </mat-tab>
+    </mat-tab-group>
+  </section>
+  <section class="other-uploads">
+    <header>Other uploads (optional)</header>
+    <app-file-upload
+      formControlName="otherFiles"
+      label="Additional files"
+      buttonLabel="Choose files"
+      [multiple]="true"
+      [editableNames]="true"
+    />
+    <app-file-upload
+      accept=".json"
+      formControlName="configFile"
+      label="Config file"
+    />
+  </section>
+</form>

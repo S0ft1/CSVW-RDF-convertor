@@ -1,0 +1,11 @@
+<div [formGroup]="form()">
+  <mat-form-field>
+    <mat-label>Base IRI</mat-label>
+    <input matInput type="text" formControlName="baseIri" />
+    <mat-hint>Used for the <code>&#64;base</code> directive</mat-hint>
+  </mat-form-field>
+  <app-prefixes formControlName="prefixes"></app-prefixes>
+  <mat-slide-toggle formControlName="lookupPrefixes"
+    >Lookup prefixes using an external service</mat-slide-toggle
+  >
+</div>

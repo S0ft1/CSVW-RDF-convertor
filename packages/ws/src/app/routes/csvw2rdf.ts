@@ -16,7 +16,7 @@ import {
 import { makeRe, MMRegExp } from 'minimatch';
 import { resolve } from 'node:path';
 import os from 'node:os';
-import { createReadStream, createWriteStream, readFileSync } from 'node:fs';
+import { createReadStream, createWriteStream } from 'node:fs';
 import { Readable } from 'node:stream';
 import { readFile } from 'node:fs/promises';
 import { Quad, Stream } from '@rdfjs/types';

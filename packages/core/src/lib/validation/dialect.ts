@@ -14,7 +14,20 @@ const dialectSchema: Partial<
   commentPrefix: { type: 'string' },
   delimiter: { type: 'string' },
   doubleQuote: { type: 'boolean' },
-  encoding: { type: 'string', validate: Buffer.isEncoding },
+  encoding: {
+    type: 'string',
+    validate: (val) =>
+      [
+        'ascii',
+        'utf8',
+        'utf16le',
+        'ucs2',
+        'base64',
+        'latin1',
+        'binary',
+        'hex',
+      ].includes(val),
+  },
   header: { type: 'boolean' },
   headerRowCount: { type: 'number', validate: (val) => val >= 0 },
   lineTerminators: { type: ['string', Array] },

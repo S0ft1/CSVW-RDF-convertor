@@ -3,7 +3,7 @@
   "include": ["src/**/*.ts"],
   "compilerOptions": {
     "declaration": true,
-    "lib": ["ES2024", "DOM"],
+    "lib": ["ES2024", "DOM", "ESNext.Iterator"],
     "moduleResolution": "bundler",
     "module": "ES2022"
   },
