@@ -1,16 +1,21 @@
 import { CsvwColumnDescription } from './types/descriptor/column-description.js';
 
 export class ColumnSchema implements CsvwColumnDescription {
-  private _name: string;
-  public get name() {
-    return this._name as Readonly<string>;
-  }
+  public name: string;
+
+  public required?: boolean | undefined;
+
+  public aboutUrl: string | undefined;
+
+  public propertyUrl: string | undefined;
+
+  public valueUrl: string | undefined;
 
   constructor(name: string) {
-    this._name = name;
+    this.name = name;
   }
 
   public renameColumn(name: string) {
-    this._name = name;
+    this.name = name;
   }
 }

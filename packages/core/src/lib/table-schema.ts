@@ -3,51 +3,59 @@ import { CsvwForeignKeyDefinition } from './types/descriptor/schema-description.
 import { ColumnSchema } from './column-schema.js';
 
 export class TableSchema implements CsvwTableDescription {
-  private _url: string;
-  public get url() {
-    return this._url as Readonly<string>;
-  }
+  public url: string;
 
-  private _tableSchema: {
+  public tableSchema: {
     columns: ColumnSchema[];
     foreignKeys: CsvwForeignKeyDefinition[];
     primaryKey: string[];
   };
 
-  constructor(url: string) {
-    this._url = url + '.csv';
+  constructor(url: string, ...columns: string[]) {
+    this.url = url;
+    this.tableSchema = {
+      columns: [],
+      foreignKeys: [],
+      primaryKey: [],
+    };
+
+    for (const columnName of columns) {
+      this.addColumn(columnName);
+    }
   }
 
-  public addColumns(...columns: string[]) {
-    if (
-      this._tableSchema.columns.some((column) => columns.includes(column.name))
-    ) {
+  public getColumn(name: string): ColumnSchema | undefined {
+    return this.tableSchema.columns.find((column) => column.name === name);
+  }
+
+  public addColumn(name: string): ColumnSchema {
+    if (this.tableSchema.columns.some((column) => column.name === name)) {
       throw new Error('Cannot add column with an existing name');
     }
 
-    for (const columnName of columns) {
-      this._tableSchema.columns.push(new ColumnSchema(columnName));
-    }
+    const column = new ColumnSchema(name);
+    this.tableSchema.columns.push(column);
+    return column;
   }
 
   /** you need to verify foreign keys integrity yourself */
-  public removeColumns(...columns: string[]) {
-    if (this._tableSchema.primaryKey.some((key) => columns.includes(key))) {
+  public removeColumn(name: string) {
+    if (this.tableSchema.primaryKey.some((key) => key === name)) {
       throw new Error('Cannot remove a column that is part of the primary key');
     }
 
-    this._tableSchema.columns = this._tableSchema.columns.filter(
-      (column) => !columns.includes(column.name)
+    this.tableSchema.columns = this.tableSchema.columns.filter(
+      (column) => column.name !== name
     );
   }
 
   /** you need to verify foreign keys integrity yourself */
   public renameColumn(oldName: string, newName: string) {
-    if (this._tableSchema.columns.some((column) => column.name === newName)) {
+    if (this.tableSchema.columns.some((column) => column.name === newName)) {
       throw new Error('Cannot rename to an existing column');
     }
 
-    const column = this._tableSchema.columns.find(
+    const column = this.tableSchema.columns.find(
       (column) => column.name === oldName
     );
     if (column === undefined) {
@@ -56,9 +64,9 @@ export class TableSchema implements CsvwTableDescription {
 
     column.renameColumn(newName);
 
-    const i = this._tableSchema.primaryKey.indexOf(oldName);
+    const i = this.tableSchema.primaryKey.indexOf(oldName);
     if (i !== -1) {
-      this._tableSchema.primaryKey[i] = newName;
+      this.tableSchema.primaryKey[i] = newName;
     }
   }
 
@@ -73,19 +81,19 @@ export class TableSchema implements CsvwTableDescription {
   }
 
   public addPrimaryKey(columnName: string) {
-    if (!this._tableSchema.columns.some((column) => column.name === columnName))
+    if (!this.tableSchema.columns.some((column) => column.name === columnName))
       throw new Error('Column with the given name does not exists');
-    if (this._tableSchema.primaryKey.some((key) => key === columnName))
+    if (this.tableSchema.primaryKey.some((key) => key === columnName))
       throw new Error('Column is already part of the primary key');
 
-    this._tableSchema.primaryKey.push(columnName);
+    this.tableSchema.primaryKey.push(columnName);
   }
 
   public removePrimaryKey(columnName: string) {
-    if (!this._tableSchema.primaryKey.some((key) => key === columnName))
+    if (!this.tableSchema.primaryKey.some((key) => key === columnName))
       throw new Error('Column is not part of the primary key');
 
-    this._tableSchema.primaryKey = this._tableSchema.primaryKey.filter(
+    this.tableSchema.primaryKey = this.tableSchema.primaryKey.filter(
       (key) => key !== columnName
     );
   }
