@@ -10,6 +10,9 @@
   },
   "references": [
     {
+      "path": "../core"
+    },
+    {
       "path": "./tsconfig.editor.json"
     },
     {
@@ -17,9 +20,6 @@
     },
     {
       "path": "./tsconfig.spec.json"
-    },
-    {
-      "path": "../core"
     }
   ],
   "angularCompilerOptions": {

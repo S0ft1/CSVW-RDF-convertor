@@ -1,1 +1,17 @@
-<p>file-handle works!</p>
+<mat-form-field>
+  <mat-label>Path for {{ originalName() }}</mat-label>
+  <input
+    type="text"
+    matInput
+    #inp
+    [value]="path()"
+    (blur)="pathChange.emit(inp.value)"
+  />
+</mat-form-field>
+<button
+  matIconButton
+  attr.aria-label="Remove file {{ originalName() }}"
+  (click)="remove.emit()"
+>
+  <mat-icon>cancel</mat-icon>
+</button>

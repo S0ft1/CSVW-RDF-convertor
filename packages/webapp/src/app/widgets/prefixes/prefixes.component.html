@@ -1,0 +1,39 @@
+<section [formGroup]="form">
+  <header>Prefixes</header>
+  <p>
+    If no prefixes are specified, the convertor will use the
+    <a href="https://www.w3.org/2011/rdfa-context/rdfa-1.1" target="_blank"
+      >RDFa Core Initial Context</a
+    >
+  </p>
+  @for (key of keys.controls; track key) {
+  <div class="prefix-container">
+    <div class="textboxes">
+      <mat-form-field>
+        <mat-label>Prefix</mat-label>
+        <input matInput type="text" [formControl]="key" />
+        @if (key.hasError('pattern') && !key.hasError('required')) {
+        <mat-error>
+          Prefix must start with a letter and contain only letters and digits.
+        </mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field formArrayName="values">
+        <mat-label>URI</mat-label>
+        <input matInput type="text" [formControlName]="$index" />
+      </mat-form-field>
+    </div>
+    <button
+      type="button"
+      matIconButton
+      (click)="removePrefix($index)"
+      aria-label="Remove prefix"
+    >
+      <mat-icon>cancel</mat-icon>
+    </button>
+  </div>
+  }
+  <button type="button" class="add-prefix" matButton (click)="addPrefix()">
+    <mat-icon>add</mat-icon> Add prefix
+  </button>
+</section>

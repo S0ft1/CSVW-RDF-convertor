@@ -7,17 +7,32 @@ input {
   flex-wrap: wrap;
   align-items: center;
   padding: 20px;
+  justify-content: flex-end;
 
   &.dragging {
     border: 2px dashed #007bff;
+    padding: 18px;
     background-color: rgba(0, 123, 255, 0.1);
   }
 }
 
-button {
-  margin-left: auto;
+label {
+  margin-right: auto;
 }
 
-.handles.full {
+button {
+  margin-left: 10px;
+}
+
+.handles-editable {
   flex-basis: 100%;
+  padding-top: 10px;
+
+  .info {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+:host.ng-invalid.ng-touched label {
+  color: var(--mat-sys-error);
 }

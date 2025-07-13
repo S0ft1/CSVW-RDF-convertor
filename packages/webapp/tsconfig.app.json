@@ -2,17 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist/out-tsc",
-    "composite": false,
     "declaration": true,
     "types": [],
-    "lib": ["ES2024", "DOM"]
+    "lib": ["ES2024", "DOM", "ESNext.Iterator"]
   },
   "files": ["src/main.ts"],
   "include": ["src/**/*.d.ts", "src/**/*.ts"],
-  "exclude": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts"],
-  "references": [
-    {
-      "path": "../core/tsconfig.lib.json"
-    }
-  ]
+  "exclude": ["src/test-setup.ts", "src/**/*.test.ts", "src/**/*.spec.ts"]
 }

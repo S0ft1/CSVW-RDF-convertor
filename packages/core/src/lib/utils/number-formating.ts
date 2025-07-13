@@ -41,6 +41,7 @@ export function convertColumnToNumberFormattedColumn(
       }
     }
   }
+  return null;
 }
 
 function patternIsValid(pattern: string): boolean {
