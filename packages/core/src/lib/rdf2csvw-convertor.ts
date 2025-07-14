@@ -42,7 +42,7 @@ export class Rdf2CsvwConvertor {
   });
   private store: Quadstore;
   private engine: Engine;
-
+  private descriptorWrapper: DescriptorWrapper;
   public constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
   }
@@ -67,6 +67,7 @@ export class Rdf2CsvwConvertor {
         this.issueTracker
       );
     }
+    this.descriptorWrapper = wrapper;
     await this.openStore();
 
     // Now we have a descriptor either from user or from rdf data.
@@ -196,6 +197,9 @@ export class Rdf2CsvwConvertor {
     return streams;
   }
 
+  public getDescriptor(): DescriptorWrapper {
+    return this.descriptorWrapper ? this.descriptorWrapper : {} as DescriptorWrapper;
+  }
   /**
    * Creates SPARQL query.
    * @param table CSV Table
