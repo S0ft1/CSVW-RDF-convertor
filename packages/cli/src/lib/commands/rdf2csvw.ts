@@ -135,7 +135,7 @@ export const rdf2csvw: CommandModule<
         ? fs.createWriteStream(resolve(args.outDir, tableName))
         : process.stdout;
 
-      // TODO: Set delimiter and other properties according to descriptor
+      // TODO: Set delimiter and other . according to descriptor
       const stringifier = csv.stringify({
         header: true,
         columns: columns.map((column) => {
