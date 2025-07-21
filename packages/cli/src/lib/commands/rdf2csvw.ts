@@ -146,6 +146,7 @@ export const rdf2csvw: CommandModule<
       // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
       // but it would improve performance when saving into multiple files.
       // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
+      if (!args.outDir) console.log();
 
       for await (const bindings of stream) {
         const row = {} as { [key: string]: string };

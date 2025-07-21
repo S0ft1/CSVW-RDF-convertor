@@ -10,6 +10,7 @@ import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
 
+import { CsvLocationTracker } from './utils/code-location.js';
 import { coerceArray } from './utils/coerce.js';
 import { commonPrefixes } from './utils/prefix.js';
 import { IssueTracker } from './utils/issue-tracker.js';
@@ -22,7 +23,6 @@ import { JsonLdParser } from 'jsonld-streaming-parser';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { RdfXmlParser } from 'rdfxml-streaming-parser';
 import { parseTemplate } from 'url-template';
-import { CsvLocationTracker } from './utils/code-location.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
 export type CsvwColumn = { name: string; title: string; queryVariable: string };
@@ -121,7 +121,6 @@ export class Rdf2CsvwConvertor {
       // TODO: skip columns
       // TODO: row number in url templates
 
-      // TODO: escape special chars (even the dot or percentage sign) in SPARQL query.
       const columns: CsvwColumn[] =
         tableWithRequiredColumns.tableSchema.columns.map((col, i) => {
           const defaultLang =
@@ -170,9 +169,7 @@ export class Rdf2CsvwConvertor {
 
       const stream = transformStream(
         // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
-        await this.engine.queryBindings(query, {
-          baseIRI: '.',
-        }),
+        await this.engine.queryBindings(query, { baseIRI: '.' }),
         tableWithRequiredColumns,
         columns,
         this.issueTracker
@@ -206,22 +203,14 @@ export class Rdf2CsvwConvertor {
     useNamedGraphs: boolean
   ) {
     const lines: string[] = [];
+    let allOptional = true;
+    const topLevel: number[] = [];
     for (let index = 0; index < table.tableSchema.columns.length; index++) {
       const column = table.tableSchema.columns[index];
-      const referencedBy = table.tableSchema.columns.find((col) => {
-        if (
-          col.propertyUrl &&
-          this.expandIri(col.propertyUrl) ===
-            'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-        )
-          return (
-            col !== column && col.aboutUrl && col.aboutUrl === column.aboutUrl
-          );
-        else
-          return (
-            col !== column && col.valueUrl && col.valueUrl === column.aboutUrl
-          );
-      });
+      const referencedBy = table.tableSchema.columns.find(
+        (col) =>
+          col !== column && col.valueUrl && col.valueUrl === column.aboutUrl
+      );
 
       if (
         !referencedBy ||
@@ -232,14 +221,45 @@ export class Rdf2CsvwConvertor {
           table,
           columns,
           index,
-          column.propertyUrl &&
-            this.expandIri(column.propertyUrl) ===
-              'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-            ? `?${columns[index].queryVariable}`
-            : '?_blank'
+          '?_blank'
         );
-        lines.push(...patterns.split('\n'));
+        // Required columns are prepended, because OPTIONAL pattern should not be at the beginning.
+        // For more information, see comment bellow.
+        if (column.required) {
+          allOptional = false;
+          lines.unshift(...patterns.split('\n'));
+        } else {
+          lines.push(...patterns.split('\n'));
+        }
+        topLevel.push(index);
       }
+    }
+
+    if (allOptional) {
+      // We need to prevent matching of OPTIONAL against empty mapping, if all patterns are optional.
+      // So all top-level subjects are added to the result mapping first.
+      // https://stackoverflow.com/questions/25131365/sparql-optional-query/61395608#61395608
+      // https://github.com/blazegraph/database/wiki/SPARQL_Order_Matters
+      lines.unshift(
+        `  {
+    SELECT DISTINCT ?_blank WHERE {
+      ?_blank ${topLevel
+        .map((index) => {
+          const column = table.tableSchema.columns[index];
+          return column.propertyUrl
+            ? `<${this.expandIri(
+                parseTemplate(column.propertyUrl).expand({
+                  _column: index + 1,
+                  _sourceColumn: index + 1,
+                  _name: columns[index].name,
+                })
+              )}>`
+            : `<${table.url}#${columns[index].name}>`;
+        })
+        .join('|')} ?_object
+    }
+  }`
+      );
     }
 
     return `SELECT ${columns
@@ -284,25 +304,18 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       ? `<${this.expandIri(
           parseTemplate(column.propertyUrl).expand({
             _column: index + 1,
-            _source_column: index + 1,
+            _sourceColumn: index + 1,
             _name: columns[index].name,
           })
         )}>`
       : `<${table.url}#${columns[index].name}>`;
 
-    const referencingIndex = table.tableSchema.columns.findIndex(
-      (col) =>
-        col.propertyUrl &&
-        this.expandIri(col.propertyUrl) ===
-          'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
-        col.aboutUrl == column.valueUrl
-    );
     let object: string;
     if (
       column.valueUrl &&
       parseTemplate(column.valueUrl).expand({
         _column: index + 1,
-        _source_column: index + 1,
+        _sourceColumn: index + 1,
         _name: columns[index].name,
       }) === column.valueUrl
     ) {
@@ -313,9 +326,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
         object = `<${this.expandIri(column.valueUrl)}>`;
       else object = `"${column.valueUrl}"`;
     } else {
-      if (referencingIndex !== -1)
-        object = `?${columns[referencingIndex].queryVariable}`;
-      else object = `?${columns[index].queryVariable}`;
+      object = `?${columns[index].queryVariable}`;
     }
 
     const lines = [`  ${subject} ${predicate} ${object} .`];
@@ -325,38 +336,13 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       lines.push(`  FILTER (LANG(${object}) = '${column.lang}')`);
     }
 
-    if (
-      column.propertyUrl &&
-      this.expandIri(column.propertyUrl) ===
-        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-    ) {
-      if (column.aboutUrl) {
-        table.tableSchema.columns.forEach((col, i) => {
-          if (col !== column && col.aboutUrl === column.aboutUrl) {
-            const patterns = this.createTriplePatterns(
-              table,
-              columns,
-              i,
-              subject
-            );
-            lines.push(...patterns.split('\n'));
-          }
-        });
-      }
-    } else {
-      if (column.valueUrl) {
-        table.tableSchema.columns.forEach((col, i) => {
-          if (col !== column && col.aboutUrl === column.valueUrl) {
-            const patterns = this.createTriplePatterns(
-              table,
-              columns,
-              i,
-              object
-            );
-            lines.push(...patterns.split('\n'));
-          }
-        });
-      }
+    if (column.valueUrl) {
+      table.tableSchema.columns.forEach((col, i) => {
+        if (col !== column && col.aboutUrl === column.valueUrl) {
+          const patterns = this.createTriplePatterns(table, columns, i, object);
+          lines.push(...patterns.split('\n'));
+        }
+      });
     }
 
     if (!column.required) {
