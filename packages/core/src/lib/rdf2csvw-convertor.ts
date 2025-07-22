@@ -221,7 +221,7 @@ export class Rdf2CsvwConvertor {
           table,
           columns,
           index,
-          '?_blank'
+          '?_subject'
         );
         // Required columns are prepended, because OPTIONAL pattern should not be at the beginning.
         // For more information, see comment bellow.
@@ -242,21 +242,56 @@ export class Rdf2CsvwConvertor {
       // https://github.com/blazegraph/database/wiki/SPARQL_Order_Matters
       lines.unshift(
         `  {
-    SELECT DISTINCT ?_blank WHERE {
-      ?_blank ${topLevel
+    SELECT DISTINCT ?_subject WHERE {
+      ${topLevel
         .map((index) => {
           const column = table.tableSchema.columns[index];
-          return column.propertyUrl
-            ? `<${this.expandIri(
+
+          let pattern = column.propertyUrl
+            ? `?_subject <${this.expandIri(
                 parseTemplate(column.propertyUrl).expand({
                   _column: index + 1,
                   _sourceColumn: index + 1,
                   _name: columns[index].name,
                 })
-              )}>`
-            : `<${table.url}#${columns[index].name}>`;
+              )}> ?_object`
+            : `?_subject <${table.url}#${columns[index].name}> ?_object`;
+
+          if (column.aboutUrl)
+            pattern += `
+        FILTER REGEX(STR(?_subject), "${this.expandIri(
+          parseTemplate(
+            column.aboutUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*'
+            )
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          })
+        )}$")`;
+
+          if (column.valueUrl)
+            pattern += `
+        FILTER REGEX(STR(?_object), "${this.expandIri(
+          parseTemplate(
+            column.valueUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*'
+            )
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          })
+        )}$")`;
+
+          return `{
+        ${pattern}
+      }`;
         })
-        .join('|')} ?_object
+        .join(' UNION ')}
     }
   }`
       );
@@ -310,24 +345,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
         )}>`
       : `<${table.url}#${columns[index].name}>`;
 
-    let object: string;
-    if (
-      column.valueUrl &&
-      parseTemplate(column.valueUrl).expand({
-        _column: index + 1,
-        _sourceColumn: index + 1,
-        _name: columns[index].name,
-      }) === column.valueUrl
-    ) {
-      if (
-        column.datatype === 'anyURI' ||
-        predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
-      )
-        object = `<${this.expandIri(column.valueUrl)}>`;
-      else object = `"${column.valueUrl}"`;
-    } else {
-      object = `?${columns[index].queryVariable}`;
-    }
+    const object = `?${columns[index].queryVariable}`;
 
     const lines = [`  ${subject} ${predicate} ${object} .`];
     if (column.lang) {
@@ -336,7 +354,39 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       lines.push(`  FILTER (LANG(${object}) = '${column.lang}')`);
     }
 
+    if (column.aboutUrl && subject === '?_subject') {
+      lines.push(
+        `  FILTER REGEX(STR(${subject}), "${this.expandIri(
+          parseTemplate(
+            column.aboutUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*'
+            )
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          })
+        )}$")`
+      );
+    }
+
     if (column.valueUrl) {
+      lines.push(
+        `  FILTER REGEX(STR(${object}), "${this.expandIri(
+          parseTemplate(
+            column.valueUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*'
+            )
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          })
+        )}$")`
+      );
+
       table.tableSchema.columns.forEach((col, i) => {
         if (col !== column && col.aboutUrl === column.valueUrl) {
           const patterns = this.createTriplePatterns(table, columns, i, object);
