@@ -15,7 +15,7 @@ import {
 import * as csv from 'csv';
 import fs from 'node:fs';
 import { mkdir, readFile } from 'node:fs/promises';
-import { dirname, isAbsolute, resolve } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { CommandModule } from 'yargs';
@@ -78,8 +78,8 @@ export const rdf2csvw: CommandModule<
         args.logLevel === 'debug'
           ? LogLevel.Debug
           : args.logLevel === 'warn'
-          ? LogLevel.Warn
-          : LogLevel.Error,
+            ? LogLevel.Warn
+            : LogLevel.Error,
       resolveJsonldFn: async (path, base) => {
         const url =
           URL.parse(path, base)?.href ??
@@ -135,13 +135,22 @@ export const rdf2csvw: CommandModule<
         ? fs.createWriteStream(resolve(args.outDir, tableName))
         : process.stdout;
 
-      // TODO: Set delimiter and other properties according to descriptor
-      const stringifier = csv.stringify({
-        header: true,
-        columns: columns.map((column) => {
-          return { key: column.queryVariable, header: column.title };
-        }),
-      });
+
+      const descriptorObj = convertor.getDescriptor();
+      const normalizedDescriptor = descriptorObj?.descriptor ?? {};
+      const dialect = normalizedDescriptor.dialect ?? {}; 
+      const descriptorOptions = {
+        header: dialect.header ?? true,
+        columns: columns.map((column) => ({
+          key: column.queryVariable,
+          header: column.title,
+        })),
+        ...(dialect.delimiter !== undefined && { delimiter: dialect.delimiter }),
+        ...(dialect.doubleQuote !== undefined && { escape: dialect.doubleQuote ? '"' : '\\' }),
+        ...((dialect.quoteChar !== undefined && dialect.quoteChar !== null) && { quote: dialect.quoteChar }),
+       
+      };
+      const stringifier = csv.stringify(descriptorOptions);
       stringifier.pipe(outputStream);
       // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
       // but it would improve performance when saving into multiple files.
@@ -157,3 +166,4 @@ export const rdf2csvw: CommandModule<
     }
   },
 };
+

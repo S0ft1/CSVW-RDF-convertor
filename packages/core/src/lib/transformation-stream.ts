@@ -5,7 +5,6 @@ import {
   isDateFormatedColumn,
 } from './utils/date-formatting.js';
 import {
-  CsvwTableDescription,
   CsvwTableDescriptionWithRequiredColumns,
 } from './types/descriptor/table.js';
 import {
@@ -24,7 +23,6 @@ export function transformStream(
   stream: ResultStream<Bindings>,
   tableDescription: CsvwTableDescriptionWithRequiredColumns,
   columns: CsvwColumn[],
-  table: CsvwTableDescription,
   issueTracker: IssueTracker
 ): ResultStream<Bindings> {
   const transformedStream = new Readable({
@@ -98,10 +96,10 @@ export function transformStream(
           columns[i].queryVariable,
           factory.literal(formattedValue)
         );
-      } else if (table.aboutUrl) {
+      } else if (tableDescription.aboutUrl) {
         const formattedValue = trimUrl(
           value,
-          table.aboutUrl,
+          tableDescription.aboutUrl,
           columns[i].name,
           issueTracker
         );
