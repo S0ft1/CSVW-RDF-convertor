@@ -14,11 +14,16 @@
   @if (!service.converting() && !containsErrors()) {
     @let resultShown = showResult();
     <div class="buttons">
-      <button matButton="filled">Download Result</button>
+      <button matButton="filled" (click)="downloadResult()">
+        Download Result
+      </button>
       <button matButton="filled" (click)="showResult.set(!resultShown)">
         {{ resultShown ? 'Hide' : 'Show' }} Result
       </button>
-      <button matButton="tonal">Export Config File</button>
+      <button matButton="tonal" (click)="downloadConfig()">
+        Export Config File
+      </button>
+      <a matButton="tonal" routerLink="/c2r">Convert Again</a>
     </div>
     @if (resultShown) {
       <mat-card>

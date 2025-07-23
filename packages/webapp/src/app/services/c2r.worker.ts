@@ -6,9 +6,9 @@ import {
   defaultResolveStreamFn,
   defaultResolveJsonldFn,
   defaultResolveTextFn,
-  RDFSerialization,
   rdfStreamToArray,
   lookupPrefixes,
+  n3Formats,
 } from '@csvw-rdf-convertor/core';
 import { DataMessage, ErrorMessage, InitC2RParams } from './c2r.service';
 import { Quad, Stream } from '@rdfjs/types';
@@ -18,17 +18,6 @@ import N3 from 'n3';
 
 const { namedNode } = N3.DataFactory;
 
-const n3Formats: Record<RDFSerialization, string> = {
-  // TODO: Implement 'application/ld+json'
-  jsonld: 'text/turtle',
-  nquads: 'application/n-quads',
-  ntriples: 'application/n-triples',
-  // TODO: Implement 'application/rdf+xml'
-  rdfxml: 'text/turtle',
-  trig: 'application/trig',
-  turtle: 'text/turtle',
-};
-
 addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
   let stream: Stream<Quad>;
   const options = getOptions(data);
@@ -37,7 +26,7 @@ addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
       stream = csvUrlToRdf(data.files.mainFileUrl, options);
     } else {
       const file = await fetch(data.files.mainFileUrl).then((res) =>
-        res.json()
+        res.json(),
       );
       stream = csvwDescriptorToRdf(file, {
         ...options,
@@ -46,7 +35,8 @@ addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
     }
   } else {
     if (data.files.mainFile.name.endsWith('.csv')) {
-      stream = csvUrlToRdf(URL.createObjectURL(data.files.mainFile), options);
+      console.log(`Converting CSV file: ${data.files.mainFile.name}`, options);
+      stream = csvUrlToRdf(data.files.mainFile.name, options);
     } else {
       const file = await data.files.mainFile
         .text()
@@ -56,7 +46,13 @@ addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
   }
 
   stream.addListener('error', (error) => {
-    postMessage({ type: 'error', data: error } satisfies ErrorMessage);
+    postMessage({
+      type: 'error',
+      data:
+        error?.type === 'error'
+          ? error
+          : { type: 'error', message: error?.message },
+    } satisfies ErrorMessage);
   });
   stream.addListener('warning', (warning) => {
     postMessage({ type: 'warning', data: warning } satisfies ErrorMessage);
@@ -72,8 +68,13 @@ addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
 function getOptions(params: InitC2RParams): Csvw2RdfOptions {
   const getUrl = (path: string, base: string) =>
     URL.parse(path, base)?.href ?? URL.parse(path)?.href;
-  const baseIri = params.options.baseIri || params.files.mainFileUrl;
+  const baseIri =
+    params.options.baseIri || params.files.mainFileUrl || location.href;
   const otherFiles: Record<string, File> = {};
+  if (params.files.mainFile) {
+    const name = getUrl(params.files.mainFile.name, baseIri);
+    otherFiles[name] = params.files.mainFile;
+  }
   for (const file of params.files.otherFiles) {
     const name = getUrl(file.name, baseIri);
     otherFiles[name] = file;
@@ -84,7 +85,7 @@ function getOptions(params: InitC2RParams): Csvw2RdfOptions {
   };
   return {
     ...params.options,
-    baseIri: params.options.baseIri || params.files.mainFileUrl,
+    baseIri,
     resolveCsvStreamFn: async (url, base) => {
       url = getUrl(url, base);
       const file = getUploadedFile(url);
@@ -128,7 +129,7 @@ function outputN3(stream: Stream<Quad>, params: InitC2RParams): void {
 
 async function outputFormattedTurtle(
   stream: Stream<Quad>,
-  params: InitC2RParams
+  params: InitC2RParams,
 ) {
   const quads = await rdfStreamToArray(stream);
   const prefixes = params.format.ttl.lookupPrefixes
@@ -138,7 +139,7 @@ async function outputFormattedTurtle(
           k,
           namedNode(v),
         ]),
-        { factory: N3.DataFactory }
+        { factory: N3.DataFactory },
       );
 
   const writer = new TurtleSerializer({

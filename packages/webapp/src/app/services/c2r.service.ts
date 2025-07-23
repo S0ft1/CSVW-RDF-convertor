@@ -45,6 +45,7 @@ export class C2RService {
   });
   /** JSON config */
   config: Record<string, any> = null;
+  params: InitC2RParams = null;
 
   public initConversion(params: InitC2RParams) {
     if (this.converting()) {
@@ -54,6 +55,7 @@ export class C2RService {
     this.reset();
     this.converting.set(true);
     this.config = this.buildConfigFile(params);
+    this.params = params;
 
     const worker = new Worker(new URL('./c2r.worker', import.meta.url));
     worker.onmessage = ({ data }: { data: WorkerMessage }) => {
@@ -87,6 +89,7 @@ export class C2RService {
     this.result.set(null);
     this.issues.set([]);
     this.config = null;
+    this.params = null;
   }
 
   private buildConfigFile(params: InitC2RParams): Record<string, any> {
