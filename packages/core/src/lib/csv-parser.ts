@@ -12,9 +12,9 @@ export class CSVParser extends TransformStream<string, string[]> {
     const trim = dialect.trim ?? (dialect.skipInitialSpace ? 'start' : false);
     return parse({
       cast: false,
-      comment: dialect.commentPrefix ?? '#',
+      comment: dialect.commentPrefix,
       delimiter: dialect.delimiter ?? ',',
-      escape: dialect.doubleQuote ?? true ? '"' : '\\',
+      escape: (dialect.doubleQuote ?? true) ? '"' : '\\',
       encoding: (dialect.encoding as BufferEncoding) ?? 'utf-8',
       columns: undefined,
       from_line: (dialect.skipRows ?? 0) + 1,
@@ -30,7 +30,7 @@ export class CSVParser extends TransformStream<string, string[]> {
   }
 
   private static createTransformer(
-    dialect: Expanded<CsvwDialectDescription>
+    dialect: Expanded<CsvwDialectDescription>,
   ): Transformer<string, string[]> {
     const parser = this.initCSVParser(dialect);
     return {
