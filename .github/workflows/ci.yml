@@ -72,7 +72,7 @@ jobs:
       - name: Typedoc
         run: npx typedoc
       - name: Build webapp
-        run: npx nx build webapp --base-href https://s0ft1.github.io/CSVW-RDF-convertor/demo && cp -r packages/webapp/dist/webapp/* docs/demo
+        run: npx nx build webapp --base-href https://s0ft1.github.io/CSVW-RDF-convertor/demo && cp -r packages/webapp/dist/* docs/demo
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
