@@ -158,6 +158,8 @@ export class Rdf2CsvwConvertor {
           }
 
           // note that queryVariable does not contain dot that is special char in SPARQL.
+          // queryVariable of 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' will be set later,
+          // because we want to select its subject, not object.
           return { name: name, title: title, queryVariable: `_col${i + 1}` };
         });
       const query = this.createQuery(
@@ -212,6 +214,7 @@ export class Rdf2CsvwConvertor {
           col !== column && col.valueUrl && col.valueUrl === column.aboutUrl
       );
 
+      // TODO: use tableSchema.foreignKeys
       if (
         !referencedBy ||
         (table.tableSchema.primaryKey &&
@@ -345,7 +348,27 @@ ${lines.map((line) => `    ${line}`).join('\n')}
         )}>`
       : `<${table.url}#${columns[index].name}>`;
 
-    const object = `?${columns[index].queryVariable}`;
+    // we want to select subject of 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' instead of its object
+    if (predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>')
+      columns[index].queryVariable = subject.substring(1);
+
+    let object = `?${columns[index].queryVariable}`;
+    if (
+      column.valueUrl &&
+      column.valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
+    ) {
+      object = parseTemplate(column.valueUrl).expand({
+        _column: index + 1,
+        _sourceColumn: index + 1,
+        _name: columns[index].name,
+      });
+      if (
+        column.datatype === 'anyURI' ||
+        predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
+      )
+        object = `<${this.expandIri(object)}>`;
+      else object = `"${object}"`;
+    }
 
     const lines = [`  ${subject} ${predicate} ${object} .`];
     if (column.lang) {
@@ -371,7 +394,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       );
     }
 
-    if (column.valueUrl) {
+    if (object.startsWith('?') && column.valueUrl) {
       lines.push(
         `  FILTER REGEX(STR(${object}), "${this.expandIri(
           parseTemplate(
