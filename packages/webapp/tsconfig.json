@@ -6,7 +6,10 @@
     "composite": false,
     "declaration": true,
     "emitDeclarationOnly": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "module": "esnext",
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node"
   },
   "references": [
     {

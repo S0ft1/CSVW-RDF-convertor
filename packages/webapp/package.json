@@ -18,7 +18,14 @@
     "@angular/platform-browser-dynamic": "^20.0.3",
     "@angular/router": "^20.0.3",
     "@csvw-rdf-convertor/core": "0.5.0",
+    "@rdfjs/prefix-map": "^0.1.2",
+    "@rdfjs/serializer-turtle": "^1.1.5",
     "@swc/helpers": "^0.5.15",
-    "fuzzysort": "^3.1.0"
+    "fuzzysort": "^3.1.0",
+    "n3": "^1.26.0"
+  },
+  "devDependencies": {
+    "@rdfjs/types": "^2.0.1",
+    "@types/rdfjs__serializer-turtle": "^1.1.0"
   }
 }

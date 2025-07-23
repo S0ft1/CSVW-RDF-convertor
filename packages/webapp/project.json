@@ -23,7 +23,8 @@
           }
         ],
         "styles": ["packages/webapp/src/styles.scss"],
-        "scripts": []
+        "scripts": [],
+        "webWorkerTsConfig": "packages/webapp/tsconfig.worker.json"
       },
       "configurations": {
         "production": {
@@ -80,7 +81,8 @@
       "executor": "@nx/vite:test",
       "outputs": ["{options.reportsDirectory}"],
       "options": {
-        "reportsDirectory": "{workspaceRoot}/coverage/webapp"
+        "reportsDirectory": "{workspaceRoot}/coverage/webapp",
+        "webWorkerTsConfig": "packages/webapp/tsconfig.worker.json"
       }
     },
     "serve-static": {

@@ -1,0 +1,30 @@
+header {
+  font-size: 1.6em;
+  text-align: center;
+  margin: 20px 0;
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+  width: 100%;
+}
+
+pre {
+  overflow-x: auto;
+  width: 100%;
+  font-family: monospace;
+}
+
+mat-card-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

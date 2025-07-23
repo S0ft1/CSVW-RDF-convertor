@@ -17,4 +17,12 @@ export const appRoutes: Route[] = [
       ),
     title: 'CSVW → RDF',
   },
+  {
+    path: 'c2r/results',
+    loadComponent: () =>
+      import('./c2r-results-page/c2r-results-page.component').then(
+        (m) => m.C2rResultsPageComponent
+      ),
+    title: 'CSVW → RDF',
+  },
 ];

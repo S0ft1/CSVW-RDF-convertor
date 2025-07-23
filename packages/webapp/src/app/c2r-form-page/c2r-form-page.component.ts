@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatStepperModule } from '@angular/material/stepper';
 import {
@@ -15,8 +15,10 @@ import { FilesFormComponent } from './files-form/files-form.component';
 import { FormatFormComponent } from './format-form/format-form.component';
 import { OptionsFormComponent } from './options-form/options-form.component';
 import { RDFSerialization } from '@csvw-rdf-convertor/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { startWith, filter, switchMap } from 'rxjs/operators';
+import { C2RService, InitC2RParams } from '../services/c2r.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-c2r-form-page',
@@ -40,27 +42,32 @@ export class C2rFormPageComponent {
     files: new FormGroup({
       mainFile: new FormControl<File>(null, Validators.required),
       mainFileUrl: new FormControl<string>('', Validators.required),
-      otherFiles: new FormControl<File[]>([]),
+      otherFiles: new FormControl<File[]>([], { nonNullable: true }),
       configFile: new FormControl<File>(null),
     }),
     options: new FormGroup({
       baseIri: new FormControl<string>(''),
       pathOverrides: new FormArray<FormControl<[string | RegExp, string]>>([]),
-      templateIris: new FormControl<boolean>(false),
-      minimal: new FormControl<boolean>(true),
+      templateIris: new FormControl<boolean>(false, { nonNullable: true }),
+      minimal: new FormControl<boolean>(true, { nonNullable: true }),
     }),
     format: new FormGroup({
-      format: new FormControl<RDFSerialization>('turtle', Validators.required),
+      format: new FormControl<RDFSerialization>('turtle', {
+        nonNullable: true,
+        validators: Validators.required,
+      }),
       ttl: new FormGroup({
         prefixes: new FormControl<Record<string, string>>(
           {},
-          Validators.required
+          { nonNullable: true, validators: Validators.required }
         ),
-        lookupPrefixes: new FormControl<boolean>(false),
+        lookupPrefixes: new FormControl<boolean>(false, { nonNullable: true }),
         baseIri: new FormControl<string>(''),
       }),
     }),
   });
+  service = inject(C2RService);
+  router = inject(Router);
 
   filesFG = this.form.get('files') as FormGroup;
   optionsFG = this.form.get('options') as FormGroup;
@@ -76,5 +83,21 @@ export class C2rFormPageComponent {
 
   constructor() {
     this.filesFG.get('mainFileUrl').disable();
+    this.filesFG
+      .get('configFile')
+      .valueChanges.pipe(
+        filter((x) => !!x),
+        takeUntilDestroyed()
+      )
+      .subscribe(async (file: File) => {
+        const content = await file.text().then((x) => JSON.parse(x));
+        this.form.patchValue(this.service.configToParams(content));
+      });
+  }
+
+  submit() {
+    this.service.initConversion(this.form.value as InitC2RParams);
+    this.form.reset();
+    this.router.navigate(['c2r/results']);
   }
 }

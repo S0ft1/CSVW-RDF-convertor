@@ -22,7 +22,13 @@
     <app-format-form [form]="formatFG"></app-format-form>
     <section class="buttons">
       <button matButton matStepperPrevious>Previous</button>
-      <button matButton="filled" [disabled]="!formatFG.valid">Convert!</button>
+      <button
+        matButton="filled"
+        [disabled]="!formatFG.valid"
+        (click)="submit()"
+      >
+        Convert!
+      </button>
     </section>
   </mat-step>
 </mat-stepper>
