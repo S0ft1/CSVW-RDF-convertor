@@ -87,7 +87,8 @@ export class C2rResultsPageComponent implements OnDestroy {
     const result = this.service.result();
     const params = this.service.params;
     const filename =
-      this.removeExt(params.files.mainFile?.name) ||
+      (params.files.mainFile?.name &&
+        this.removeExt(params.files.mainFile.name)) ||
       this.urlToFilename(
         params.files.mainFileUrl,
         params.options.baseIri || 'https://example.com',
