@@ -120,6 +120,7 @@ export class Rdf2CsvwConvertor {
       // TODO: rdf lists
       // TODO: skip columns
       // TODO: row number in url templates
+      // TODO: detect cycles
 
       const columns: CsvwColumn[] =
         tableWithRequiredColumns.tableSchema.columns.map((col, i) => {
@@ -227,7 +228,7 @@ export class Rdf2CsvwConvertor {
           '?_subject'
         );
         // Required columns are prepended, because OPTIONAL pattern should not be at the beginning.
-        // For more information, see comment bellow.
+        // For more information, see createSelectOfOptionalSubjects function bellow.
         if (column.required) {
           allOptional = false;
           lines.unshift(...patterns.split('\n'));
@@ -239,64 +240,8 @@ export class Rdf2CsvwConvertor {
     }
 
     if (allOptional) {
-      // We need to prevent matching of OPTIONAL against empty mapping, if all patterns are optional.
-      // So all top-level subjects are added to the result mapping first.
-      // https://stackoverflow.com/questions/25131365/sparql-optional-query/61395608#61395608
-      // https://github.com/blazegraph/database/wiki/SPARQL_Order_Matters
       lines.unshift(
-        `  {
-    SELECT DISTINCT ?_subject WHERE {
-      ${topLevel
-        .map((index) => {
-          const column = table.tableSchema.columns[index];
-
-          let pattern = column.propertyUrl
-            ? `?_subject <${this.expandIri(
-                parseTemplate(column.propertyUrl).expand({
-                  _column: index + 1,
-                  _sourceColumn: index + 1,
-                  _name: columns[index].name,
-                })
-              )}> ?_object`
-            : `?_subject <${table.url}#${columns[index].name}> ?_object`;
-
-          if (column.aboutUrl)
-            pattern += `
-        FILTER REGEX(STR(?_subject), "${this.expandIri(
-          parseTemplate(
-            column.aboutUrl.replaceAll(
-              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-              '.*'
-            )
-          ).expand({
-            _column: index + 1,
-            _sourceColumn: index + 1,
-            _name: columns[index].name,
-          })
-        )}$")`;
-
-          if (column.valueUrl)
-            pattern += `
-        FILTER REGEX(STR(?_object), "${this.expandIri(
-          parseTemplate(
-            column.valueUrl.replaceAll(
-              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-              '.*'
-            )
-          ).expand({
-            _column: index + 1,
-            _sourceColumn: index + 1,
-            _name: columns[index].name,
-          })
-        )}$")`;
-
-          return `{
-        ${pattern}
-      }`;
-        })
-        .join(' UNION ')}
-    }
-  }`
+        this.createSelectOfOptionalSubjects(table, columns, topLevel)
       );
     }
 
@@ -319,6 +264,107 @@ ${lines.map((line) => `    ${line}`).join('\n')}
   }`
 }
 }`;
+  }
+
+  /**
+   * Creates SPARQL nested SELECT query that is used to prevent matching of OPTIONAL against empty mapping
+   * if all patterns are optional by adding all top-level subjects to the result mapping first.
+   * {@link https://stackoverflow.com/questions/25131365/sparql-optional-query/61395608#61395608}
+   * {@link https://github.com/blazegraph/database/wiki/SPARQL_Order_Matters}
+   * @param table CSV Table
+   * @param columns Columns including virtual ones
+   * @param topLevel Indices of top level columns (i.e. those that does are not referenced by other columns)
+   * @returns SPARQL query for selecting subjects with some from the optional tripple
+   */
+  private createSelectOfOptionalSubjects(
+    table: CsvwTableDescriptionWithRequiredColumns,
+    columns: CsvwColumn[],
+    topLevel: number[]
+  ) {
+    return `  {
+    SELECT DISTINCT ?_subject WHERE {
+      ${topLevel
+        .map((index) => {
+          const column = table.tableSchema.columns[index];
+
+          const subject = '?_subject';
+          const predicate = column.propertyUrl
+            ? `<${this.expandIri(
+                parseTemplate(column.propertyUrl).expand({
+                  _column: index + 1,
+                  _sourceColumn: index + 1,
+                  _name: columns[index].name,
+                })
+              )}>`
+            : `<${table.url}#${columns[index].name}>`;
+          let object = '?_object';
+
+          if (
+            column.valueUrl &&
+            column.valueUrl.search(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/
+            ) === -1
+          ) {
+            object = parseTemplate(column.valueUrl).expand({
+              _column: index + 1,
+              _sourceColumn: index + 1,
+              _name: columns[index].name,
+            });
+            if (
+              column.datatype === 'anyURI' ||
+              predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
+            )
+              object = `<${this.expandIri(object)}>`;
+            else object = `"${object}"`;
+          }
+
+          const lines = [`          ${subject} ${predicate} ${object} .`];
+
+          if (column.lang) {
+            // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
+            // TODO: Should we lower our expectations if the matching language is not found?
+            lines.push(`          FILTER (LANG(${object}) = '${column.lang}')`);
+          }
+
+          if (column.aboutUrl)
+            lines.push(
+              `          FILTER REGEX(STR(?_subject), "${this.expandIri(
+                parseTemplate(
+                  column.aboutUrl.replaceAll(
+                    /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+                    '.*'
+                  )
+                ).expand({
+                  _column: index + 1,
+                  _sourceColumn: index + 1,
+                  _name: columns[index].name,
+                })
+              )}$")`
+            );
+
+          if (object.startsWith('?') && column.valueUrl)
+            lines.push(
+              `          FILTER REGEX(STR(?_object), "${this.expandIri(
+                parseTemplate(
+                  column.valueUrl.replaceAll(
+                    /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+                    '.*'
+                  )
+                ).expand({
+                  _column: index + 1,
+                  _sourceColumn: index + 1,
+                  _name: columns[index].name,
+                })
+              )}$")`
+            );
+
+          return `{
+${lines.join('\n')}
+      }`;
+        })
+        .join(' UNION ')}
+    }
+  }`;
   }
 
   /**
