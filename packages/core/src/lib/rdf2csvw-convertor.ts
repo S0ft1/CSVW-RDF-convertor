@@ -4,6 +4,8 @@ import {
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
 } from './req-resolve.js';
+import { ColumnSchema } from './column-schema.js';
+import { TableGroupSchema } from './table-group-schema.js';
 import { transformStream } from './transformation-stream.js';
 
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
@@ -16,7 +18,7 @@ import { commonPrefixes } from './utils/prefix.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 
 import { MemoryLevel } from 'memory-level';
-import { DataFactory, StreamParser } from 'n3';
+import { DataFactory, Quad, StreamParser } from 'n3';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
 import { JsonLdParser } from 'jsonld-streaming-parser';
@@ -29,6 +31,7 @@ export type CsvwColumn = { name: string; title: string; queryVariable: string };
 export type CsvwTablesStream = {
   [tableName: string]: [
     columns: CsvwColumn[],
+    // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
     rowsStream: ResultStream<Bindings>
   ];
 };
@@ -56,20 +59,6 @@ export class Rdf2CsvwConvertor {
     url: string,
     descriptor?: string | AnyCsvwDescriptor
   ): Promise<CsvwTablesStream> {
-    // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
-    let wrapper: DescriptorWrapper;
-    if (descriptor === undefined) {
-      wrapper = this.createDescriptor(url);
-    } else {
-      wrapper = await normalizeDescriptor(
-        descriptor,
-        this.options,
-        this.issueTracker
-      );
-    }
-    await this.openStore();
-
-    // Now we have a descriptor either from user or from rdf data.
     // TODO: What if we do not have enough memory to hold all the quads in the store?
     const readableStream = await this.options.resolveRdfStreamFn(url, '');
     let parser;
@@ -88,8 +77,22 @@ export class Rdf2CsvwConvertor {
     }
     parser.end();
 
-    await this.store.putStream(parser);
+    await this.openStore();
 
+    let wrapper: DescriptorWrapper;
+    if (descriptor === undefined) {
+      // TODO: return created descriptor to the user, so it can be saved, modified and used later
+      wrapper = await this.createDescriptor(parser);
+    } else {
+      wrapper = await normalizeDescriptor(
+        descriptor,
+        this.options,
+        this.issueTracker
+      );
+      await this.store.putStream(parser);
+    }
+
+    // Now we have a descriptor either from user or from rdf data.
     const tables = wrapper.isTableGroup
       ? wrapper.getTables()
       : ([wrapper.descriptor] as CsvwTableDescription[]);
@@ -492,10 +495,156 @@ ${lines.map((line) => `  ${line}`).join('\n')}
 
   /**
    * Creates a new descriptor from the rdf data, used only if no descriptor is provided.
-   * @param rdfData The rdf data to create the descriptor from
+   * @param parser
+   * @returns
    */
-  private createDescriptor(rdfData: string): DescriptorWrapper {
-    return {} as DescriptorWrapper;
+  private async createDescriptor(
+    parser: JsonLdParser | RdfXmlParser | StreamParser<Quad>
+  ): Promise<DescriptorWrapper> {
+    const tableGroup = new TableGroupSchema();
+
+    let quad: Quad;
+    for await (quad of parser) {
+      this.store.put(quad);
+
+      const subject = quad.subject;
+      const predicate = quad.predicate;
+      const object = quad.object;
+
+      // TODO: should we use information from csvw predicates and types to improve quality?
+      if (
+        predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+        !object.value.startsWith('http://www.w3.org/ns/csvw#')
+      ) {
+        // TODO: make sure that tableUrls for different types are different
+        const tableUrl = object.value.split(/\/|#/).pop() + '.csv';
+        let table = tableGroup.getTable(tableUrl);
+
+        if (!table) {
+          table = tableGroup.addTable(tableUrl);
+          // TODO: names beginning with '_' are reserved by specification and MUST NOT appear in metadata,
+          // so I should not use it to ensure unique name of this column
+          const column = table.addColumn('_id');
+          // TODO: should the column be required?
+          column.required = true;
+          column.aboutUrl =
+            subject.termType !== 'BlankNode' ? subject.value : undefined;
+          column.propertyUrl = predicate.value;
+          column.valueUrl =
+            object.termType !== 'BlankNode' ? object.value : undefined;
+        } else {
+          const column = table.getColumn('_id') as ColumnSchema;
+          column.aboutUrl =
+            subject.termType !== 'BlankNode'
+              ? this.getCommonUrlTemplate(column.aboutUrl, subject.value)
+              : undefined;
+        }
+      } else if (!predicate.value.startsWith('http://www.w3.org/ns/csvw#')) {
+        let hasType = false;
+        const stream = await this.engine.queryBindings(
+          `SELECT ?_type WHERE { <${subject.value}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?_type }`,
+          { baseIRI: '.' }
+        );
+
+        for await (const bindings of stream) {
+          hasType = true;
+          const type = bindings.get('_type').value;
+
+          if (!type.startsWith('http://www.w3.org/ns/csvw#')) {
+            const tableUrl = type.split(/\/|#/).pop() + '.csv';
+            let table = tableGroup.getTable(tableUrl);
+            if (!table) table = tableGroup.addTable(tableUrl);
+
+            // TODO: make sure that columnNames for different predicates are different
+            const columnName = predicate.value.split(/\/|#/).pop() as string;
+            let column = table.getColumn(columnName);
+            if (!column) {
+              column = table.addColumn(columnName);
+              column.aboutUrl =
+                subject.termType !== 'BlankNode'
+                  ? this.getCommonUrlTemplate(
+                      (table.getColumn('_id') as ColumnSchema).aboutUrl,
+                      subject.value
+                    )
+                  : undefined;
+              column.propertyUrl = predicate.value;
+              column.valueUrl =
+                object.termType !== 'BlankNode' ? object.value : undefined;
+            } else {
+              column.aboutUrl =
+                subject.termType !== 'BlankNode'
+                  ? this.getCommonUrlTemplate(column.aboutUrl, subject.value)
+                  : undefined;
+              column.valueUrl =
+                object.termType !== 'BlankNode'
+                  ? this.getCommonUrlTemplate(column.valueUrl, object.value)
+                  : undefined;
+            }
+          }
+        }
+
+        // TODO: What if some other tripple is reached before type?
+        // It should be enough to use a few moving buffers:
+        // 1) reading, parsing and putting rdf into quadstore
+        // 2) processing tripples to create metadatada descriptor
+        // 3) convert to csvw using SPARQL
+        if (!hasType) {
+          // TODO: make sure that this tableUrl is unique
+          const tableUrl = 'default.csv';
+          let table = tableGroup.getTable(tableUrl);
+          if (!table) table = tableGroup.addTable(tableUrl);
+
+          const columnName = predicate.value.split(/#|\//).pop() as string;
+          let column = table.getColumn(columnName);
+          if (!column) {
+            column = table.addColumn(columnName);
+            column.aboutUrl =
+              subject.termType !== 'BlankNode' ? subject.value : undefined;
+            column.propertyUrl = predicate.value;
+            column.valueUrl =
+              object.termType !== 'BlankNode' ? object.value : undefined;
+          } else {
+            column.aboutUrl =
+              subject.termType !== 'BlankNode'
+                ? this.getCommonUrlTemplate(column.aboutUrl, subject.value)
+                : undefined;
+            column.valueUrl =
+              object.termType !== 'BlankNode'
+                ? this.getCommonUrlTemplate(column.valueUrl, object.value)
+                : undefined;
+          }
+        }
+      }
+    }
+
+    // TODO: schema normalization
+
+    if (this.options.logLevel >= LogLevel.Debug) {
+      for (const table of tableGroup.tables)
+        console.debug(JSON.stringify(table));
+    }
+
+    return new DescriptorWrapper(tableGroup, new Map());
+  }
+
+  private getCommonUrlTemplate(
+    first: string | undefined,
+    second: string | undefined
+  ): string | undefined {
+    // _row, _sourceRow and columns references are the only URI template properties that does not depend on the column
+    // TODO: is this implementation sufficient, or should I add common column references to url template (_sourceRow is not needed here)?
+
+    if (!first || !second) return undefined;
+
+    const a = [...first.matchAll(/\d+/g)];
+    if (a.length === 0 || a.some((val) => val !== a[0])) return undefined;
+    const template = first.replaceAll(/\d+/g, '{_row}');
+
+    const b = [...second.matchAll(/\d+/g)];
+    if (b.length === 0 || b.some((val) => val !== b[0])) return undefined;
+    if (second.replaceAll(/\d+/g, '{_row}') !== template) return undefined;
+
+    return template;
   }
 
   /**
