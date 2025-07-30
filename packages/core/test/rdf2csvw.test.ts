@@ -46,7 +46,7 @@ for (let i = 0; i < testFolders.length; i++) {
     'utf-8',
   );
   const inputDataPath = join(pathToTests, testFolders[i], 'input.ttl');
-   const expectedOutput: { [key: string]: string } = {};
+   const expectedOutput: Record<string,string> = {};
   const files = readdirSync(join(pathToTests, testFolders[i]));
   for (const file of files) {
     if (file.endsWith('.csv')) {
