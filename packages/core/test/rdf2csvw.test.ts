@@ -14,6 +14,9 @@ const testDir = resolve(
   fileURLToPath(import.meta.url),
   '../../../../csvw/tests/',
 );
+type testRow = Record<string, string>;
+type CsvwTestTables = Record<string,testRow[]>
+
 let tests: SimpleTest[] = [];
 
 const options: Rdf2CsvOptions = {
@@ -34,7 +37,6 @@ for (let i = 0; i < testFolders.length; i++) {
   const inputDescriptor = readFileSync(join(pathToTests, testFolders[i], 'descriptor.json'), "utf-8")
   const inputDataPath = join(pathToTests, testFolders[i], 'input.ttl');
   const expectedOutput = readFileSync(join(pathToTests, testFolders[i], 'result.csv'), "utf-8");
-  console.log(tests[i]);
   tests[i] = {
     id: tests[i].id,
     name: tests[i].name,
@@ -51,8 +53,8 @@ describe('rdf2csvw', () => {
     it(test.name, async () => {
       let expectedTable = fillExpectedTable(test.expectedOutput);
       const result = await convertor.convert(test.inputDataPath, test.inputDescriptor);
-      let resultTable = fillResultTable(result);
-      expect(expectedTable).toEqual(resultTable);
+      let resultTable = await fillResultTable(result);
+      expect(resultTable).toEqual(expectedTable);
     });
   });
 });
@@ -81,7 +83,6 @@ function loadStringStream(
   let url = URL.parse(path, base)?.href ?? resolve(base, path);
   console.log(url)
   if (url.startsWith(TEST_HTTP_BASE)) {
-    console.log("in http")
     url = url.replace(TEST_HTTP_BASE, testDir + '/');
   }
   url = url.replace(/[?#].*/g, '');
@@ -101,19 +102,18 @@ function fillExpectedTable(expectedOutput: string): string[][] {
   return table;
 }
 
-async function fillResultTable(result: CsvwTablesStream): Promise<string[][]> {
-  let rowCounter = 0;
-  const table: string[][] = [];
+async function fillResultTable(result: CsvwTablesStream): Promise<CsvwTestTables> {
+  const tables: CsvwTestTables ={};
   for (const [tableName, [columns, stream]] of Object.entries(result)) {
+    tables[tableName] = [];
     for await (const bindings of stream) {
-      console.log("in" + bindings);
+      tables[tableName].push({});
       for (const [key, value] of bindings) {
-        table[rowCounter].push(value.value);
+        console.log(key, value);
+        tables[tableName][tables[tableName].length - 1][key.value] = value.value;
       }
-      rowCounter++;
-    }
-
-  };
-  console.log(table);
-  return table;
+    };
+  }
+  console.log(tables);
+  return tables;
 }
