@@ -43,9 +43,9 @@ export interface EntryOption {
 export interface SimpleTest {
   id: number;
   name: string;
-  inputDataPath:string;
+  inputDataPath: string;
   inputDescriptor?: string;
-  expectedOutput: string;
+  expectedOutput: { [columnName: string]: string };
   result?: string;
   comment?: string;
   expectsWarning?: boolean;
