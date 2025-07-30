@@ -1,5 +1,6 @@
 import { SimpleTest } from './types/manifest.js';
 import {
+  CsvwColumn,
   CsvwTablesStream,
   defaultResolveJsonldFn,
   Rdf2CsvOptions,
@@ -118,7 +119,7 @@ function fillExpectedTable(expectedOutput: {
   for (const tableName of Object.keys(expectedOutput)) {
     const table = [] as SimpleTestRow[];
 
-    const lines = expectedOutput[tableName].split('\n');
+    const lines = expectedOutput[tableName].split(/\r?\n/);
     const header = lines[0].split(',');
 
     for (let i = 1; i < lines.length; ++i) {
@@ -148,7 +149,12 @@ async function fillResultTable(
       tables[tableName].push({});
       for (const [key, value] of bindings) {
         console.log(key, value);
-        tables[tableName][tables[tableName].length - 1][key.value] =
+        const columnTitle = (
+          columns.find(
+            (column) => column.queryVariable === key.value,
+          ) as CsvwColumn
+        ).title;
+        tables[tableName][tables[tableName].length - 1][columnTitle] =
           value.value;
       }
     }
