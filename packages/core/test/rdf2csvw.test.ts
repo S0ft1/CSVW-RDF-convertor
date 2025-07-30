@@ -104,12 +104,10 @@ function loadStringStream(
   base: string,
 ): Promise<ReadableStream<string>> {
   let url = URL.parse(path, base)?.href ?? resolve(base, path);
-  console.log(url);
   if (url.startsWith(TEST_HTTP_BASE)) {
     url = url.replace(TEST_HTTP_BASE, testDir + '/');
   }
   url = url.replace(/[?#].*/g, '');
-  console.log(url);
   return Promise.resolve(
     Readable.toWeb(createReadStream(url, 'utf-8')) as ReadableStream<string>,
   );
@@ -152,7 +150,6 @@ async function fillResultTable(
     for await (const bindings of stream) {
       tables[tableName].push({});
       for (const [key, value] of bindings) {
-        console.log(key, value);
         const columnTitle = (
           columns.find(
             (column) => column.queryVariable === key.value,
@@ -163,6 +160,5 @@ async function fillResultTable(
       }
     }
   }
-  console.log(tables);
   return tables;
 }
