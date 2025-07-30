@@ -45,7 +45,7 @@ export interface SimpleTest {
   name: string;
   inputDataPath:string;
   inputDescriptor?: string;
-  expectedOutput?: string;
+  expectedOutput: string;
   result?: string;
   comment?: string;
   expectsWarning?: boolean;
