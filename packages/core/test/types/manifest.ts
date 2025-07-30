@@ -45,7 +45,7 @@ export interface SimpleTest {
   name: string;
   inputDataPath: string;
   inputDescriptor?: string;
-  expectedOutput: { [columnName: string]: string };
+  expectedOutput: Record<string, string>;
   result?: string;
   comment?: string;
   expectsWarning?: boolean;
