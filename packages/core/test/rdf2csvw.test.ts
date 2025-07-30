@@ -15,7 +15,7 @@ const testDir = resolve(
   '../../../../csvw/tests/',
 );
 type testRow = Record<string, string>;
-type CsvwTestTables = Record<string,testRow[]>
+type CsvwTestTables = Record<string, testRow[]>
 
 let tests: SimpleTest[] = [];
 
@@ -92,18 +92,34 @@ function loadStringStream(
   );
 }
 
-function fillExpectedTable(expectedOutput: string): string[][] {
-  const table: string[][] = [];
-  expectedOutput.split('\n').forEach(row => {
-    if (row.trim()) {
-      table.push(row.split(',').map(cell => cell.trim()));
+function fillExpectedTable(expectedOutput: { [tableName: string]: string }): CsvwTestTables {
+  const tables = {} as CsvwTestTables;
+
+  for (const tableName of Object.keys(expectedOutput)) {
+    const table = [] as { [columnName: string]: string }[];
+
+    const lines = expectedOutput[tableName].split('\n');
+    const header = lines[0].split(',');
+
+    for (let i = 1; i < lines.length; ++i) {
+      const row = {} as { [columnName: string]: string };
+
+      if (lines[i].trim()) {
+        const values = lines[i].split(',');
+        for (let j = 0; j < header.length && j < values.length; ++j)
+          row[header[j]] = values[j];
+        table.push(row);
+      }
     }
-  });
-  return table;
+
+    tables[tableName] = table;
+  }
+
+  return tables;
 }
 
 async function fillResultTable(result: CsvwTablesStream): Promise<CsvwTestTables> {
-  const tables: CsvwTestTables ={};
+  const tables: CsvwTestTables = {};
   for (const [tableName, [columns, stream]] of Object.entries(result)) {
     tables[tableName] = [];
     for await (const bindings of stream) {
