@@ -1,36 +1,37 @@
-@prefix geo: <http://www.geonames.org/ontology#> .
-@prefix schema: <http://schema.org/> .
+@prefix : <tree-ops.csv#> .
+@prefix csvw: <http://www.w3.org/ns/csvw#> .
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<http://example.org/countries.csv#AD> schema:latitude "42.546245"^^xsd:double;
-   schema:longitude "1.601554"^^xsd:double;
-   schema:name "Andorra";
-   geo:countryCode "AD" .
-
-<http://example.org/countries.csv#AE> schema:latitude "23.424076"^^xsd:double;
-   schema:longitude "53.847818"^^xsd:double;
-   schema:name "United Arab Emirates";
-   geo:countryCode "AE" .
-
-<http://example.org/countries.csv#AF> schema:latitude "33.93911"^^xsd:double;
-   schema:longitude "67.709953"^^xsd:double;
-   schema:name "Afghanistan";
-   geo:countryCode "AF" .
-
  [
-    <country_slice.csv#countryRef> <http://example.org/countries.csv#AF>;
-    <country_slice.csv#population> 9616353;
-    <country_slice.csv#year> "1960"^^xsd:gYear
- ] .
-
- [
-    <country_slice.csv#countryRef> <http://example.org/countries.csv#AF>;
-    <country_slice.csv#population> 9799379;
-    <country_slice.csv#year> "1961"^^xsd:gYear
- ] .
-
- [
-    <country_slice.csv#countryRef> <http://example.org/countries.csv#AF>;
-    <country_slice.csv#population> 9989846;
-    <country_slice.csv#year> "1962"^^xsd:gYear
+    a csvw:TableGroup;
+    csvw:table [
+      a csvw:Table;
+      dc:label "file";
+      csvw:row [
+        a csvw:Row;
+        csvw:describes [
+          :GID "1";
+          :inventory_date "2010-10-18"^^xsd:date;
+          :on_street "ADDISON AV";
+          :species "Celtis australis";
+          :trim_cycle "Large Tree Routine Prune"
+        ];
+        csvw:rownum 1;
+        csvw:url <tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          :GID "2";
+          :inventory_date "2010-06-02"^^xsd:date;
+          :on_street "EMERSON ST";
+          :species "Liquidambar styraciflua";
+          :trim_cycle "Large Tree Routine Prune"
+        ];
+        csvw:rownum 2;
+        csvw:url <tree-ops.csv#row=3>
+      ];
+      csvw:url <tree-ops.csv>
+    ]
  ] .

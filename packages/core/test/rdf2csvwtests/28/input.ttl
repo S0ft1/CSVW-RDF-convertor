@@ -1,6 +1,19 @@
+@prefix : <test038.csv#> .
 @prefix csvw: <http://www.w3.org/ns/csvw#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix schema: <http://schema.org/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<test038.csv#modelrow=1> <test038.csv#col=aboutUrl> "about";
+   <test038.csv#col=datatype> "string";
+   <test038.csv#col=default> "def";
+   <test038.csv#col=lang> "en"@en;
+   <test038.csv#col=null> "empty";
+   <test038.csv#col=ordered> "true";
+   <test038.csv#col=propertyUrl> "prop";
+   <test038.csv#col=separator> "-";
+   <test038.csv#col=textDirection> "ltr";
+   <test038.csv#col=valueUrl> schema:about .
 
  [
     a csvw:TableGroup;
@@ -8,27 +21,10 @@
       a csvw:Table;
       csvw:row [
         a csvw:Row;
-        csvw:describes [
-          <tree-ops.csv#GID> "1";
-          <tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
-          <tree-ops.csv#on_street> "ADDISON AV";
-          <tree-ops.csv#species> "Celtis australis";
-          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
-        ];
+        csvw:describes <test038.csv#modelrow=1>;
         csvw:rownum 1;
-        csvw:url <tree-ops.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <tree-ops.csv#GID> "2";
-          <tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
-          <tree-ops.csv#on_street> "EMERSON ST";
-          <tree-ops.csv#species> "Liquidambar styraciflua";
-          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
-        ];
-        csvw:rownum 2;
-        csvw:url <tree-ops.csv#row=3>
+        csvw:url <test038.csv#row=2>
       ];
-      csvw:url <tree-ops.csv>
+      csvw:url <test038.csv>
     ]
  ] .

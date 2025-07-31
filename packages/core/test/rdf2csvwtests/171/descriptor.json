@@ -1,17 +1,11 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:label": "valid number patterns (signs and percent/permille)",
-  "rdfs:comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-  "url": "test283.csv",
+  "rdfs:comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+  "rdfs:label": "values with wrong length",
+  "url": "test196.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "+0", "datatype": {"base": "decimal", "format": {"pattern": "+0"}}},
-      {"titles": "-0", "datatype": {"base": "decimal", "format": {"pattern": "-0"}}},
-      {"titles": "%000", "datatype": {"base": "decimal", "format": {"pattern": "%000"}}},
-      {"titles": "‰000", "datatype": {"base": "decimal", "format": {"pattern": "‰000"}}},
-      {"titles": "000%", "datatype": {"base": "decimal", "format": {"pattern": "000%"}}},
-      {"titles": "000‰", "datatype": {"base": "decimal", "format": {"pattern": "000‰"}}},
-      {"titles": "000.0%", "datatype": {"base": "decimal", "format": {"pattern": "000.0%"}}}
+      {"titles": "NMTOKEN", "datatype": {"base": "NMTOKEN", "length": 4}}
     ]
   }
 }

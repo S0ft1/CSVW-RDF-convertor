@@ -7,18 +7,31 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "values with matching length";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.";
+      rdfs:label "title incompatible with title on case";
+      rdfs:comment "If there is a non-empty case-sensitive intersection between the titles values, where matches must have a matching language; und matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test195.csv#NMTOKEN> "token"^^xsd:NMTOKEN;
-          <test195.csv#base64Binary> "U2VuZCByZWluZm9yY2VtZW50cw=="^^xsd:base64Binary;
-          <test195.csv#hexBinary> "0FB7"^^xsd:hexBinary
+          <tree-ops.csv#gid> "1";
+          <tree-ops.csv#inventory%20date> "10/18/2010";
+          <tree-ops.csv#on%20street> "ADDISON AV";
+          <tree-ops.csv#species> "Celtis australis";
+          <tree-ops.csv#trim%20cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 1;
-        csvw:url <test195.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <tree-ops.csv#gid> "2";
+          <tree-ops.csv#inventory%20date> "6/2/2010";
+          <tree-ops.csv#on%20street> "EMERSON ST";
+          <tree-ops.csv#species> "Liquidambar styraciflua";
+          <tree-ops.csv#trim%20cycle> "Large Tree Routine Prune"
+        ];
+        csvw:rownum 2;
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <test195.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

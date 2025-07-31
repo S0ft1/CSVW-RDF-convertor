@@ -1,7 +1,7 @@
 {
-  "@context": ["http://www.w3.org/ns/csvw", {"@language": "a-bad-language"}],
+  "@context": "http://www.w3.org/ns/csvw",
   "url": "tree-ops.csv",
-  "dc:title": "Tree Operations",
+  "dialect": {"commentPrefix": 1},
   "tableSchema": {
     "columns": [{
       "name": "GID",

@@ -1,12 +1,11 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "suppressOutput with invalid value uses default",
+  "@id": "_:foo",
   "url": "tree-ops.csv",
   "tableSchema": {
     "columns": [{
       "name": "GID",
-      "titles": "GID",
-      "suppressOutput": "foo"
+      "titles": "GID"
     }, {
       "name": "on_street",
       "titles": "On Street"
@@ -18,7 +17,8 @@
       "titles": "Trim Cycle"
     }, {
       "name": "inventory_date",
-      "titles": "Inventory Date"
+      "titles": "Inventory Date",
+      "datatype": {"base": "date", "format": "M/d/yyyy"}
     }]
   }
 }

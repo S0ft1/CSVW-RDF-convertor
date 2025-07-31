@@ -1,8 +1,7 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "undefined property is ignored",
   "url": "tree-ops.csv",
-  "foo": "bar",
+  "dialect": {"encoding": "foo"},
   "tableSchema": {
     "columns": [{
       "name": "GID",
@@ -18,7 +17,8 @@
       "titles": "Trim Cycle"
     }, {
       "name": "inventory_date",
-      "titles": "Inventory Date"
+      "titles": "Inventory Date",
+      "datatype": {"base": "date", "format": "M/d/yyyy"}
     }]
   }
 }

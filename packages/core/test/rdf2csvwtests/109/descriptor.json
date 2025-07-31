@@ -1,11 +1,14 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.",
-  "rdfs:label": "invalid float",
-  "url": "test182.csv",
+  "rdfs:comment": "If present, a virtual column must appear after all other non-virtual column definitions.",
+  "url": "tree-ops.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "float", "datatype": {"base": "float"}}
+      {"name": "GID", "titles": "GID", "virtual": true},
+      {"name": "on_street", "titles": "On Street"},
+      {"name": "species", "titles": "Species"},
+      {"name": "trim_cycle", "titles": "Trim Cycle"},
+      {"name": "inventory_date", "titles": "Inventory Date"}
     ]
   }
 }

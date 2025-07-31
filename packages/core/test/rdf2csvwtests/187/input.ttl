@@ -7,14 +7,21 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "invalid #0.0 12.34";
-      rdfs:comment "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.";
+      rdfs:label "date value constraint not matching minInclusive";
+      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test299.csv#%230.0> "12.34"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test299.csv#row=2>
+        csvw:describes [
+          <test212.csv#maxExclusive> "2015-06-04"^^xsd:date;
+          <test212.csv#maxInclusive> "2015-06-05"^^xsd:date;
+          <test212.csv#maximum> "2015-06-05"^^xsd:date;
+          <test212.csv#minExclusive> "2015-06-06"^^xsd:date;
+          <test212.csv#minInclusive> "2015-06-04";
+          <test212.csv#minimum> "2015-06-05"^^xsd:date
+        ];
+        csvw:rownum 1;
+        csvw:url <test212.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test299.csv>
+      csvw:url <test212.csv>
     ]
  ] .

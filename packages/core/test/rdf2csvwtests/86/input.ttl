@@ -7,16 +7,30 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "number format (bad format string)";
-      rdfs:comment "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string.";
+      rdfs:comment "Title with value which is not a string is ignored";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test159.csv#integer> 0
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#inventory_date> "10/18/2010";
+          <tree-ops.csv#on_street> "ADDISON AV";
+          <tree-ops.csv#species> "Celtis australis";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 1;
-        csvw:url <test159.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#inventory_date> "6/2/2010";
+          <tree-ops.csv#on_street> "EMERSON ST";
+          <tree-ops.csv#species> "Liquidambar styraciflua";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+        ];
+        csvw:rownum 2;
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <test159.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

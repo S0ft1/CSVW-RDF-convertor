@@ -7,19 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "single column primaryKey success";
-      rdfs:comment "As defined in [tabular-data-model], validators must check that each row has a unique combination of values of cells in the indicated columns.";
+      rdfs:label "decimal with implicit groupChar";
+      rdfs:comment "When parsing the string value of a cell against this format specification, implementations MUST recognise and parse numbers.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test231.csv#PK> "1"];
+        csvw:describes [ <test168.csv#decimal> 123456.789];
         csvw:rownum 1;
-        csvw:url <test231.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [ <test231.csv#PK> "2"];
-        csvw:rownum 2;
-        csvw:url <test231.csv#row=3>
+        csvw:url <test168.csv#row=2>
       ];
-      csvw:url <test231.csv>
+      csvw:url <test168.csv>
     ]
  ] .

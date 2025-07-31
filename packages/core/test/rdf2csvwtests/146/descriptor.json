@@ -1,13 +1,11 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Validators MUST raise errors if there is more than one row with the same primary key.",
-  "rdfs:label": "multiple column primaryKey violation",
-  "url": "test234.csv",
+  "rdfs:comment": "Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell.",
+  "rdfs:label": "decimal with per-mille",
+  "url": "test171.csv",
   "tableSchema": {
     "columns": [
-      {"name": "PK1", "titles": "PK1"},
-      {"name": "PK2", "titles": "PK2"}
-    ],
-    "primaryKey": ["PK1", "PK2"]
+      {"titles": "decimal", "datatype": {"base": "decimal", "format": { "groupChar": "," }}}
+    ]
   }
 }

@@ -7,21 +7,18 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "date value constraint not matching minInclusive";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
+      rdfs:label "number format (not matching values without pattern)";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test212.csv#maxExclusive> "2015-06-04"^^xsd:date;
-          <test212.csv#maxInclusive> "2015-06-05"^^xsd:date;
-          <test212.csv#maximum> "2015-06-05"^^xsd:date;
-          <test212.csv#minExclusive> "2015-06-06"^^xsd:date;
-          <test212.csv#minInclusive> "2015-06-04";
-          <test212.csv#minimum> "2015-06-05"^^xsd:date
+          <test161.csv#decimal> "10.10e1";
+          <test161.csv#double> "foo";
+          <test161.csv#integer> "10.1"
         ];
         csvw:rownum 1;
-        csvw:url <test212.csv#row=2>
+        csvw:url <test161.csv#row=2>
       ];
-      csvw:url <test212.csv>
+      csvw:url <test161.csv>
     ]
  ] .

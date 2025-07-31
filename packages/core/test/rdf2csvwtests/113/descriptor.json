@@ -1,11 +1,16 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed.",
-  "rdfs:label": "boolean format (not matching datatype)",
-  "url": "test186.csv",
+  "rdfs:comment": "The value of any @id or @type contained within a metadata document MUST NOT be a blank node.",
+  "rdfs:label": "@type out of range (as datatype)",
+  "rdf:value": {"@value": "foo", "@type": "_:bar"},
+  "url": "tree-ops.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "boolean", "datatype": {"base": "boolean"}}
+      {"titles": "GID"},
+      {"titles": "On Street"},
+      {"titles": "Species"},
+      {"titles": "Trim Cycle"},
+      {"titles": "Inventory Date"}
     ]
   }
 }

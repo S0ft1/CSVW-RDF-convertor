@@ -1,28 +1,30 @@
-@prefix csvw: <http://www.w3.org/ns/csvw#> .
+@prefix : <events-listing.csv#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix schema: <http://schema.org/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<test047.csv> <test047.csv#aboutUrl> "about";
-  <test047.csv#datatype> "string";
-  <test047.csv#default> "def";
-  <test047.csv#lang> "en";
-  <test047.csv#null> "empty";
-  <test047.csv#ordered> "true";
-  <test047.csv#propertyUrl> "prop";
-  <test047.csv#separator> "-";
-  <test047.csv#textDirection> "ltr";
-  <test047.csv#valueUrl> "value" .
+:event-1 a schema:MusicEvent;
+   schema:location :place-1;
+   schema:name "B.B. King";
+   schema:offers :offer-1;
+   schema:startDate "2014-04-12T19:30:00"^^xsd:dateTime .
 
- [
-    a csvw:TableGroup;
-    csvw:table [
-      a csvw:Table;
-      csvw:row [
-        a csvw:Row;
-        csvw:describes <test047.csv>;
-        csvw:rownum 1;
-        csvw:url <test047.csv#row=2>
-      ];
-      csvw:url <test047.csv>
-    ]
- ] .
+:event-2 a schema:MusicEvent;
+   schema:location :place-2;
+   schema:name "B.B. King";
+   schema:offers :offer-2;
+   schema:startDate "2014-04-13T20:00:00"^^xsd:dateTime .
+
+:offer-1 a schema:Offer;
+   schema:url "https://www.etix.com/ticket/1771656"^^xsd:anyURI .
+
+:offer-2 a schema:Offer;
+   schema:url "http://frontgatetickets.com/venue.php?id=11766"^^xsd:anyURI .
+
+:place-1 a schema:Place;
+   schema:address "79 Washington St., Providence, RI";
+   schema:name "Lupo’s Heartbreak Hotel" .
+
+:place-2 a schema:Place;
+   schema:address "Lynn, MA, 01901";
+   schema:name "Lynn Auditorium" .

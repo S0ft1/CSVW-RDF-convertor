@@ -1,13 +1,23 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed.",
-  "rdfs:label": "number format (not matching values without pattern)",
-  "url": "test161.csv",
+  "rdfs:comment": "titles with array values containing non-string values are ignored",
+  "url": "tree-ops.csv",
   "tableSchema": {
-    "columns": [
-      {"titles": "integer", "datatype": {"base": "integer"}},
-      {"titles": "decimal", "datatype": {"base": "decimal"}},
-      {"titles": "double", "datatype": {"base": "double"}}
-    ]
+    "columns": [{
+      "name": "GID",
+      "titles": ["GID", 1]
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date"
+    }]
   }
 }

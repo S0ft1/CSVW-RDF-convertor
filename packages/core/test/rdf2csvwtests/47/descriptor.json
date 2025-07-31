@@ -1,11 +1,24 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "columns takes an array of columns, not a single column",
   "url": "tree-ops.csv",
+  "dialect": {"quoteChar": true},
   "tableSchema": {
-    "columns": {
+    "columns": [{
       "name": "GID",
       "titles": "GID"
-    }
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date",
+      "datatype": {"base": "date", "format": "M/d/yyyy"}
+    }]
   }
 }

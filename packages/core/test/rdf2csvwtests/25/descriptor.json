@@ -1,30 +1,19 @@
 {
-  "@context": "http://www.w3.org/ns/csvw",
-  "propertyUrl": true,
+  "@type": "TableGroup",
+  "@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
   "tables": [{
-    "url": "test048.csv",
-    "tableSchema": {
-      "columns": [{
-        "titles": "null"
-      }, {
-        "titles": "lang"
-      }, {
-        "titles": "textDirection"
-      }, {
-        "titles": "separator"
-      }, {
-        "titles": "ordered"
-      }, {
-        "titles": "default"
-      }, {
-        "titles": "datatype"
-      }, {
-        "titles": "aboutUrl"
-      }, {
-        "titles": "propertyUrl"
-      }, {
-        "titles": "valueUrl"
-      }]
-    }
+    "url": "gov.uk/data/professions.csv",
+    "tableSchema": "gov.uk/schema/professions.json",
+    "suppressOutput": true
+  }, {
+    "url": "gov.uk/data/organizations.csv",
+    "tableSchema": "gov.uk/schema/organizations.json",
+    "suppressOutput": true
+  }, {
+    "url": "senior-roles.csv",
+    "tableSchema": "gov.uk/schema/senior-roles.json"
+  }, {
+    "url": "junior-roles.csv",
+    "tableSchema": "gov.uk/schema/junior-roles.json"
   }]
 }

@@ -5,33 +5,18 @@
 
  [
     a csvw:TableGroup;
-    rdfs:label "CSV has more headers than there are columns in the metadata";
-    rdfs:comment "Two schemas are compatible if they have the same number of non-virtual column descriptions, and the non-virtual column descriptions at the same index within each are compatible with each other.";
     csvw:table [
       a csvw:Table;
+      rdfs:label "date format (bad format string)";
+      rdfs:comment "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "1";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.2> "ADDISON AV";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.3> "Celtis australis";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.4> "Large Tree Routine Prune";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.5> "10/18/2010"
+          <test191.csv#date> "15-06-05"
         ];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "2";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.2> "EMERSON ST";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.3> "Liquidambar styraciflua";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.4> "Large Tree Routine Prune";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.5> "6/2/2010"
-        ];
-        csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=3>
+        csvw:rownum 1;
+        csvw:url <test191.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv>
+      csvw:url <test191.csv>
     ]
  ] .

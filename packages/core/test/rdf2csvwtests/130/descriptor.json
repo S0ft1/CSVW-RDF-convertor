@@ -1,16 +1,27 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell",
-  "rdfs:label": "float value constraint not matching minExclusive",
-  "url": "test206.csv",
+  "rdfs:comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string.",
+  "rdfs:label": "number format (valid combinations)",
+  "url": "test155.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "minimum",      "datatype": {"base": "float", "minimum": 5}},
-      {"titles": "maximum",      "datatype": {"base": "float", "maximum": 5}},
-      {"titles": "minInclusive", "datatype": {"base": "float", "minInclusive": 5}},
-      {"titles": "maxInclusive", "datatype": {"base": "float", "maxInclusive": 5}},
-      {"titles": "minExclusive", "datatype": {"base": "float", "minExclusive": 5}},
-      {"titles": "maxExclusive", "datatype": {"base": "float", "maxExclusive": 5}}
+      {"titles": "integer", "datatype": {"base": "integer", "format": "#"}},
+      {"titles": "decimal", "datatype": {"base": "decimal", "format": "#.0"}},
+      {"titles": "double", "datatype": "double"},
+      {"titles": "float", "datatype": "float"},
+      {"titles": "number", "datatype": "number"},
+      {"titles": "long", "datatype": "long"},
+      {"titles": "int", "datatype": "int"},
+      {"titles": "short", "datatype": "short"},
+      {"titles": "byte", "datatype": "byte"},
+      {"titles": "nonNegativeInteger", "datatype": "nonNegativeInteger"},
+      {"titles": "positiveInteger", "datatype": "positiveInteger"},
+      {"titles": "unsignedLong", "datatype": "unsignedLong"},
+      {"titles": "unsignedInt", "datatype": "unsignedInt"},
+      {"titles": "unsignedShort", "datatype": "unsignedShort"},
+      {"titles": "unsignedByte", "datatype": "unsignedByte"},
+      {"titles": "nonPositiveInteger", "datatype": "nonPositiveInteger"},
+      {"titles": "negativeInteger", "datatype": "negativeInteger"}
     ]
   }
 }

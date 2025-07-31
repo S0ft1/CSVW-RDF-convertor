@@ -1,6 +1,24 @@
 {
-  "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "tableSchema with invalid value MUST act as if it was an empty object",
+  "@context": ["http://www.w3.org/ns/csvw", {"@language": "a-bad-language"}],
   "url": "tree-ops.csv",
-  "tableSchema": 1
+  "dc:title": "Tree Operations",
+  "tableSchema": {
+    "columns": [{
+      "name": "GID",
+      "titles": "GID"
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date",
+      "datatype": {"base": "date", "format": "M/d/yyyy"}
+    }]
+  }
 }

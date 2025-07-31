@@ -1,13 +1,11 @@
 @prefix csvw: <http://www.w3.org/ns/csvw#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
  [
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:comment "transformations takes an array, not a single transformation";
       csvw:row [
         a csvw:Row;
         csvw:describes [

@@ -1,26 +1,16 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
-  "rdfs:label": "date format (valid date combinations with formats)",
-  "url": "test188.csv",
+  "rdfs:comment": "The value of any member of @type MUST be either a term defined in [csvw-context], a prefixed name where the prefix is a term defined in [csvw-context], or an absolute URL.",
+  "rdfs:label": "@type out of range (as node type) - string",
+  "rdfs:value": {"@type": "not a link"},
+  "url": "tree-ops.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "yyyy-MM-dd", "datatype": {"base": "date", "format": "yyyy-MM-dd"}},
-      {"titles": "yyyyMMdd",   "datatype": {"base": "date", "format": "yyyyMMdd"}},
-      {"titles": "dd-MM-yyyy", "datatype": {"base": "date", "format": "dd-MM-yyyy"}},
-      {"titles": "d-M-yyyy",   "datatype": {"base": "date", "format": "d-M-yyyy"}},
-      {"titles": "MM-dd-yyyy", "datatype": {"base": "date", "format": "MM-dd-yyyy"}},
-      {"titles": "M-d-yyyy",   "datatype": {"base": "date", "format": "M-d-yyyy"}},
-      {"titles": "dd/MM/yyyy", "datatype": {"base": "date", "format": "dd/MM/yyyy"}},
-      {"titles": "d/M/yyyy",   "datatype": {"base": "date", "format": "d/M/yyyy"}},
-      {"titles": "MM/dd/yyyy", "datatype": {"base": "date", "format": "MM/dd/yyyy"}},
-      {"titles": "M/d/yyyy",   "datatype": {"base": "date", "format": "M/d/yyyy"}},
-      {"titles": "dd.MM.yyyy", "datatype": {"base": "date", "format": "dd.MM.yyyy"}},
-      {"titles": "d.M.yyyy",   "datatype": {"base": "date", "format": "d.M.yyyy"}},
-      {"titles": "MM.dd.yyyy", "datatype": {"base": "date", "format": "MM.dd.yyyy"}},
-      {"titles": "M.d.yyyy",   "datatype": {"base": "date", "format": "M.d.yyyy"}},
-      {"titles": "yyyy-MM-ddX",      "datatype": {"base": "date", "format": "yyyy-MM-ddX"}},
-      {"titles": "dd.MM.yyyy XXX", "datatype": {"base": "date", "format": "dd.MM.yyyy XXX"}}
+      {"titles": "GID"},
+      {"titles": "On Street"},
+      {"titles": "Species"},
+      {"titles": "Trim Cycle"},
+      {"titles": "Inventory Date"}
     ]
   }
 }

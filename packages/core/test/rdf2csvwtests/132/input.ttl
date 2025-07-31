@@ -7,21 +7,18 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "float value constraint not matching maxExclusive";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
+      rdfs:label "number format (value not matching format)";
+      rdfs:comment "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test208.csv#maxExclusive> "5";
-          <test208.csv#maxInclusive> "5"^^xsd:float;
-          <test208.csv#maximum> "5"^^xsd:float;
-          <test208.csv#minExclusive> "6"^^xsd:float;
-          <test208.csv#minInclusive> "5"^^xsd:float;
-          <test208.csv#minimum> "5"^^xsd:float
+          <test157.csv#decimal> "10.10";
+          <test157.csv#double> "10.10e10";
+          <test157.csv#integer> "10.1"
         ];
         csvw:rownum 1;
-        csvw:url <test208.csv#row=2>
+        csvw:url <test157.csv#row=2>
       ];
-      csvw:url <test208.csv>
+      csvw:url <test157.csv>
     ]
  ] .

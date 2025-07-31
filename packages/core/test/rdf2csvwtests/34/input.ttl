@@ -9,26 +9,20 @@
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <tree-ops.csv#GID> "1";
-          <tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
-          <tree-ops.csv#on_street> "ADDISON AV";
-          <tree-ops.csv#species> "Celtis australis";
-          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+          <test044.csv#aboutUrl> "about";
+          <test044.csv#datatype> "string";
+          <test044.csv#default> "def";
+          <test044.csv#lang> "en";
+          <test044.csv#null> "empty";
+          <test044.csv#ordered> "true";
+          <test044.csv#propertyUrl> "prop";
+          <test044.csv#separator> "-";
+          <test044.csv#textDirection> "ltr";
+          <test044.csv#valueUrl> "value"
         ];
         csvw:rownum 1;
-        csvw:url <tree-ops.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <tree-ops.csv#GID> "2";
-          <tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
-          <tree-ops.csv#on_street> "EMERSON ST";
-          <tree-ops.csv#species> "Liquidambar styraciflua";
-          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
-        ];
-        csvw:rownum 2;
-        csvw:url <tree-ops.csv#row=3>
+        csvw:url <test044.csv#row=2>
       ];
-      csvw:url <tree-ops.csv>
+      csvw:url <test044.csv>
     ]
  ] .

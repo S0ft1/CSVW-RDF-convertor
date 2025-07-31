@@ -1,9 +1,9 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Invalid virtual value is ignored",
   "url": "tree-ops.csv",
   "tableSchema": {
     "columns": [{
+      "@id": "_:foo",
       "name": "GID",
       "titles": "GID"
     }, {
@@ -18,7 +18,7 @@
     }, {
       "name": "inventory_date",
       "titles": "Inventory Date",
-      "virtual": "foo"
+      "datatype": {"base": "date", "format": "M/d/yyyy"}
     }]
   }
 }

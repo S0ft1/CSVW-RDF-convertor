@@ -1,14 +1,7 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "transformations takes an array, not a single transformation",
   "url": "tree-ops.csv",
-  "transformations": {
-    "url": "templates/ical.txt",
-    "titles": "iCalendar",
-    "targetFormat": "http://www.iana.org/assignments/media-types/text/calendar",
-    "scriptFormat": "https://mustache.github.io/",
-    "source": "json"
-  },
+  "dialect": {"lineTerminators": true},
   "tableSchema": {
     "columns": [{
       "name": "GID",

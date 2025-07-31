@@ -1,11 +1,23 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains the decimalChar, if the datatype base is integer or one of its sub-values.",
-  "rdfs:label": "integer datatype with decimalChar",
-  "url": "test163.csv",
+  "rdfs:comment": "Invalid name value is ignored",
+  "url": "tree-ops.csv",
   "tableSchema": {
-    "columns": [
-      {"titles": "integer", "datatype": {"base": "integer"}}
-    ]
+    "columns": [{
+      "name": 1,
+      "titles": "GID"
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date"
+    }]
   }
 }

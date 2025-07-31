@@ -1,11 +1,11 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:label": "invalid #,#00 1",
-  "rdfs:comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-  "url": "test288.csv",
+  "rdfs:comment": "Applications MUST raise an error if both length and minLength are specified and they do not have the same value.",
+  "rdfs:label": "length on date",
+  "url": "test201.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "#,#00", "datatype": {"base": "integer", "format": {"pattern": "#,#00"}}}
+      {"titles": "NMTOKEN", "datatype": {"base": "date", "length": 5}}
     ]
   }
 }

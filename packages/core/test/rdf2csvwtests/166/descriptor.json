@@ -1,14 +1,11 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:label": "CSV has more headers than there are columns in the metadata",
-  "rdfs:comment": "Two schemas are compatible if they have the same number of non-virtual column descriptions, and the non-virtual column descriptions at the same index within each are compatible with each other.",
-  "tables": [{
-    "url": "tree-ops.csv",
-    "tableSchema": {
-      "columns": [{
-        "name": "GID",
-        "titles": "GID"
-      }]
-    }
-  }]
+  "rdfs:comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+  "rdfs:label": "date format (bad format string)",
+  "url": "test191.csv",
+  "tableSchema": {
+    "columns": [
+      {"titles": "date", "datatype": {"base": "date", "format": {"pattern": "yy-MM-dd"}}}
+    ]
+  }
 }

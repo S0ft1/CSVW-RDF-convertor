@@ -7,14 +7,30 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "decimal datatype with exponent";
-      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, if the datatype base is decimal or one of its sub-values.";
+      rdfs:comment "Invalid virtual value is ignored";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test164.csv#decimal> "123.456E7"];
+        csvw:describes [
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#inventory_date> "10/18/2010";
+          <tree-ops.csv#on_street> "ADDISON AV";
+          <tree-ops.csv#species> "Celtis australis";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+        ];
         csvw:rownum 1;
-        csvw:url <test164.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#inventory_date> "6/2/2010";
+          <tree-ops.csv#on_street> "EMERSON ST";
+          <tree-ops.csv#species> "Liquidambar styraciflua";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+        ];
+        csvw:rownum 2;
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <test164.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

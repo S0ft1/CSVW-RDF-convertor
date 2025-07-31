@@ -1,14 +1,31 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "column names are restricted ... names beginning with '_' are reserved by this specification and MUST NOT be used within metadata documents.",
+  "rdfs:comment": "transformations are an array of Transformation",
   "url": "tree-ops.csv",
+  "transformations": [{
+    "url": "templates/ical.txt",
+    "titles": "iCalendar",
+    "targetFormat": "http://www.iana.org/assignments/media-types/text/calendar",
+    "scriptFormat": "https://mustache.github.io/",
+    "source": "json"
+  }, 1],
   "tableSchema": {
-    "columns": [
-      {"name": "_GID", "titles": "GID"},
-      {"name": "_on_street", "titles": "On Street"},
-      {"name": "_species", "titles": "Species"},
-      {"name": "_trim_cycle", "titles": "Trim Cycle"},
-      {"name": "_inventory_date", "titles": "Inventory Date"}
-    ]
+    "columns": [{
+      "name": "GID",
+      "titles": "GID"
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date",
+      "datatype": {"base": "date", "format": "M/d/yyyy"}
+    }]
   }
 }

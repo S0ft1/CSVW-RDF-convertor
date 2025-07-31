@@ -1,28 +1,23 @@
-@prefix csvw: <http://www.w3.org/ns/csvw#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <countries.csv#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
  [
-    a csvw:TableGroup;
-    csvw:table [
-      a csvw:Table;
-      csvw:row [
-        a csvw:Row;
-        csvw:describes [
-          <test042.csv#aboutUrl> "about";
-          <test042.csv#datatype> "string";
-          <test042.csv#default> "def";
-          <test042.csv#lang> "en";
-          <test042.csv#null> "empty";
-          <test042.csv#ordered> "true";
-          <test042.csv#propertyUrl> "prop";
-          <test042.csv#separator> "-";
-          <test042.csv#textDirection> "ltr";
-          <test042.csv#valueUrl> "value"
-        ];
-        csvw:rownum 1;
-        csvw:url <test042.csv#row=2>
-      ];
-      csvw:url <test042.csv>
-    ]
+    :countryCode "AD";
+    :latitude "42.546245";
+    :longitude "1.601554";
+    :name "Andorra"
+ ] .
+
+ [
+    :countryCode "AE";
+    :latitude "23.424076";
+    :longitude "53.847818";
+    :name "United Arab Emirates"
+ ] .
+
+ [
+    :countryCode "AF";
+    :latitude "33.93911";
+    :longitude "67.709953";
+    :name "Afghanistan"
  ] .

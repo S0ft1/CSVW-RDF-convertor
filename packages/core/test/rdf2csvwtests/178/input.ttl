@@ -7,14 +7,21 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "invalid #,#00 12,34";
-      rdfs:comment "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.";
+      rdfs:label "float value constraint not matching minimum";
+      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test290.csv#%23%2C%2300> "12,34"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test290.csv#row=2>
+        csvw:describes [
+          <test203.csv#maxExclusive> "4"^^xsd:float;
+          <test203.csv#maxInclusive> "5"^^xsd:float;
+          <test203.csv#maximum> "5"^^xsd:float;
+          <test203.csv#minExclusive> "6"^^xsd:float;
+          <test203.csv#minInclusive> "5"^^xsd:float;
+          <test203.csv#minimum> "4"
+        ];
+        csvw:rownum 1;
+        csvw:url <test203.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test290.csv>
+      csvw:url <test203.csv>
     ]
  ] .

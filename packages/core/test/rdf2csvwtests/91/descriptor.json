@@ -1,11 +1,24 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, if the datatype base is decimal or one of its sub-values.",
-  "rdfs:label": "decimal datatype with exponent",
-  "url": "test164.csv",
+  "rdfs:comment": "Invalid virtual value is ignored",
+  "url": "tree-ops.csv",
   "tableSchema": {
-    "columns": [
-      {"titles": "decimal", "datatype": {"base": "decimal"}}
-    ]
+    "columns": [{
+      "name": "GID",
+      "titles": "GID"
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date",
+      "virtual": "foo"
+    }]
   }
 }

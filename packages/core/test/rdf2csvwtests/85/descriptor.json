@@ -1,14 +1,23 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Numeric dataype with object format.",
-  "rdfs:label": "number format (valid combinations)",
-  "url": "test158.csv",
+  "rdfs:comment": "Invalid language code in title is ignored",
+  "url": "tree-ops.csv",
   "tableSchema": {
-    "columns": [
-      {"titles": "integer", "datatype": {"base": "integer", "format": {"pattern": "#0"}}},
-      {"titles": "decimal", "datatype": {"base": "decimal", "format": {"pattern": "#0.###"}}},
-      {"titles": "double", "datatype": {"base": "double", "format": {"pattern": "#0.###E#0"}}},
-      {"titles": "decimal1", "datatype": {"base": "decimal", "format": {"decimalChar": ",", "groupChar": "."}}}
-    ]
+    "columns": [{
+      "name": "GID",
+      "titles": {"a-bad-language": "GID"}
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date"
+    }]
   }
 }

@@ -7,31 +7,41 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "`null` contains an array of (valid) string & (invalid) numeric values";
-      rdfs:comment "Processors MUST issue a warning if a property is set to an invalid value type.";
+      rdfs:label "boolean format (valid combinations)";
+      rdfs:comment "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`..";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "1";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "ADDISON AV";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Celtis australis";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+          <test183.csv#boolean> true;
+          <test183.csv#boolean1> true
         ];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=2>
+        csvw:rownum 1;
+        csvw:url <test183.csv#row=2>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "2";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "EMERSON ST";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Liquidambar styraciflua";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+          <test183.csv#boolean> false;
+          <test183.csv#boolean1> false
         ];
-        csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=3>
+        csvw:rownum 2;
+        csvw:url <test183.csv#row=3>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> true;
+          <test183.csv#boolean1> true
+        ];
+        csvw:rownum 3;
+        csvw:url <test183.csv#row=4>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> false;
+          <test183.csv#boolean1> false
+        ];
+        csvw:rownum 4;
+        csvw:url <test183.csv#row=5>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv>
+      csvw:url <test183.csv>
     ]
  ] .

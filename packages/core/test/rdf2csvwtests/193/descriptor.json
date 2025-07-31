@@ -1,15 +1,11 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:label": "multiple values with same subject and property (unordered)",
-  "rdfs:comment": "Values in separate columns using the same propertyUrl are kept in proper relative order.",
-  "url": "test305.csv",
-  "separator": ";",
-  "aboutUrl": "#about",
-  "propertyUrl": "#value",
+  "rdfs:comment": "Applications MUST raise an error if both minInclusive and maxInclusive are specified and maxInclusive is less than minInclusive, or if both minInclusive and maxExclusive are specified and maxExclusive is less than or equal to minInclusive.",
+  "rdfs:label": "maxInclusive < minInclusive",
+  "url": "test218.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "col1"},
-      {"titles": "col2"}
+      {"titles": "date", "datatype": {"base": "date", "maxInclusive": "2015-06-05", "minInclusive": "2015-06-06"}, "null": "NULL"}
     ]
   }
 }

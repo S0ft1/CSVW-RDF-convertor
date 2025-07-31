@@ -1,5 +1,4 @@
 @prefix csvw: <http://www.w3.org/ns/csvw#> .
-@prefix dc: <http://purl.org/dc/terms/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
@@ -7,7 +6,6 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      dc:title "Tree Operations";
       csvw:row [
         a csvw:Row;
         csvw:describes [

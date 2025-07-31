@@ -42,6 +42,7 @@ tests = JSON.parse(testDataJson) as SimpleTest[];
 const testFolders = getFolderNames(pathToTests);
 for (let i = 0; i < testFolders.length; i++) {
   let inputDescriptor = "";
+  
   try {
     inputDescriptor = readFileSync(
       join(pathToTests, testFolders[i], 'descriptor.json'),

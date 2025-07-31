@@ -1,24 +1,39 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "url": "tree-ops.csv",
-  "dialect": {"delimiter": 1},
-  "tableSchema": {
-    "columns": [{
-      "name": "GID",
-      "titles": "GID"
-    }, {
-      "name": "on_street",
-      "titles": "On Street"
-    }, {
-      "name": "species",
-      "titles": "Species"
-    }, {
-      "name": "trim_cycle",
-      "titles": "Trim Cycle"
-    }, {
-      "name": "inventory_date",
-      "titles": "Inventory Date",
-      "datatype": {"base": "date", "format": "M/d/yyyy"}
-    }]
-  }
+  "null": "foo",
+  "datatype": "string",
+  "separator": null,
+  "tables": [{
+    "url": "test038.csv",
+    "aboutUrl": "#modelrow={_row}",
+    "tableSchema": {
+      "textDirection": "ltr",
+      "propertyUrl": "#col={_name}",
+      "columns": [{
+        "titles": "null"
+      }, {
+        "lang": "en",
+        "titles": "lang"
+      }, {
+        "titles": "textDirection"
+      }, {
+        "titles": "separator"
+      }, {
+        "ordered": true,
+        "titles": "ordered"
+      }, {
+        "titles": "default",
+        "default": "bar"
+      }, {
+        "titles": "datatype"
+      }, {
+        "titles": "aboutUrl"
+      }, {
+        "titles": "propertyUrl"
+      }, {
+        "titles": "valueUrl",
+        "valueUrl": "schema:about"
+      }]
+    }
+  }]
 }

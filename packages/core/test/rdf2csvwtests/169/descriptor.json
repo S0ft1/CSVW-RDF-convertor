@@ -1,11 +1,13 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:label": "yearMonthDuration not matching xsd pattern",
-  "rdfs:comment": "Value MUST be a valid xsd:yearMonthDuration..",
-  "url": "test281.csv",
+  "rdfs:comment": "If the datatype base is a duration type, the datatype format annotation provides a regular expression for the string values.",
+  "rdfs:label": "duration format (valid combinations)",
+  "url": "test194.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "yearMonthDuration", "datatype": "yearMonthDuration"}
+      {"titles": "duration",          "datatype": {"base": "duration", "format": "^.$"}},
+      {"titles": "dayTimeDuration",   "datatype": {"base": "dayTimeDuration", "format": "^.$"}},
+      {"titles": "yearMonthDuration", "datatype": {"base": "yearMonthDuration", "format": "^.$"}}
     ]
   }
 }

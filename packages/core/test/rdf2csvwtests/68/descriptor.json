@@ -1,29 +1,31 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "if the string is the same as any one of the values of the column null annotation, then the resulting value is null. If the column separator annotation is null and the column required annotation is true, add an error to the list of errors for the cell.",
-  "tables": [{
-    "url": "test126.csv",
-    "null": "NULL",
-    "tableSchema": {
-      "columns": [{
-        "titles": "countryCode",
-        "required": true
-      }, {
-        "name": "latitude",
-        "titles": "latitude",
-        "datatype": "number",
-        "required": true
-      }, {
-        "name": "longitude",
-        "titles": "longitude",
-        "datatype": "number",
-        "required": true
-      }, {
-        "name": "name",
-        "titles": "name",
-        "datatype": "string",
-        "required": true
-      }]
-    }
-  }]
+  "url": "tree-ops.csv",
+  "transformations": [{
+    "@type": "Transformation",
+    "url": "templates/ical.txt",
+    "titles": "iCalendar",
+    "targetFormat": "http://www.iana.org/assignments/media-types/text/calendar",
+    "scriptFormat": "https://mustache.github.io/",
+    "source": "json"
+  }],
+  "tableSchema": {
+    "columns": [{
+      "name": "GID",
+      "titles": "GID"
+    }, {
+      "name": "on_street",
+      "titles": "On Street"
+    }, {
+      "name": "species",
+      "titles": "Species"
+    }, {
+      "name": "trim_cycle",
+      "titles": "Trim Cycle"
+    }, {
+      "name": "inventory_date",
+      "titles": "Inventory Date",
+      "datatype": {"base": "date", "format": "M/d/yyyy"}
+    }]
+  }
 }

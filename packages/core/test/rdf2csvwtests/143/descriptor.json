@@ -1,10 +1,11 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "As defined in [tabular-data-model], validators must check that each row has a unique combination of values of cells in the indicated columns.",
-  "rdfs:label": "single column primaryKey success",
-  "url": "test231.csv",
+  "rdfs:comment": "When parsing the string value of a cell against this format specification, implementations MUST recognise and parse numbers.",
+  "rdfs:label": "decimal with implicit groupChar",
+  "url": "test168.csv",
   "tableSchema": {
-    "columns": [{"name": "PK", "titles": "PK"}],
-    "primaryKey": "PK"
+    "columns": [
+      {"titles": "decimal", "datatype": {"base": "decimal", "format": { "groupChar": "," }}}
+    ]
   }
 }

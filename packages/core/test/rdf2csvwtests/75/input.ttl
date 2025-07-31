@@ -7,27 +7,26 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "title incompatible with title on language";
-      rdfs:comment "If there is a non-empty case-sensitive intersection between the titles values, where matches must have a matching language; und matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.";
+      rdfs:comment "transformations takes an array, not a single transformation";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <tree-ops.csv#GID> "1"@de;
-          <tree-ops.csv#Inventory%20Date> "10/18/2010"@de;
-          <tree-ops.csv#Species> "Celtis australis"@de;
-          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"@de;
-          <tree-ops.csv#_col.2> "ADDISON AV"@de
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
+          <tree-ops.csv#on_street> "ADDISON AV";
+          <tree-ops.csv#species> "Celtis australis";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 1;
         csvw:url <tree-ops.csv#row=2>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <tree-ops.csv#GID> "2"@de;
-          <tree-ops.csv#Inventory%20Date> "6/2/2010"@de;
-          <tree-ops.csv#Species> "Liquidambar styraciflua"@de;
-          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"@de;
-          <tree-ops.csv#_col.2> "EMERSON ST"@de
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
+          <tree-ops.csv#on_street> "EMERSON ST";
+          <tree-ops.csv#species> "Liquidambar styraciflua";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 2;
         csvw:url <tree-ops.csv#row=3>

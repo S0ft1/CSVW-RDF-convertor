@@ -1,11 +1,14 @@
 {
   "@context": "http://www.w3.org/ns/csvw",
-  "rdfs:comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.",
-  "rdfs:label": "invalid negativeInteger",
-  "url": "test177.csv",
+  "rdfs:comment": "The name properties of the column descriptions MUST be unique within a given table description.",
+  "url": "tree-ops.csv",
   "tableSchema": {
     "columns": [
-      {"titles": "negativeInteger", "datatype": {"base": "negativeInteger"}}
+      {"name": "GID", "titles": "GID"},
+      {"name": "GID", "titles": "On Street"},
+      {"name": "GID", "titles": "Species"},
+      {"name": "GID", "titles": "Trim Cycle"},
+      {"name": "GID", "titles": "Inventory Date"}
     ]
   }
 }

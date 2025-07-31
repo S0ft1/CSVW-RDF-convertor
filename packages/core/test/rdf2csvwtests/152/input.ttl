@@ -7,17 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "date format (valid time combinations with formats and milliseconds)";
-      rdfs:comment "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.";
+      rdfs:label "invalid negativeInteger";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [
-          <test245.csv#HH%3Amm%3Ass.S> "15:02:37.1"^^xsd:time;
-          <test245.csv#HH%3Amm%3Ass.SS> "15:02:37.14"^^xsd:time
-        ];
+        csvw:describes [ <test177.csv#negativeInteger> "123"];
         csvw:rownum 1;
-        csvw:url <test245.csv#row=2>
+        csvw:url <test177.csv#row=2>
       ];
-      csvw:url <test245.csv>
+      csvw:url <test177.csv>
     ]
  ] .

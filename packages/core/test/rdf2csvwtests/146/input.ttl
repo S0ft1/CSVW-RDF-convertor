@@ -7,25 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "multiple column primaryKey violation";
-      rdfs:comment "Validators MUST raise errors if there is more than one row with the same primary key.";
+      rdfs:label "decimal with per-mille";
+      rdfs:comment "Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [
-          <test234.csv#PK1> "foo";
-          <test234.csv#PK2> "bar"
-        ];
+        csvw:describes [ <test171.csv#decimal> 123.456789 ];
         csvw:rownum 1;
-        csvw:url <test234.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test234.csv#PK1> "foo";
-          <test234.csv#PK2> "bar"
-        ];
-        csvw:rownum 2;
-        csvw:url <test234.csv#row=3>
+        csvw:url <test171.csv#row=2>
       ];
-      csvw:url <test234.csv>
+      csvw:url <test171.csv>
     ]
  ] .

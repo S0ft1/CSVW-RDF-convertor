@@ -7,19 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "single column primaryKey violation";
-      rdfs:comment "Validators MUST raise errors if there is more than one row with the same primary key.";
+      rdfs:label "invalid decimal";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test232.csv#PK> "1"];
+        csvw:describes [ <test169.csv#decimal> "123456.789F10"];
         csvw:rownum 1;
-        csvw:url <test232.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [ <test232.csv#PK> "1"];
-        csvw:rownum 2;
-        csvw:url <test232.csv#row=3>
+        csvw:url <test169.csv#row=2>
       ];
-      csvw:url <test232.csv>
+      csvw:url <test169.csv>
     ]
  ] .
