@@ -41,12 +41,18 @@ const testDataJson = readFileSync(join(pathToTests, 'testData.json'), 'utf-8');
 tests = JSON.parse(testDataJson) as SimpleTest[];
 const testFolders = getFolderNames(pathToTests);
 for (let i = 0; i < testFolders.length; i++) {
-  const inputDescriptor = readFileSync(
-    join(pathToTests, testFolders[i], 'descriptor.json'),
-    'utf-8',
-  );
+  let inputDescriptor = "";
+  try {
+    inputDescriptor = readFileSync(
+      join(pathToTests, testFolders[i], 'descriptor.json'),
+      'utf-8',
+    );
+  }
+  catch (e) {
+    console.error(`Error reading descriptor.json for test ${testFolders[i]}:`, e);
+  }
   const inputDataPath = join(pathToTests, testFolders[i], 'input.ttl');
-   const expectedOutput: Record<string,string> = {};
+  const expectedOutput: Record<string, string> = {};
   const files = readdirSync(join(pathToTests, testFolders[i]));
   for (const file of files) {
     if (file.endsWith('.csv')) {
@@ -55,6 +61,9 @@ for (let i = 0; i < testFolders.length; i++) {
         'utf-8',
       );
     }
+  }
+  if(files.length === 0) {
+    continue;
   }
   tests[i] = {
     id: tests[i].id,
