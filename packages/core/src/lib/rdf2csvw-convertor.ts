@@ -44,7 +44,7 @@ export class Rdf2CsvwConvertor {
   });
   private store: Quadstore;
   private engine: Engine;
-
+  private descriptorWrapper: DescriptorWrapper;
   public constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
   }
@@ -60,7 +60,10 @@ export class Rdf2CsvwConvertor {
     descriptor?: string | AnyCsvwDescriptor
   ): Promise<CsvwTablesStream> {
     // TODO: What if we do not have enough memory to hold all the quads in the store?
-    const readableStream = await this.options.resolveRdfStreamFn(url, '');
+    const readableStream = await this.options.resolveRdfStreamFn(
+      url,
+      this.options.baseIri
+    );
     let parser;
     if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
       parser = new RdfXmlParser();
@@ -196,6 +199,9 @@ export class Rdf2CsvwConvertor {
     return streams;
   }
 
+  public getDescriptor(): DescriptorWrapper {
+    return this.descriptorWrapper ? this.descriptorWrapper : {} as DescriptorWrapper;
+  }
   /**
    * Creates SPARQL query.
    * @param table CSV Table

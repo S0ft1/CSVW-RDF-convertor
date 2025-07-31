@@ -1,0 +1,71 @@
+<form [formGroup]="form()">
+  <section>
+    <header>Path overrides</header>
+    <p>
+      When the convertor tries to load a resource which matches one of the
+      overridden paths, it will first replace the matching part of the path with
+      the specified replacement.
+    </p>
+    @for (po of overrideFA().controls; track po) {
+    <div class="override-container">
+      <app-path-override
+        [descriptor]="descriptor()"
+        [formControl]="po"
+      ></app-path-override>
+      <button
+        type="button"
+        matIconButton
+        (click)="removePathOverride($index)"
+        aria-label="Remove path override"
+      >
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </div>
+    }
+    <button
+      type="button"
+      class="add-override"
+      matButton
+      (click)="addPathOverride()"
+    >
+      <mat-icon>add</mat-icon> Add path override
+    </button>
+  </section>
+  <section>
+    <header>General options</header>
+    <mat-form-field>
+      <mat-label>Base IRI</mat-label>
+      <input matInput type="text" formControlName="baseIri" />
+      <mat-hint>Used for resource requests</mat-hint>
+    </mat-form-field>
+    <p>
+      <mat-slide-toggle formControlName="templateIris"
+        ><strong>Use template IRIs.</strong>
+        <div class="explanation">
+          When enabled, expanded template URIs will not escape non-ASCII
+          characters
+        </div>
+        <div class="examples">
+          <div class="example enabled">
+            <header>When enabled:</header>
+            <pre>{{ exampleIri }}</pre>
+          </div>
+          <div class="example disabled">
+            <header>When disabled:</header>
+            <pre>{{ exampleUri }}</pre>
+          </div>
+        </div>
+      </mat-slide-toggle>
+    </p>
+    <p>
+      <mat-slide-toggle formControlName="minimal"
+        ><strong>Minimal mode.</strong>
+        <div class="explanation">
+          Minimal mode includes only the information gleaned from the cells of
+          the tabular data. Standard mode of conversion additionally includes
+          metadata about e.g. row numbers.
+        </div></mat-slide-toggle
+      >
+    </p>
+  </section>
+</form>

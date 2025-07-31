@@ -1,11 +1,13 @@
-# core
+# @csvw-rdf-convertor/core
 
-This library was generated with [Nx](https://nx.dev).
+This is the library which is the base for the rest of the projects. Allows for converting RDF to/from CSVW and validating CSVW.
 
-## Building
+## Installation
 
-Run `npx nx build core` to build the library.
+```bash
+npm i @csvw-rdf-convertor/core
+```
 
-## Running unit tests
+## Documentation
 
-Run `npx nx test core` to execute the unit tests via [Jest](https://jestjs.io).
+Our documentation is available online: <https://s0ft1.github.io/csvw-rdf-convertor>

@@ -11,6 +11,9 @@
     },
     {
       "path": "./packages/ws"
+    },
+    {
+      "path": "./packages/webapp"
     }
   ]
 }

@@ -1,0 +1,30 @@
+<form [formGroup]="form()">
+  <section>
+    <header>Output serialization</header>
+    <mat-form-field>
+      <mat-label>RDF serialization</mat-label>
+      <mat-select formControlName="format">
+        <mat-option value="nquads">N-Quads</mat-option>
+        <mat-option value="ntriples">N-Triples</mat-option>
+        <mat-option value="turtle">Turtle</mat-option>
+        <mat-option value="trig">TriG</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </section>
+  <section>
+    <header>Output serialization options</header>
+    @switch (form().get('format').value) { @case ('turtle') { @defer {
+    <app-ttl-form @fade [form]="$any(form().get('ttl'))"></app-ttl-form>
+    } @loading {
+    <mat-spinner></mat-spinner>
+    } } @case ('trig') { @defer {
+    <app-ttl-form @fade [form]="$any(form().get('ttl'))"></app-ttl-form>
+    } @loading {
+    <mat-spinner></mat-spinner>
+    } } @default {
+    <div class="animation-container" @fade>
+      <p>There is no further configuration necessary.</p>
+    </div>
+    } }
+  </section>
+</form>

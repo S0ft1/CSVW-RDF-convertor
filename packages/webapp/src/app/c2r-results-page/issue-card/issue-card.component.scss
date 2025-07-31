@@ -1,0 +1,28 @@
+.issue {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: first baseline;
+  justify-content: space-between;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 3px;
+
+  &.warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  &.error {
+    background-color: var(--mat-sys-error-container);
+    color: var(--mat-sys-error-on-container);
+  }
+}
+
+.location {
+  font-size: 0.9em;
+  margin-left: 5px;
+
+  span:not(:last-child)::after {
+    content: ', ';
+  }
+}

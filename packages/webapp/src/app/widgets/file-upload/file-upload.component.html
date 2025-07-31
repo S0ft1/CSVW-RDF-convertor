@@ -1,0 +1,60 @@
+<div
+  class="drop-area"
+  [class.dragging]="dragging()"
+  (drop)="onDrop($event)"
+  (dragover)="$event.preventDefault()"
+>
+  <label [for]="id"
+    >{{ label() }}@if (isRequired()) {<span class="required" aria-hidden>*</span
+    >}
+  </label>
+  @if (!editableNames()) {
+  <mat-chip-set aria-role="list">
+    @for (f of value; track f.name) {
+    <mat-chip
+      [removable]="!isDisabled()"
+      (removed)="removeFile(f)"
+      aria-role="listitem"
+      aria-description="Press delete to remove file"
+      tabindex="0"
+    >
+      {{ f.name }}
+      @if (!isDisabled()) {}
+      <button matChipRemove [attr.aria-label]="'Remove ' + f.name">
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip>
+    }
+  </mat-chip-set>
+  }
+  <button matButton="tonal" [attr.aria-controls]="id" (click)="fileInp.click()">
+    {{ buttonLabel() }}
+  </button>
+  <input
+    [id]="id"
+    type="file"
+    [disabled]="isDisabled()"
+    (change)="onFileSelected($event)"
+    [multiple]="multiple()"
+    #fileInp
+    [attr.aria-required]="isRequired() ? '' : null"
+    [accept]="accept()"
+  />
+  @if (editableNames() && value.length > 0) {
+  <div class="handles-editable" @fade>
+    <p class="info">
+      You can set the path under which each file will be visible to the
+      convertor.
+    </p>
+    @for (f of value; track f.name) {
+    <app-file-handle
+      @fade
+      [path]="f.name"
+      [originalName]="originalNames.get(f)"
+      (remove)="removeFile(f)"
+      (pathChange)="renameFile(f, $event)"
+    ></app-file-handle>
+    }
+  </div>
+  }
+</div>

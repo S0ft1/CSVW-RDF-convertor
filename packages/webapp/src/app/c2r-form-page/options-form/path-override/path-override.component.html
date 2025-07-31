@@ -1,0 +1,31 @@
+<div class="container" [formGroup]="form">
+  <div class="row">
+    <mat-form-field>
+      <mat-label>Path to override</mat-label>
+      <input
+        matInput
+        formControlName="pattern"
+        [matAutocomplete]="auto"
+        (focus)="onTouched()"
+      />
+      <mat-autocomplete #auto="matAutocomplete">
+        @for (uri of filteredUris(); track uri) {
+        <mat-option [value]="uri">
+          {{ uri }}
+        </mat-option>
+        }
+      </mat-autocomplete>
+      @if (searchControl.hasError('invalidRegex') &&
+      !searchControl.hasError('required')) {
+      <mat-error>Invalid regex</mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>New path</mat-label>
+      <input matInput formControlName="replacement" (focus)="onTouched()" />
+    </mat-form-field>
+  </div>
+  <div class="row">
+    <mat-slide-toggle formControlName="isRegex">Use regex</mat-slide-toggle>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div
+  class="issue"
+  [class.warning]="issue().type === 'warning'"
+  [class.error]="issue().type === 'error'"
+>
+  <span class="msg">{{ issue().message }}</span>
+  <span class="location">
+    @if (issue().location) {
+      @for (key of locationKeys; track key) {
+        @if (key in issue().location) {
+          <span>{{ key }}: {{ issue().location[key] }}</span>
+        }
+      }
+    }
+  </span>
+</div>

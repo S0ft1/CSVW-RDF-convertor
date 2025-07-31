@@ -1,0 +1,41 @@
+@if (service.converting()) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  <header>Conversion in progress</header>
+} @else if (containsErrors()) {
+  <header>Conversion failed</header>
+} @else {
+  <header>Conversion results</header>
+}
+<main>
+  @for (issue of service.issues(); track issue) {
+    <app-issue-card [issue]="issue"></app-issue-card>
+  }
+
+  @if (!service.converting() && !containsErrors()) {
+    @let resultShown = showResult();
+    <div class="buttons">
+      <button matButton="filled" (click)="downloadResult()">
+        Download Result
+      </button>
+      <button matButton="filled" (click)="showResult.set(!resultShown)">
+        {{ resultShown ? 'Hide' : 'Show' }} Result
+      </button>
+      <button matButton="tonal" (click)="downloadConfig()">
+        Export Config File
+      </button>
+      <a matButton="tonal" routerLink="/c2r">Convert Again</a>
+    </div>
+    @if (resultShown) {
+      <mat-card>
+        <mat-card-header>
+          <button matIconButton (click)="copyToClipboard()">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <pre>{{ service.result() }}</pre>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</main>

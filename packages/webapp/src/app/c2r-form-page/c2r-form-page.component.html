@@ -1,0 +1,34 @@
+<header>Convert CSVW to RDF</header>
+<mat-stepper linear>
+  <mat-step label="Upload files" [stepControl]="filesFG">
+    <app-files-form [form]="filesFG"></app-files-form>
+    <section class="buttons">
+      <button matButton matStepperNext [disabled]="!filesFG.valid">Next</button>
+    </section>
+  </mat-step>
+  <mat-step label="Configure" [stepControl]="optionsFG">
+    <app-options-form
+      [form]="optionsFG"
+      [descriptor]="descriptor()"
+    ></app-options-form>
+    <section class="buttons">
+      <button matButton matStepperPrevious>Previous</button>
+      <button matButton matStepperNext [disabled]="!optionsFG.valid">
+        Next
+      </button>
+    </section>
+  </mat-step>
+  <mat-step label="Choose output format" [stepControl]="formatFG">
+    <app-format-form [form]="formatFG"></app-format-form>
+    <section class="buttons">
+      <button matButton matStepperPrevious>Previous</button>
+      <button
+        matButton="filled"
+        [disabled]="!formatFG.valid"
+        (click)="submit()"
+      >
+        Convert!
+      </button>
+    </section>
+  </mat-step>
+</mat-stepper>

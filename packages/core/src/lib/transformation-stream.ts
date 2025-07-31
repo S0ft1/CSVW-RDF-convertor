@@ -1,11 +1,12 @@
 import { Bindings, ResultStream } from '@rdfjs/types';
-import { Readable } from 'stream';
 import {
   convertColumnToDateFormattedColumn,
   formatDate,
   isDateFormatedColumn,
 } from './utils/date-formatting.js';
-import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
+import {
+  CsvwTableDescriptionWithRequiredColumns,
+} from './types/descriptor/table.js';
 import {
   convertColumnToNumberFormattedColumn,
   isNumberColumn,
@@ -15,6 +16,7 @@ import { IssueTracker } from './utils/issue-tracker.js';
 import { DataFactory } from 'rdf-data-factory';
 import { trimUrl } from './utils/url-trimming.js';
 import { CsvwColumn } from './rdf2csvw-convertor.js';
+import { Readable } from 'readable-stream';
 const factory = new DataFactory();
 
 export function transformStream(
@@ -87,6 +89,17 @@ export function transformStream(
         const formattedValue = trimUrl(
           value,
           columnDescription.valueUrl,
+          columns[i].name,
+          issueTracker
+        );
+        bindings = bindings.set(
+          columns[i].queryVariable,
+          factory.literal(formattedValue)
+        );
+      } else if (tableDescription.aboutUrl) {
+        const formattedValue = trimUrl(
+          value,
+          tableDescription.aboutUrl,
           columns[i].name,
           issueTracker
         );

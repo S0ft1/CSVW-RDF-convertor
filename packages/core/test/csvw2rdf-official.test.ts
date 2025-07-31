@@ -20,11 +20,11 @@ import { rdfStreamToArray } from '../src/lib/utils/rdf-stream-to-array.js';
 
 const testDir = resolve(
   fileURLToPath(import.meta.url),
-  '../../../../csvw/tests/'
+  '../../../../csvw/tests/',
 );
 const TEST_HTTP_BASE = 'http://example.com/';
 const manifest = JSON.parse(
-  readFileSync(resolve(testDir, 'manifest-rdf.jsonld'), 'utf-8')
+  readFileSync(resolve(testDir, 'manifest-rdf.jsonld'), 'utf-8'),
 ) as Manifest;
 describe('CSVW -> RDF Official tests', () => {
   beforeEach(() => {
@@ -37,12 +37,10 @@ describe('CSVW -> RDF Official tests', () => {
     // CSVW default names (_col1, _col2, ...) expected instead of CSV header titles
     107,
     148, 149, 278,
-    // comment in header
-    286, 287, 296, 297, 298, 299, 300, 301,
   ];
 
   for (const entry of manifest.entries.filter(
-    (e) => !skippedTests.includes(+e.id.slice(-3))
+    (e) => !skippedTests.includes(+e.id.slice(-3)),
   )) {
     test('#' + entry.id.slice(-3) + ': ' + entry.name, async () => {
       const options: Csvw2RdfOptions = {
@@ -60,7 +58,7 @@ describe('CSVW -> RDF Official tests', () => {
         case EntryType.Test:
         case EntryType.TestWithWarnings: {
           const expected = await loadRDF(
-            resolve(testDir, entry.result as string)
+            resolve(testDir, entry.result as string),
           );
           const [stream, issueTracker] = await runConversion(options, entry);
           const actual = await rdfStreamToArray(stream);
@@ -76,8 +74,8 @@ describe('CSVW -> RDF Official tests', () => {
         case EntryType.NegativeTest:
           await expect(
             runConversion(options, entry).then(([stream]) =>
-              rdfStreamToArray(stream)
-            )
+              rdfStreamToArray(stream),
+            ),
           ).rejects.toThrow();
           break;
 
@@ -90,7 +88,7 @@ describe('CSVW -> RDF Official tests', () => {
 
 async function runConversion(
   options: Csvw2RdfOptions,
-  entry: Entry
+  entry: Entry,
 ): Promise<[Stream<Quad>, IssueTracker]> {
   const fromCsvUrl = !!entry.action.match(/\.csv([?#].*)?/);
   const convertor = new Csvw2RdfConvertor({
@@ -106,7 +104,7 @@ async function runConversion(
   }
   const descriptor = await readFile(
     resolve(testDir, entry.option.metadata ?? entry.action),
-    'utf-8'
+    'utf-8',
   );
   return [
     convertor.convert(descriptor, entry.option.metadata ?? entry.action),
@@ -129,7 +127,7 @@ async function loadJsonLd(path: string, base: string): Promise<string> {
 
 function loadStringStream(
   path: string,
-  base: string
+  base: string,
 ): Promise<ReadableStream<string>> {
   let url = URL.parse(path, base)?.href ?? resolve(base, path);
   if (url.startsWith(TEST_HTTP_BASE)) {
@@ -137,7 +135,7 @@ function loadStringStream(
   }
   url = url.replace(/[?#].*/g, '');
   return Promise.resolve(
-    Readable.toWeb(createReadStream(url, 'utf-8')) as ReadableStream<string>
+    Readable.toWeb(createReadStream(url, 'utf-8')) as ReadableStream<string>,
   );
 }
 
@@ -149,7 +147,7 @@ async function loadRDF(rdfFilePath: string) {
   return rdfArray.map((q) => {
     // normalize relative IRIs
     const newPred = namedNode(
-      q.predicate.value.replace('http://www.w3.org/2013/csvw/tests/', '')
+      q.predicate.value.replace('http://www.w3.org/2013/csvw/tests/', ''),
     );
 
     // normalize numeric literals
@@ -168,8 +166,8 @@ async function loadRDF(rdfFilePath: string) {
         q.subject,
         newPred,
         namedNode(
-          q.object.value.replace('http://www.w3.org/2013/csvw/tests/', '')
-        )
+          q.object.value.replace('http://www.w3.org/2013/csvw/tests/', ''),
+        ),
       );
     }
     return quad(q.subject, newPred, q.object, q.graph);
@@ -193,7 +191,7 @@ function setupImplicit(entry: Entry) {
       // for some reason this file is not among implicit files
       if (url === '.well-known/csvm') {
         return Promise.resolve(
-          '{+url}-metadata.json\ncsv-metadata.json\n{+url}.json\ncsvm.json'
+          '{+url}-metadata.json\ncsv-metadata.json\n{+url}.json\ncsvm.json',
         );
       }
     }

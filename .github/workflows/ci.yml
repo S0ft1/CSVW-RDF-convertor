@@ -36,6 +36,8 @@ jobs:
           cache: 'npm'
 
       - run: npm ci --legacy-peer-deps
+      - run: npx playwright install --with-deps
+
       - uses: nrwl/nx-set-shas@v4
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
@@ -58,7 +60,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: npx typedoc
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci --legacy-peer-deps
+
+      - uses: nrwl/nx-set-shas@v4
+
+      - name: Typedoc
+        run: npx typedoc
+      - name: Build webapp
+        run: npx nx build webapp --base-href https://s0ft1.github.io/CSVW-RDF-convertor/demo/ && mkdir -p docs/demo && cp -r packages/webapp/dist/browser/* docs/demo
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

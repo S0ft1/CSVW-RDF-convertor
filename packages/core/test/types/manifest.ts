@@ -39,3 +39,15 @@ export interface EntryOption {
   metadata?: string;
   minimal?: boolean;
 }
+
+export interface SimpleTest {
+  id: number;
+  name: string;
+  inputDataPath: string;
+  inputDescriptor?: string;
+  expectedOutput: Record<string, string>;
+  result?: string;
+  comment?: string;
+  expectsWarning?: boolean;
+  expectsError?: boolean;
+}

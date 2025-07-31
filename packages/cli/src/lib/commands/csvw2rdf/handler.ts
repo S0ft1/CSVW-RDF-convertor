@@ -9,8 +9,8 @@ import {
   rdfStreamToArray,
   commonPrefixes,
   defaultResolveTextFn,
-  RDFSerialization,
   LogLevel,
+  n3Formats,
 } from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
@@ -45,7 +45,7 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
     stream = csvUrlToRdf(args.input, options);
   } else {
     const descriptorText = args.input
-      ? (await options.resolveJsonldFn?.(args.input, '')) ?? ''
+      ? ((await options.resolveJsonldFn?.(args.input, '')) ?? '')
       : await text(process.stdin);
     const descriptor = JSON.parse(descriptorText);
     if (!args.pathOverrides?.length && args.interactive) {
@@ -95,8 +95,8 @@ function getOptions(args: C2RArgs): Csvw2RdfOptions {
       args.logLevel === 'debug'
         ? LogLevel.Debug
         : args.logLevel === 'warn'
-        ? LogLevel.Warn
-        : LogLevel.Error,
+          ? LogLevel.Warn
+          : LogLevel.Error,
     resolveJsonldFn: async (path, base) => {
       const url = getUrl(path, base);
       if (!isAbsolute(url) && URL.canParse(url)) {
@@ -122,33 +122,22 @@ function getOptions(args: C2RArgs): Csvw2RdfOptions {
       if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
         if (url.startsWith('file:')) {
           return Promise.resolve(
-            Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+            Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
           );
         }
         return defaultResolveStreamFn(url, base);
       }
       return Promise.resolve(
-        Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
+        Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
       );
     },
   };
 }
 
-const n3Formats: Record<RDFSerialization, string> = {
-  // TODO: Implement 'application/ld+json'
-  jsonld: 'text/turtle',
-  nquads: 'application/n-quads',
-  ntriples: 'application/n-triples',
-  // TODO: Implement 'application/rdf+xml'
-  rdfxml: 'text/turtle',
-  trig: 'application/trig',
-  turtle: 'text/turtle',
-};
-
 async function outputFormattedTurtle(
   args: ArgsWithDefaults,
   input: Stream<Quad>,
-  outputStream: NodeJS.WritableStream
+  outputStream: NodeJS.WritableStream,
 ) {
   const quads = await rdfStreamToArray(input);
   if (
@@ -164,12 +153,12 @@ async function outputFormattedTurtle(
     ? await lookupPrefixes(quads, args.turtle.prefix)
     : new PrefixMap(
         Object.entries(args.turtle.prefix).map(([k, v]) => [k, namedNode(v)]),
-        { factory: N3.DataFactory }
+        { factory: N3.DataFactory },
       );
 
   if (args.interactive) {
     args.turtle.prefix = Object.fromEntries(
-      Array.from(prefixes.entries()).map(([k, v]) => [k, v.value])
+      Array.from(prefixes.entries()).map(([k, v]) => [k, v.value]),
     );
     console.log('Final command:');
     console.log(showFullCommand(args));
