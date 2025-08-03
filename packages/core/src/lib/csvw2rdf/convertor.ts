@@ -1,6 +1,9 @@
 import { Csvw2RdfOptions, LogLevel } from '../conversion-options.js';
 import { CSVParser } from '../csv-parser.js';
-import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
+import {
+  DescriptorWrapper,
+  normalizeDescriptor,
+} from '../descriptor.js';
 import {
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
@@ -20,7 +23,6 @@ import {
   CsvwNumberFormat,
 } from '../types/descriptor/datatype.js';
 import { CsvwDialectDescription } from '../types/descriptor/dialect-description.js';
-import { CsvwInheritedProperties } from '../types/descriptor/inherited-properties.js';
 import { CsvwTableGroupDescription } from '../types/descriptor/table-group.js';
 import { CsvwTableDescription } from '../types/descriptor/table.js';
 import { tz } from '@date-fns/tz';
@@ -72,7 +74,6 @@ export class Csvw2RdfConvertor {
   private numberParser = new NumberParser(this.issueTracker);
   private used = false;
   private input: DescriptorWrapper;
-  private tg: CsvwTableGroupDescription | undefined;
 
   private static defaultWKs = [
     parseTemplate('{+url}-metadata.json'),
@@ -182,9 +183,7 @@ export class Csvw2RdfConvertor {
         input: this.input,
         issueTracker: this.issueTracker,
       });
-      this.tg = this.input.descriptor as CsvwTableGroupDescription;
     } else {
-      this.tg = undefined;
       validateTable(this.input.descriptor as CsvwTableDescription, {
         input: this.input,
         issueTracker: this.issueTracker,
@@ -389,7 +388,7 @@ export class Csvw2RdfConvertor {
   }
   private getSrcRowsOffset(ctx: TableContext): number {
     const headerRows =
-      ctx.dialect.headerRowCount ?? (ctx.dialect.header ?? true ? 1 : 0);
+      ctx.dialect.headerRowCount ?? ((ctx.dialect.header ?? true) ? 1 : 0);
     return headerRows + (ctx.dialect.skipRows ?? 0);
   }
 
@@ -407,7 +406,7 @@ export class Csvw2RdfConvertor {
       if (col.suppressOutput) continue;
       ctx.col = col;
       for (const type of types) {
-        const template = this.inherit(`${type}Url`, col, ctx);
+        const template = this.input.getInheritedProp(`${type}Url`, ctx.table, ctx.col);
         if (template === undefined) continue;
         templates[type][col.name as string] = parseTemplate(template);
       }
@@ -427,14 +426,14 @@ export class Csvw2RdfConvertor {
     ctx: TableContext
   ): Promise<string[] | undefined> {
     const defaultLang =
-      this.inherit('lang', ctx.table, ctx) ??
+      this.input.getInheritedProp('lang', ctx.table) ??
       (this.input.descriptor['@context']?.[1] as any)?.['@language'] ??
       '@none';
     if (ctx.table.tableSchema === undefined) ctx.table.tableSchema = {};
     const schema = ctx.table.tableSchema;
 
     const headerRowCount =
-      ctx.dialect.headerRowCount ?? (ctx.dialect.header ?? true ? 1 : 0);
+      ctx.dialect.headerRowCount ?? ((ctx.dialect.header ?? true) ? 1 : 0);
     if (!schema.columns) {
       schema.columns = [];
     }
@@ -671,7 +670,7 @@ export class Csvw2RdfConvertor {
 
       for (const title of titles) {
         ctx.col = ctx.columns[titlemap[title]];
-        const lang = this.inherit('lang', ctx.col, ctx);
+        const lang = this.input.getInheritedProp('lang', ctx.table, ctx.col);
         const val = ctx.rowRecord[title];
         if (!val) continue;
         this.emitTriple(
@@ -783,12 +782,12 @@ export class Csvw2RdfConvertor {
             ctx.table.url,
             ctx
           );
-    const lang = this.inherit('lang', ctx.col, ctx);
+    const lang = this.input.getInheritedProp('lang', ctx.table, ctx.col);
 
     if (ctx.templates.value[ctx.col.name as string] === undefined) {
       const val = ctx.rowRecord[ctx.col.name as string] as string | string[];
       if (Array.isArray(val)) {
-        if (this.inherit('ordered', ctx.col, ctx)) {
+        if (this.input.getInheritedProp('ordered', ctx.table, ctx.col)) {
           const head = this.createRDFList(
             val.map((v) => this.datatypeToLiteral(v, dtUri as string, lang))
           );
@@ -826,7 +825,8 @@ export class Csvw2RdfConvertor {
    * @returns [datatype URI, datatype description]
    */
   private normalizeDatatype(ctx: TableContext): [string, CsvwDatatype] {
-    const dtOrBuiltin = this.inherit('datatype', ctx.col, ctx) ?? 'string';
+    const dtOrBuiltin =
+      this.input.getInheritedProp('datatype', ctx.table, ctx.col) ?? 'string';
     const dt =
       typeof dtOrBuiltin === 'string' ? { base: dtOrBuiltin } : dtOrBuiltin;
     let dtUri = dt['@id'];
@@ -1087,8 +1087,8 @@ export class Csvw2RdfConvertor {
       dtUri === xsd + 'date'
         ? 'yyyy-MM-dd'
         : dtUri === xsd + 'time'
-        ? 'HH:mm:ss'
-        : "yyyy-MM-dd'T'HH:mm:ss";
+          ? 'HH:mm:ss'
+          : "yyyy-MM-dd'T'HH:mm:ss";
     let millis = date.getMilliseconds();
     if (millis) {
       resultFormat += '.';
@@ -1157,7 +1157,7 @@ export class Csvw2RdfConvertor {
    * @returns true if the value is null, false otherwise
    */
   private isValueNull(value: string, ctx: TableContext): boolean {
-    const nullVal = this.inherit('null', ctx.col, ctx);
+    const nullVal = this.input.getInheritedProp('null', ctx.table, ctx.col);
     if (nullVal === undefined) return value === '';
     if (nullVal === value) return true;
     if (Array.isArray(nullVal)) {
@@ -1183,7 +1183,7 @@ export class Csvw2RdfConvertor {
       value = value.replace(/\t\r\n/g, ' ');
     }
     if (value === '') value = ctx.col.default ?? '';
-    const sep = this.inherit('separator', ctx.col, ctx);
+    const sep = this.input.getInheritedProp('separator', ctx.table, ctx.col);
     if (sep !== undefined) {
       if (value === '') return [];
       if (this.isValueNull(value, ctx)) return null;
@@ -1194,32 +1194,6 @@ export class Csvw2RdfConvertor {
       return parts;
     }
     return value;
-  }
-
-  /**
-   * get value of inherited property
-   * @param mostSpecific - most specific object to consider
-   */
-  private inherit<K extends keyof CsvwInheritedProperties>(
-    prop: K,
-    mostSpecific: CsvwInheritedProperties,
-    ctx: TableContext
-  ): CsvwInheritedProperties[K] {
-    const levels: (CsvwInheritedProperties | undefined)[] = [
-      ctx.col,
-      ctx.table.tableSchema,
-      ctx.table,
-      this.tg,
-    ];
-    let found = false;
-    for (const level of levels) {
-      if (level === mostSpecific) found = true;
-      else if (!found) continue;
-      if (level?.[prop] !== undefined) {
-        return level[prop];
-      }
-    }
-    return undefined;
   }
 
   /**

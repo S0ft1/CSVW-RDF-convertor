@@ -157,7 +157,7 @@ export const rdf2csvw: CommandModule<
       // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
       if (!args.outDir) console.log();
 
-      for await (const bindings of stream) {
+      for await (const bindings of stream as any) {
         const row = {} as { [key: string]: string };
         for (const [key, value] of bindings) {
           row[key.value] = value.value;

@@ -9,8 +9,10 @@ import { TableGroupSchema } from './table-group-schema.js';
 import { transformStream } from './transformation-stream.js';
 
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
-import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
-import { CsvwTableDescription } from './types/descriptor/table.js';
+import {
+  CsvwTableDescription,
+  CsvwTableDescriptionWithRequiredColumns,
+} from './types/descriptor/table.js';
 
 import { CsvLocationTracker } from './utils/code-location.js';
 import { coerceArray } from './utils/coerce.js';
@@ -44,7 +46,13 @@ export class Rdf2CsvwConvertor {
   });
   private store: Quadstore;
   private engine: Engine;
-  private descriptorWrapper: DescriptorWrapper;
+  /** Wrapper of the descriptor used in the last conversion */
+  private wrapper: DescriptorWrapper;
+
+  public getDescriptor(): DescriptorWrapper {
+    return this.wrapper;
+  }
+
   public constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
   }
@@ -82,12 +90,11 @@ export class Rdf2CsvwConvertor {
 
     await this.openStore();
 
-    let wrapper: DescriptorWrapper;
     if (descriptor === undefined) {
       // TODO: return created descriptor to the user, so it can be saved, modified and used later
-      wrapper = await this.createDescriptor(parser);
+      this.wrapper = await this.createDescriptor(parser);
     } else {
-      wrapper = await normalizeDescriptor(
+      this.wrapper = await normalizeDescriptor(
         descriptor,
         this.options,
         this.issueTracker
@@ -96,9 +103,9 @@ export class Rdf2CsvwConvertor {
     }
 
     // Now we have a descriptor either from user or from rdf data.
-    const tables = wrapper.isTableGroup
-      ? wrapper.getTables()
-      : ([wrapper.descriptor] as CsvwTableDescription[]);
+    const tables = this.wrapper.isTableGroup
+      ? this.wrapper.getTables()
+      : ([this.wrapper.descriptor] as CsvwTableDescription[]);
     const streams = {} as CsvwTablesStream;
     let openedStreamsCount = 0;
 
@@ -131,7 +138,7 @@ export class Rdf2CsvwConvertor {
       const columns: CsvwColumn[] =
         tableWithRequiredColumns.tableSchema.columns.map((col, i) => {
           const defaultLang =
-            (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
+            (this.wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
             '@none';
 
           let name = `_col.${i + 1}`;
@@ -199,9 +206,6 @@ export class Rdf2CsvwConvertor {
     return streams;
   }
 
-  public getDescriptor(): DescriptorWrapper {
-    return this.descriptorWrapper ? this.descriptorWrapper : {} as DescriptorWrapper;
-  }
   /**
    * Creates SPARQL query.
    * @param table CSV Table
@@ -219,10 +223,12 @@ export class Rdf2CsvwConvertor {
     const topLevel: number[] = [];
     for (let index = 0; index < table.tableSchema.columns.length; index++) {
       const column = table.tableSchema.columns[index];
-      const referencedBy = table.tableSchema.columns.find(
-        (col) =>
-          col !== column && col.valueUrl && col.valueUrl === column.aboutUrl
-      );
+
+      const aboutUrl = this.wrapper.getInheritedProp('aboutUrl', table, column);
+      const referencedBy = table.tableSchema.columns.find((col) => {
+        const valueUrl = this.wrapper.getInheritedProp('valueUrl', table, col);
+        return col !== column && valueUrl && valueUrl === aboutUrl;
+      });
 
       // TODO: use tableSchema.foreignKeys
       if (
@@ -238,7 +244,7 @@ export class Rdf2CsvwConvertor {
         );
         // Required columns are prepended, because OPTIONAL pattern should not be at the beginning.
         // For more information, see createSelectOfOptionalSubjects function bellow.
-        if (column.required) {
+        if (this.wrapper.getInheritedProp('required', table, column)) {
           allOptional = false;
           lines.unshift(...patterns.split('\n'));
         } else {
@@ -296,10 +302,26 @@ ${lines.map((line) => `    ${line}`).join('\n')}
         .map((index) => {
           const column = table.tableSchema.columns[index];
 
+          const aboutUrl = this.wrapper.getInheritedProp(
+            'aboutUrl',
+            table,
+            column,
+          );
+          const propertyUrl = this.wrapper.getInheritedProp(
+            'propertyUrl',
+            table,
+            column,
+          );
+          const valueUrl = this.wrapper.getInheritedProp(
+            'valueUrl',
+            table,
+            column,
+          );
+
           const subject = '?_subject';
-          const predicate = column.propertyUrl
+          const predicate = propertyUrl
             ? `<${this.expandIri(
-                parseTemplate(column.propertyUrl).expand({
+                parseTemplate(propertyUrl).expand({
                   _column: index + 1,
                   _sourceColumn: index + 1,
                   _name: columns[index].name,
@@ -309,18 +331,21 @@ ${lines.map((line) => `    ${line}`).join('\n')}
           let object = '?_object';
 
           if (
-            column.valueUrl &&
-            column.valueUrl.search(
-              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/
-            ) === -1
+            valueUrl &&
+            valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
           ) {
-            object = parseTemplate(column.valueUrl).expand({
+            object = parseTemplate(valueUrl).expand({
               _column: index + 1,
               _sourceColumn: index + 1,
               _name: columns[index].name,
             });
+            const datatype = this.wrapper.getInheritedProp(
+              'datatype',
+              table,
+              column,
+            );
             if (
-              column.datatype === 'anyURI' ||
+              datatype === 'anyURI' ||
               predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
             )
               object = `<${this.expandIri(object)}>`;
@@ -329,17 +354,18 @@ ${lines.map((line) => `    ${line}`).join('\n')}
 
           const lines = [`          ${subject} ${predicate} ${object} .`];
 
-          if (column.lang) {
+          const lang = this.wrapper.getInheritedProp('lang', table, column);
+          if (lang) {
             // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
             // TODO: Should we lower our expectations if the matching language is not found?
-            lines.push(`          FILTER (LANG(${object}) = '${column.lang}')`);
+            lines.push(`          FILTER (LANG(${object}) = '${lang}')`);
           }
 
-          if (column.aboutUrl)
+          if (aboutUrl)
             lines.push(
               `          FILTER REGEX(STR(?_subject), "${this.expandIri(
                 parseTemplate(
-                  column.aboutUrl.replaceAll(
+                  aboutUrl.replaceAll(
                     /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
                     '.*'
                   )
@@ -351,11 +377,11 @@ ${lines.map((line) => `    ${line}`).join('\n')}
               )}$")`
             );
 
-          if (object.startsWith('?') && column.valueUrl)
+          if (object.startsWith('?') && valueUrl)
             lines.push(
               `          FILTER REGEX(STR(?_object), "${this.expandIri(
                 parseTemplate(
-                  column.valueUrl.replaceAll(
+                  valueUrl.replaceAll(
                     /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
                     '.*'
                   )
@@ -393,9 +419,17 @@ ${lines.join('\n')}
   ): string {
     const column = table.tableSchema.columns[index];
 
-    const predicate = column.propertyUrl
+    const aboutUrl = this.wrapper.getInheritedProp('aboutUrl', table, column);
+    const propertyUrl = this.wrapper.getInheritedProp(
+      'propertyUrl',
+      table,
+      column,
+    );
+    const valueUrl = this.wrapper.getInheritedProp('valueUrl', table, column);
+
+    const predicate = propertyUrl
       ? `<${this.expandIri(
-          parseTemplate(column.propertyUrl).expand({
+          parseTemplate(propertyUrl).expand({
             _column: index + 1,
             _sourceColumn: index + 1,
             _name: columns[index].name,
@@ -409,16 +443,16 @@ ${lines.join('\n')}
 
     let object = `?${columns[index].queryVariable}`;
     if (
-      column.valueUrl &&
-      column.valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
+      valueUrl &&
+      valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
     ) {
-      object = parseTemplate(column.valueUrl).expand({
+      object = parseTemplate(valueUrl).expand({
         _column: index + 1,
         _sourceColumn: index + 1,
         _name: columns[index].name,
       });
       if (
-        column.datatype === 'anyURI' ||
+        this.wrapper.getInheritedProp('datatype', table, column) === 'anyURI' ||
         predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
       )
         object = `<${this.expandIri(object)}>`;
@@ -426,17 +460,19 @@ ${lines.join('\n')}
     }
 
     const lines = [`  ${subject} ${predicate} ${object} .`];
-    if (column.lang) {
+
+    const lang = this.wrapper.getInheritedProp('lang', table, column);
+    if (lang) {
       // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
       // TODO: Should we lower our expectations if the matching language is not found?
-      lines.push(`  FILTER (LANG(${object}) = '${column.lang}')`);
+      lines.push(`  FILTER (LANG(${object}) = '${lang}')`);
     }
 
-    if (column.aboutUrl && subject === '?_subject') {
+    if (aboutUrl && subject === '?_subject') {
       lines.push(
         `  FILTER REGEX(STR(${subject}), "${this.expandIri(
           parseTemplate(
-            column.aboutUrl.replaceAll(
+            aboutUrl.replaceAll(
               /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
               '.*'
             )
@@ -449,11 +485,11 @@ ${lines.join('\n')}
       );
     }
 
-    if (object.startsWith('?') && column.valueUrl) {
+    if (object.startsWith('?') && valueUrl) {
       lines.push(
         `  FILTER REGEX(STR(${object}), "${this.expandIri(
           parseTemplate(
-            column.valueUrl.replaceAll(
+            valueUrl.replaceAll(
               /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
               '.*'
             )
@@ -466,14 +502,17 @@ ${lines.join('\n')}
       );
 
       table.tableSchema.columns.forEach((col, i) => {
-        if (col !== column && col.aboutUrl === column.valueUrl) {
+        if (
+          col !== column &&
+          this.wrapper.getInheritedProp('aboutUrl', table, col) === valueUrl
+        ) {
           const patterns = this.createTriplePatterns(table, columns, i, object);
           lines.push(...patterns.split('\n'));
         }
       });
     }
 
-    if (!column.required) {
+    if (!this.wrapper.getInheritedProp('required', table, column)) {
       return `  OPTIONAL {
 ${lines.map((line) => `  ${line}`).join('\n')}
   }`;
@@ -552,7 +591,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
           { baseIRI: '.' }
         );
 
-        for await (const bindings of stream) {
+        for await (const bindings of stream as any) {
           hasType = true;
           const type = bindings.get('_type').value;
 

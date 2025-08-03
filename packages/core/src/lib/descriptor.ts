@@ -3,7 +3,10 @@ import {
   CompactedCsvwDescriptor,
   CompactedExpandedCsvwDescriptor,
 } from './types/descriptor/descriptor.js';
+import { CsvwColumnDescription } from './types/descriptor/column-description.js';
+import { CsvwInheritedProperties } from './types/descriptor/inherited-properties.js';
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
+import { CsvwTableDescription } from './types/descriptor/table.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { csvwNs } from './types/descriptor/namespace.js';
 import { ConversionOptions } from './conversion-options.js';
@@ -365,6 +368,32 @@ export class DescriptorWrapper {
     } else {
       yield this.descriptor;
     }
+  }
+
+  /**
+   * get value of inherited property
+   * @param prop 
+   * @param table 
+   * @param column 
+   * @returns 
+   */
+  public getInheritedProp<K extends keyof CsvwInheritedProperties>(
+    prop: K,
+    table: CsvwTableDescription,
+    column?: CsvwColumnDescription,
+  ): CsvwInheritedProperties[K] {
+    const levels: (CsvwInheritedProperties | undefined)[] = [
+      column,
+      table.tableSchema,
+      table,
+      this.isTableGroup ? this.descriptor : undefined,
+    ];
+    for (const level of levels) {
+      if (level?.[prop] !== undefined) {
+        return level[prop];
+      }
+    }
+    return undefined;
   }
 
   /**
