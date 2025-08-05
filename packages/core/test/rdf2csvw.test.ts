@@ -42,7 +42,7 @@ tests = JSON.parse(testDataJson) as SimpleTest[];
 const testFolders = getFolderNames(pathToTests);
 for (let i = 0; i < testFolders.length; i++) {
   let inputDescriptor = "";
-  
+
   try {
     inputDescriptor = readFileSync(
       join(pathToTests, testFolders[i], 'descriptor.json'),
@@ -50,7 +50,6 @@ for (let i = 0; i < testFolders.length; i++) {
     );
   }
   catch (e) {
-    console.error(`Error reading descriptor.json for test ${testFolders[i]}:`, e);
   }
   const inputDataPath = join(pathToTests, testFolders[i], 'input.ttl');
   const expectedOutput: Record<string, string> = {};
@@ -63,7 +62,7 @@ for (let i = 0; i < testFolders.length; i++) {
       );
     }
   }
-  if(files.length === 0) {
+  if (files.length === 0) {
     continue;
   }
   tests[i] = {
