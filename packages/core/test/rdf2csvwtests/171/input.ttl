@@ -7,14 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "values with wrong length";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.";
+      rdfs:label "decimal with per-mille";
+      rdfs:comment "Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test196.csv#NMTOKEN> "token"];
+        csvw:describes [ <test171.csv#decimal> 123.456789 ];
         csvw:rownum 1;
-        csvw:url <test196.csv#row=2>
+        csvw:url <test171.csv#row=2>
       ];
-      csvw:url <test196.csv>
+      csvw:url <test171.csv>
     ]
  ] .

@@ -7,19 +7,19 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "If the datatype base for a cell is `boolean`, the datatype format annotation provides the true value followed by the false value, separated by `|`. If the format does not follow this syntax, implementations MUST issue a warning and proceed as if no format had been provided.";
-      rdfs:comment "`format` for a boolean datatype is a string but in the wrong form (eg YN).";
+      rdfs:label "single column primaryKey violation";
+      rdfs:comment "Validators MUST raise errors if there is more than one row with the same primary key.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test269.csv#boolean> "Y"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test269.csv#row=2>
+        csvw:describes [ <test232.csv#PK> "1"];
+        csvw:rownum 1;
+        csvw:url <test232.csv#row=2>
       ],  [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test269.csv#boolean> "N"];
-        csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test269.csv#row=3>
+        csvw:describes [ <test232.csv#PK> "1"];
+        csvw:rownum 2;
+        csvw:url <test232.csv#row=3>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test269.csv>
+      csvw:url <test232.csv>
     ]
  ] .

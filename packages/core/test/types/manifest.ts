@@ -42,12 +42,16 @@ export interface EntryOption {
 
 export interface SimpleTest {
   id: number;
+  type: SimpleTestType;
   name: string;
-  inputDataPath: string;
-  inputDescriptor?: string;
-  expectedOutput: Record<string, string>;
-  result?: string;
   comment?: string;
-  expectsWarning?: boolean;
-  expectsError?: boolean;
+  action: string;
+  metadata?: string;
+  result: string[];
+}
+
+export enum SimpleTestType {
+  Test = 'ToCsvwTest',
+  TestWithWarnings = 'ToCsvwTestWithWarnings',
+  NegativeTest = 'NegativeCsvwTest',
 }

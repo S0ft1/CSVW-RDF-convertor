@@ -7,21 +7,41 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "float value constraint not matching maxExclusive";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
+      rdfs:label "boolean format (valid combinations)";
+      rdfs:comment "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`..";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test208.csv#maxExclusive> "5";
-          <test208.csv#maxInclusive> "5"^^xsd:float;
-          <test208.csv#maximum> "5"^^xsd:float;
-          <test208.csv#minExclusive> "6"^^xsd:float;
-          <test208.csv#minInclusive> "5"^^xsd:float;
-          <test208.csv#minimum> "5"^^xsd:float
+          <test183.csv#boolean> true;
+          <test183.csv#boolean1> true
         ];
         csvw:rownum 1;
-        csvw:url <test208.csv#row=2>
+        csvw:url <test183.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> false;
+          <test183.csv#boolean1> false
+        ];
+        csvw:rownum 2;
+        csvw:url <test183.csv#row=3>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> true;
+          <test183.csv#boolean1> true
+        ];
+        csvw:rownum 3;
+        csvw:url <test183.csv#row=4>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> false;
+          <test183.csv#boolean1> false
+        ];
+        csvw:rownum 4;
+        csvw:url <test183.csv#row=5>
       ];
-      csvw:url <test208.csv>
+      csvw:url <test183.csv>
     ]
  ] .

@@ -7,18 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "values with matching length";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.";
+      rdfs:label "decimal with percent";
+      rdfs:comment "Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [
-          <test195.csv#NMTOKEN> "token"^^xsd:NMTOKEN;
-          <test195.csv#base64Binary> "U2VuZCByZWluZm9yY2VtZW50cw=="^^xsd:base64Binary;
-          <test195.csv#hexBinary> "0FB7"^^xsd:hexBinary
-        ];
+        csvw:describes [ <test170.csv#decimal> 1234.56789];
         csvw:rownum 1;
-        csvw:url <test195.csv#row=2>
+        csvw:url <test170.csv#row=2>
       ];
-      csvw:url <test195.csv>
+      csvw:url <test170.csv>
     ]
  ] .

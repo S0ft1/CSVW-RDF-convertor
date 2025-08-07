@@ -6,94 +6,108 @@ import {
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '../src/index.js';
-import { readdirSync, statSync } from 'fs';
-import { join } from 'path';
-import { dirname, isAbsolute, resolve } from 'node:path';
+import { parse } from 'csv-parse';
+import { isAbsolute, resolve } from 'node:path';
 import { createReadStream, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const pathToTests = join(__dirname, '/rdf2csvwtests');
-const TEST_HTTP_BASE = 'http://example.com/';
-const testDir = resolve(
-  fileURLToPath(import.meta.url),
-  '../../../../csvw/tests/',
-);
+
 type SimpleTestRow = Record<string, string>;
 type SimpleTestTables = Record<string, SimpleTestRow[]>;
 
-let tests: SimpleTest[] = [];
+const testDir = resolve(fileURLToPath(import.meta.url), '../rdf2csvwtests');
+const csvwDir = resolve(fileURLToPath(import.meta.url), '../../../../csvw');
+const TEST_HTTP_BASE = 'http://example.com/';
 
-const options: Rdf2CsvOptions = {
-  pathOverrides: [
-    [
-      'http://www.w3.org/ns/csvw',
-      pathToFileURL(resolve(pathToTests, '../../../../csvw/ns/csvw.jsonld'))
-        .href,
-    ],
-  ],
-  resolveJsonldFn: loadJsonLd,
-  resolveRdfStreamFn: loadStringStream,
-};
-const convertor: Rdf2CsvwConvertor = new Rdf2CsvwConvertor(options);
-const testDataJson = readFileSync(join(pathToTests, 'testData.json'), 'utf-8');
-tests = JSON.parse(testDataJson) as SimpleTest[];
-const testFolders = getFolderNames(pathToTests);
-for (let i = 0; i < testFolders.length; i++) {
-  let inputDescriptor = "";
+const tests = JSON.parse(
+  readFileSync(resolve(testDir, 'manifest.json'), 'utf-8'),
+) as SimpleTest[];
 
-  try {
-    inputDescriptor = readFileSync(
-      join(pathToTests, testFolders[i], 'descriptor.json'),
-      'utf-8',
-    );
-  }
-  catch (e) {
-  }
-  const inputDataPath = join(pathToTests, testFolders[i], 'input.ttl');
-  const expectedOutput: Record<string, string> = {};
-  const files = readdirSync(join(pathToTests, testFolders[i]));
-  for (const file of files) {
-    if (file.endsWith('.csv')) {
-      expectedOutput[file] = readFileSync(
-        join(pathToTests, testFolders[i], file),
-        'utf-8',
-      );
-    }
-  }
-  if (files.length === 0) {
-    continue;
-  }
-  tests[i] = {
-    id: tests[i].id,
-    name: tests[i].name,
-    inputDataPath,
-    expectedOutput,
-    inputDescriptor,
-    expectsError: tests[i].expectsError || false,
-    expectsWarning: tests[i].expectsWarning || false,
-  };
-}
-
-describe('rdf2csvw', () => {
-  tests.forEach((test) => {
-    it(test.name, async () => {
-      const expectedTable = fillExpectedTable(test.expectedOutput);
+describe('RDF -> CSVW with descriptor', () => {
+  for (const entry of tests) {
+    test(`#${entry.id}: ${entry.name}`, async () => {
+      const options: Rdf2CsvOptions = {
+        baseIri: resolve(testDir, entry.action, '..'),
+        pathOverrides: [
+          [
+            'http://www.w3.org/ns/csvw',
+            pathToFileURL(resolve(csvwDir, 'ns/csvw.jsonld')).href,
+          ],
+        ],
+        resolveJsonldFn: loadJsonLd,
+        resolveRdfStreamFn: loadStringStream,
+      };
+      const convertor = new Rdf2CsvwConvertor(options);
       const result = await convertor.convert(
-        test.inputDataPath,
-        test.inputDescriptor,
+        resolve(testDir, entry.action),
+        await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
       );
-      const resultTable = await fillResultTable(result);
-      expect(resultTable).toEqual(expectedTable);
+
+      const received = await toReceivedObject(result);
+      const expected = await loadExpectedObject(entry.result);
+
+      expect(received).toEqual(expected);
     });
-  });
+  }
 });
 
-function getFolderNames(dirPath: string): string[] {
-  return readdirSync(dirPath).filter((name) =>
-    statSync(join(dirPath, name)).isDirectory(),
-  );
+async function toReceivedObject(
+  result: CsvwTablesStream,
+): Promise<SimpleTestTables> {
+  const tables = {} as SimpleTestTables;
+
+  for (const [tableName, [columns, stream]] of Object.entries(result)) {
+    const table = [] as SimpleTestRow[];
+
+    for await (const bindings of stream as any) {
+      const row = {} as SimpleTestRow;
+
+      for (const [key, value] of bindings) {
+        const columnTitle = (
+          columns.find(
+            (column) => column.queryVariable === key.value,
+          ) as CsvwColumn
+        ).title;
+        row[columnTitle] = value.value;
+      }
+
+      table.push(row);
+    }
+
+    tables[tableName] = table;
+  }
+
+  return tables;
+}
+
+async function loadExpectedObject(
+  expectedTables: string[],
+): Promise<SimpleTestTables> {
+  const tables = {} as SimpleTestTables;
+
+  for (const tableName of expectedTables) {
+    const table = [] as SimpleTestRow[];
+
+    const csv = parse(await readFile(resolve(testDir, tableName), 'utf-8'), {
+      columns: true,
+      trim: true,
+    });
+
+    for await (const line of csv) {
+      const row = {} as SimpleTestRow;
+
+      for (const columnTitle of Object.keys(line)) {
+        row[columnTitle] = line[columnTitle];
+      }
+
+      table.push(row);
+    }
+
+    tables[tableName.substring(4)] = table;
+  }
+
+  return tables;
 }
 
 async function loadJsonLd(path: string, base: string): Promise<string> {
@@ -108,6 +122,7 @@ async function loadJsonLd(path: string, base: string): Promise<string> {
 
   return await readFile(url, 'utf-8');
 }
+
 function loadStringStream(
   path: string,
   base: string,
@@ -120,54 +135,4 @@ function loadStringStream(
   return Promise.resolve(
     Readable.toWeb(createReadStream(url, 'utf-8')) as ReadableStream<string>,
   );
-}
-
-function fillExpectedTable(expectedOutput: {
-  [tableName: string]: string;
-}): SimpleTestTables {
-  const tables = {} as SimpleTestTables;
-
-  for (const tableName of Object.keys(expectedOutput)) {
-    const table = [] as SimpleTestRow[];
-
-    const lines = expectedOutput[tableName].split(/\r?\n/);
-    const header = lines[0].split(',');
-
-    for (let i = 1; i < lines.length; ++i) {
-      const row = {} as SimpleTestRow;
-
-      if (lines[i].trim()) {
-        const values = lines[i].split(',');
-        for (let j = 0; j < header.length && j < values.length; ++j)
-          row[header[j]] = values[j];
-        table.push(row);
-      }
-    }
-
-    tables[tableName] = table;
-  }
-
-  return tables;
-}
-
-async function fillResultTable(
-  result: CsvwTablesStream,
-): Promise<SimpleTestTables> {
-  const tables: SimpleTestTables = {};
-  for (const [tableName, [columns, stream]] of Object.entries(result)) {
-    tables[tableName] = [];
-    for await (const bindings of stream) {
-      tables[tableName].push({});
-      for (const [key, value] of bindings) {
-        const columnTitle = (
-          columns.find(
-            (column) => column.queryVariable === key.value,
-          ) as CsvwColumn
-        ).title;
-        tables[tableName][tables[tableName].length - 1][columnTitle] =
-          value.value;
-      }
-    }
-  }
-  return tables;
 }

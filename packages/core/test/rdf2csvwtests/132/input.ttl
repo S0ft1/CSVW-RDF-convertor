@@ -7,18 +7,30 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "number format (value not matching format)";
-      rdfs:comment "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string.";
+      rdfs:comment "If there is no name property defined on this column, the first titles value having the same language tag as default language, or und or if no default language is specified, becomes the name annotation for the described column. This annotation MUST be percent-encoded as necessary to conform to the syntactic requirements defined in [RFC3986]";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test157.csv#decimal> "10.10";
-          <test157.csv#double> "10.10e10";
-          <test157.csv#integer> "10.1"
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#Inventory%20Date> "10/18/2010";
+          <tree-ops.csv#On%20Street> "ADDISON AV";
+          <tree-ops.csv#Species> "Celtis australis";
+          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 1;
-        csvw:url <test157.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#Inventory%20Date> "6/2/2010";
+          <tree-ops.csv#On%20Street> "EMERSON ST";
+          <tree-ops.csv#Species> "Liquidambar styraciflua";
+          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"
+        ];
+        csvw:rownum 2;
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <test157.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

@@ -7,14 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "duration not matching xsd pattern";
-      rdfs:comment "Value MUST be a valid xsd:duration.";
+      rdfs:label "datatype @id an absolute URL that does not resolve";
+      rdfs:comment "If included, @id is a link property that identifies the datatype described by this datatype description.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test279.csv#duration> "Foo"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test279.csv#row=2>
+        csvw:describes [ <test242.csv#string> "foo"^^<http://example.org/datatpe>];
+        csvw:rownum 1;
+        csvw:url <test242.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test279.csv>
+      csvw:url <test242.csv>
     ]
  ] .

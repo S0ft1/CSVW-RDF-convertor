@@ -7,14 +7,21 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "datatype @id an absolute URL that does not resolve";
-      rdfs:comment "If included, @id is a link property that identifies the datatype described by this datatype description.";
+      rdfs:label "date value constraint not matching minExclusive";
+      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test242.csv#string> "foo"^^<http://example.org/datatpe>];
+        csvw:describes [
+          <test214.csv#maxExclusive> "2015-06-04"^^xsd:date;
+          <test214.csv#maxInclusive> "2015-06-05"^^xsd:date;
+          <test214.csv#maximum> "2015-06-05"^^xsd:date;
+          <test214.csv#minExclusive> "2015-06-05";
+          <test214.csv#minInclusive> "2015-06-05"^^xsd:date;
+          <test214.csv#minimum> "2015-06-05"^^xsd:date
+        ];
         csvw:rownum 1;
-        csvw:url <test242.csv#row=2>
+        csvw:url <test214.csv#row=2>
       ];
-      csvw:url <test242.csv>
+      csvw:url <test214.csv>
     ]
  ] .

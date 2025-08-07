@@ -7,14 +7,18 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "boolean format (not matching datatype)";
+      rdfs:label "number format (not matching values without pattern)";
       rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test186.csv#boolean> "100"];
+        csvw:describes [
+          <test161.csv#decimal> "10.10e1";
+          <test161.csv#double> "foo";
+          <test161.csv#integer> "10.1"
+        ];
         csvw:rownum 1;
-        csvw:url <test186.csv#row=2>
+        csvw:url <test161.csv#row=2>
       ];
-      csvw:url <test186.csv>
+      csvw:url <test161.csv>
     ]
  ] .

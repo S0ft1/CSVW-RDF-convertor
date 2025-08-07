@@ -7,14 +7,16 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "boolean format (bad format string)";
-      rdfs:comment "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`..";
+      rdfs:label "number format (bad format string)";
+      rdfs:comment "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test184.csv#boolean> true];
+        csvw:describes [
+          <test159.csv#integer> 0
+        ];
         csvw:rownum 1;
-        csvw:url <test184.csv#row=2>
+        csvw:url <test159.csv#row=2>
       ];
-      csvw:url <test184.csv>
+      csvw:url <test159.csv>
     ]
  ] .

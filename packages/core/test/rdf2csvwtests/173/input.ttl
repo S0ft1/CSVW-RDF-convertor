@@ -7,14 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "values with wrong minLength";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.";
+      rdfs:label "invald unsignedLong";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test198.csv#NMTOKEN> "token"];
+        csvw:describes [ <test173.csv#unsignedLong> "-1234"];
         csvw:rownum 1;
-        csvw:url <test198.csv#row=2>
+        csvw:url <test173.csv#row=2>
       ];
-      csvw:url <test198.csv>
+      csvw:url <test173.csv>
     ]
  ] .

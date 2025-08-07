@@ -3,33 +3,35 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<test307.csv#about> <test307.csv#value>
-     ("1" "2" "3"),
-     "4",
-     "5",
-     "6",
-     ("a" "b" "c"),
-     "d",
-     "e",
-     "f" .
-
  [
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "multiple values with same subject and property (ordered and unordered)";
-      rdfs:comment "Values in separate columns using the same propertyUrl are kept in proper relative order.";
+      rdfs:label "`null` contains an array of (valid) string & (invalid) numeric values";
+      rdfs:comment "Processors MUST issue a warning if a property is set to an invalid value type.";
       csvw:row [
         a csvw:Row;
-        csvw:describes <test307.csv#about>;
+        csvw:describes [
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "1";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "ADDISON AV";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Celtis australis";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+        ];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <test307.csv#row=2>
+        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=2>
       ],  [
         a csvw:Row;
-        csvw:describes <test307.csv#about>;
+        csvw:describes [
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "2";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "EMERSON ST";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Liquidambar styraciflua";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+        ];
         csvw:rownum "2"^^xsd:integer;
-        csvw:url <test307.csv#row=3>
+        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=3>
       ];
-      csvw:url <test307.csv>
+      csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv>
     ]
  ] .

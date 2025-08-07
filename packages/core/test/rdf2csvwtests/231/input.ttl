@@ -7,31 +7,19 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "`base` missing on datatype (defaults to string)";
-      rdfs:comment "An atomic property that contains a single string: the name of one of the built-in datatypes, as listed above (and which are defined as terms in the default context). Its default is string.";
+      rdfs:label "single column primaryKey success";
+      rdfs:comment "As defined in [tabular-data-model], validators must check that each row has a unique combination of values of cells in the indicated columns.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "1";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "ADDISON AV";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Celtis australis";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
-        ];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=2>
+        csvw:describes [ <test231.csv#PK> "1"];
+        csvw:rownum 1;
+        csvw:url <test231.csv#row=2>
       ],  [
         a csvw:Row;
-        csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "2";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "EMERSON ST";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Liquidambar styraciflua";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
-        ];
-        csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=3>
+        csvw:describes [ <test231.csv#PK> "2"];
+        csvw:rownum 2;
+        csvw:url <test231.csv#row=3>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv>
+      csvw:url <test231.csv>
     ]
  ] .

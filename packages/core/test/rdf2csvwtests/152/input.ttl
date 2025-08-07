@@ -7,14 +7,21 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "invalid negativeInteger";
-      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.";
+      rdfs:label "string format (valid combinations)";
+      rdfs:comment "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test177.csv#negativeInteger> "123"];
+        csvw:describes [
+          <test152.csv#NMTOKEN> "foobar"^^xsd:NMTOKEN;
+          <test152.csv#anyUri> "http://example.org"^^xsd:anyURI;
+          <test152.csv#normalizedString> "bar"^^xsd:normalizedString;
+          <test152.csv#string1> "AaAaA";
+          <test152.csv#string2> "GED";
+          <test152.csv#string3> "foo bar"
+        ];
         csvw:rownum 1;
-        csvw:url <test177.csv#row=2>
+        csvw:url <test152.csv#row=2>
       ];
-      csvw:url <test177.csv>
+      csvw:url <test152.csv>
     ]
  ] .

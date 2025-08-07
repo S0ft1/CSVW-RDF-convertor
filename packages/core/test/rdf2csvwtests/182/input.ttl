@@ -7,21 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "float value constraint not matching maxInclusive";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
+      rdfs:label "invalid float";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [
-          <test207.csv#maxExclusive> "4"^^xsd:float;
-          <test207.csv#maxInclusive> "5"^^xsd:float;
-          <test207.csv#maximum> "5"^^xsd:float;
-          <test207.csv#minExclusive> "5";
-          <test207.csv#minInclusive> "5"^^xsd:float;
-          <test207.csv#minimum> "5"^^xsd:float
-        ];
+        csvw:describes [ <test182.csv#float> "1z"];
         csvw:rownum 1;
-        csvw:url <test207.csv#row=2>
+        csvw:url <test182.csv#row=2>
       ];
-      csvw:url <test207.csv>
+      csvw:url <test182.csv>
     ]
  ] .

@@ -7,14 +7,31 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "invalid #0.0#,# 12.345";
-      rdfs:comment "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.";
+      rdfs:label "`null` contains an array of (valid) string & (invalid) numeric values";
+      rdfs:comment "Processors MUST issue a warning if a property is set to an invalid value type.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test303.csv#%230.0%23> "12.345"];
+        csvw:describes [
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "1";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "ADDISON AV";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Celtis australis";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+        ];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test303.csv#row=2>
+        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "2";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "EMERSON ST";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Liquidambar styraciflua";
+          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+        ];
+        csvw:rownum "2"^^xsd:integer;
+        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=3>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test303.csv>
+      csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv>
     ]
  ] .

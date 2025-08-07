@@ -7,19 +7,21 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "single column primaryKey success";
-      rdfs:comment "As defined in [tabular-data-model], validators must check that each row has a unique combination of values of cells in the indicated columns.";
+      rdfs:label "float value constraint not matching minExclusive";
+      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test231.csv#PK> "1"];
+        csvw:describes [
+          <test206.csv#maxExclusive> "4"^^xsd:float;
+          <test206.csv#maxInclusive> "6";
+          <test206.csv#maximum> "5"^^xsd:float;
+          <test206.csv#minExclusive> "6"^^xsd:float;
+          <test206.csv#minInclusive> "5"^^xsd:float;
+          <test206.csv#minimum> "5"^^xsd:float
+        ];
         csvw:rownum 1;
-        csvw:url <test231.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [ <test231.csv#PK> "2"];
-        csvw:rownum 2;
-        csvw:url <test231.csv#row=3>
+        csvw:url <test206.csv#row=2>
       ];
-      csvw:url <test231.csv>
+      csvw:url <test206.csv>
     ]
  ] .

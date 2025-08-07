@@ -7,21 +7,24 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "date value constraint not matching maxExclusive";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
+      rdfs:label "date format (valid dateTime combinations with formats)";
+      rdfs:comment "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test215.csv#maxExclusive> "2015-06-05";
-          <test215.csv#maxInclusive> "2015-06-05"^^xsd:date;
-          <test215.csv#maximum> "2015-06-05"^^xsd:date;
-          <test215.csv#minExclusive> "2015-06-06"^^xsd:date;
-          <test215.csv#minInclusive> "2015-06-05"^^xsd:date;
-          <test215.csv#minimum> "2015-06-05"^^xsd:date
+          <test190.csv#d%2DM%2Dyyyy%20HHmm> "2015-03-15T15:02:00"^^xsd:dateTime;
+          <test190.csv#d%2DM%2Dyyyy%20HHmm%20X> "2015-03-15T15:02:00Z"^^xsd:dateTime;
+          <test190.csv#dd%2DMM%2Dyyyy%20HH%3Amm> "2015-03-15T15:02:00"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2Ddd%20HH%3Amm%3Ass> "2015-03-15T15:02:37"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2Ddd%20HH%3Amm%3Ass%20X> "2015-03-15T15:02:37+08:00"^^xsd:dateTimeStamp;
+          <test190.csv#yyyy%2DMM%2DddTHH%3Amm> "2015-03-15T15:02:00"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2DddTHH%3Amm%3Ass> "2015-03-15T15:02:37"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2DddTHH%3Amm%3AssXXX> "2015-03-15T15:02:37-05:00"^^xsd:dateTime;
+          <test190.csv#yyyyMMdd%20HHmmss> "2015-03-15T15:02:37"^^xsd:dateTime
         ];
         csvw:rownum 1;
-        csvw:url <test215.csv#row=2>
+        csvw:url <test190.csv#row=2>
       ];
-      csvw:url <test215.csv>
+      csvw:url <test190.csv>
     ]
  ] .

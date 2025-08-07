@@ -7,21 +7,57 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "date value constraint not matching minInclusive";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
+      rdfs:label "date format (valid native combinations)";
+      rdfs:comment "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test212.csv#maxExclusive> "2015-06-04"^^xsd:date;
-          <test212.csv#maxInclusive> "2015-06-05"^^xsd:date;
-          <test212.csv#maximum> "2015-06-05"^^xsd:date;
-          <test212.csv#minExclusive> "2015-06-06"^^xsd:date;
-          <test212.csv#minInclusive> "2015-06-04";
-          <test212.csv#minimum> "2015-06-05"^^xsd:date
+          <test187.csv#date> "2015-03-22"^^xsd:date;
+          <test187.csv#dateTime> "2015-03-15T15:02:37"^^xsd:dateTime;
+          <test187.csv#dateTimeStamp> "2015-03-15T15:02:37Z"^^xsd:dateTimeStamp;
+          <test187.csv#datetime> "2015-03-15T15:02:37"^^xsd:dateTime;
+          <test187.csv#gDay> "---31"^^xsd:gDay;
+          <test187.csv#gMonth> "--02"^^xsd:gMonth;
+          <test187.csv#gMonthDay> "--02-21"^^xsd:gMonthDay;
+          <test187.csv#gYear> "9999"^^xsd:gYear;
+          <test187.csv#gYearMonth> "1999-05"^^xsd:gYearMonth;
+          <test187.csv#time> "15:02:37"^^xsd:time
         ];
         csvw:rownum 1;
-        csvw:url <test212.csv#row=2>
+        csvw:url <test187.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test187.csv#date> "2015-03-22Z"^^xsd:date;
+          <test187.csv#dateTime> "2015-03-15T15:02:37Z"^^xsd:dateTime;
+          <test187.csv#dateTimeStamp> "2015-03-15T15:02:37Z"^^xsd:dateTimeStamp;
+          <test187.csv#datetime> "2015-03-15T15:02:37Z"^^xsd:dateTime;
+          <test187.csv#gDay> "---31Z"^^xsd:gDay;
+          <test187.csv#gMonth> "--02Z"^^xsd:gMonth;
+          <test187.csv#gMonthDay> "--02-21Z"^^xsd:gMonthDay;
+          <test187.csv#gYear> "9999Z"^^xsd:gYear;
+          <test187.csv#gYearMonth> "1999-05Z"^^xsd:gYearMonth;
+          <test187.csv#time> "15:02:37Z"^^xsd:time
+        ];
+        csvw:rownum 2;
+        csvw:url <test187.csv#row=3>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test187.csv#date> "2015-03-22-08:00"^^xsd:date;
+          <test187.csv#dateTime> "2015-03-15T15:02:37-08:00"^^xsd:dateTime;
+          <test187.csv#dateTimeStamp> "2015-03-15T15:02:37-08:00"^^xsd:dateTimeStamp;
+          <test187.csv#datetime> "2015-03-15T15:02:37-08:00"^^xsd:dateTime;
+          <test187.csv#gDay> "---31-08:00"^^xsd:gDay;
+          <test187.csv#gMonth> "--02-08:00"^^xsd:gMonth;
+          <test187.csv#gMonthDay> "--02-21-08:00"^^xsd:gMonthDay;
+          <test187.csv#gYear> "9999-08:00"^^xsd:gYear;
+          <test187.csv#gYearMonth> "1999-05-08:00"^^xsd:gYearMonth;
+          <test187.csv#time> "15:02:37-08:00"^^xsd:time
+        ];
+        csvw:rownum 3;
+        csvw:url <test187.csv#row=4>
       ];
-      csvw:url <test212.csv>
+      csvw:url <test187.csv>
     ]
  ] .
