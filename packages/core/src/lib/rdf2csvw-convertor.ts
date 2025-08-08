@@ -157,7 +157,7 @@ export class Rdf2CsvwConvertor {
             }
           }
 
-          let title = `_col.${i + 1}`;
+          let title = undefined;
           if (col.titles !== undefined) {
             if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
               title = coerceArray(col.titles)[0];
@@ -167,9 +167,11 @@ export class Rdf2CsvwConvertor {
                 title = coerceArray(col.titles[defaultLang])[0];
               }
             }
-          } else if (col.name !== undefined) {
+          }
+          if (title === undefined && col.name !== undefined) {
             title = col.name;
           }
+          if (title === undefined) title = `_col.${i + 1}`;
 
           // note that queryVariable does not contain dot that is special char in SPARQL.
           // queryVariable of 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' will be set later,
