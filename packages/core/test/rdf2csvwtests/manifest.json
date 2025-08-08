@@ -1828,10 +1828,10 @@
     "type": "ToCsvwTest",
     "name": "`null` contains an array of (valid) string & (invalid) numeric values",
     "comment": "Processors MUST issue a warning if a property is set to an invalid value type",
-    "action": "265/input.ttl",
-    "metadata": "265/csv-metadata.json",
+    "action": "266/input.ttl",
+    "metadata": "266/csv-metadata.json",
     "result": [
-      "265/tree-ops.csv"
+      "266/tree-ops.csv"
     ]
   },
   {
@@ -1839,10 +1839,10 @@
     "type": "ToCsvwTest",
     "name": "`base` missing on datatype (defaults to string)",
     "comment": "An atomic property that contains a single string: the name of one of the built-in datatypes, as listed above (and which are defined as terms in the default context). Its default is string.",
-    "action": "266/input.ttl",
-    "metadata": "266/csv-metadata.json",
+    "action": "268/input.ttl",
+    "metadata": "268/csv-metadata.json",
     "result": [
-      "266/tree-ops.csv"
+      "268/tree-ops.csv"
     ]
   },
   {
