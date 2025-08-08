@@ -5,92 +5,41 @@
 
  [
     a csvw:TableGroup;
+    rdfs:label "This metadata is used";
+    rdfs:comment "User-specified metadata does not need to reference the starting CSV";
     csvw:table [
       a csvw:Table;
-      rdfs:label "duration format (valid combinations)";
-      rdfs:comment "If the datatype base is a duration type, the datatype format annotation provides a regular expression for the string values.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test194.csv#dayTimeDuration> "P1DT2H";
-          <test194.csv#duration> "PT130S";
-          <test194.csv#yearMonthDuration> "P0Y20M"
+          <test121-ref.csv#countryCode> "YE";
+          <test121-ref.csv#latitude> "15"^^xsd:double;
+          <test121-ref.csv#longitude> "48"^^xsd:double;
+          <test121-ref.csv#name> "Yemen"
         ];
         csvw:rownum 1;
-        csvw:url <test194.csv#row=2>
+        csvw:url <test121-ref.csv#row=2>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <test194.csv#dayTimeDuration> "P1DT2H3M";
-          <test194.csv#duration> "PT130M";
-          <test194.csv#yearMonthDuration> "P0Y20M"
+          <test121-ref.csv#countryCode> "ZM";
+          <test121-ref.csv#latitude> "-15"^^xsd:double;
+          <test121-ref.csv#longitude> "30"^^xsd:double;
+          <test121-ref.csv#name> "Zambia"
         ];
         csvw:rownum 2;
-        csvw:url <test194.csv#row=3>
+        csvw:url <test121-ref.csv#row=3>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <test194.csv#dayTimeDuration> "P1DT2H3S";
-          <test194.csv#duration> "PT130H";
-          <test194.csv#yearMonthDuration> "P0Y20M"
+          <test121-ref.csv#countryCode> "ZW";
+          <test121-ref.csv#latitude> "-20"^^xsd:double;
+          <test121-ref.csv#longitude> "30"^^xsd:double;
+          <test121-ref.csv#name> "Zimbabwe"
         ];
         csvw:rownum 3;
-        csvw:url <test194.csv#row=4>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test194.csv#dayTimeDuration> "P1DT2M";
-          <test194.csv#duration> "P130D";
-          <test194.csv#yearMonthDuration> "P0Y20M"
-        ];
-        csvw:rownum 4;
-        csvw:url <test194.csv#row=5>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test194.csv#dayTimeDuration> "P1DT2S";
-          <test194.csv#duration> "P130M";
-          <test194.csv#yearMonthDuration> "P0Y20M"
-        ];
-        csvw:rownum 5;
-        csvw:url <test194.csv#row=6>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test194.csv#dayTimeDuration> "P1DT2H";
-          <test194.csv#duration> "P130Y";
-          <test194.csv#yearMonthDuration> "P0Y20M"
-        ];
-        csvw:rownum 6;
-        csvw:url <test194.csv#row=7>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test194.csv#dayTimeDuration> "P1DT2H";
-          <test194.csv#duration> "PT2M10S";
-          <test194.csv#yearMonthDuration> "P0Y20M"
-        ];
-        csvw:rownum 7;
-        csvw:url <test194.csv#row=8>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test194.csv#dayTimeDuration> "P0DT2H";
-          <test194.csv#duration> "P0Y20M0D";
-          <test194.csv#yearMonthDuration> "P1Y20M"
-        ];
-        csvw:rownum 8;
-        csvw:url <test194.csv#row=9>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test194.csv#dayTimeDuration> "-P1DT2H";
-          <test194.csv#duration> "-P60D";
-          <test194.csv#yearMonthDuration> "-P0Y20M"
-        ];
-        csvw:rownum 9;
-        csvw:url <test194.csv#row=10>
+        csvw:url <test121-ref.csv#row=4>
       ];
-      csvw:url <test194.csv>
+      csvw:url <test121-ref.csv>
     ]
  ] .

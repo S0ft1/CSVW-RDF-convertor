@@ -3,18 +3,34 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+<test102-metadata.json> a csvw:Table;
+   rdfs:comment "@id takes a URI, not an integer";
+   csvw:row [
+     a csvw:Row;
+     csvw:describes [
+       <tree-ops.csv#GID> "1";
+       <tree-ops.csv#inventory_date> "10/18/2010";
+       <tree-ops.csv#on_street> "ADDISON AV";
+       <tree-ops.csv#species> "Celtis australis";
+       <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+     ];
+     csvw:rownum 1;
+     csvw:url <tree-ops.csv#row=2>
+   ],  [
+     a csvw:Row;
+     csvw:describes [
+       <tree-ops.csv#GID> "2";
+       <tree-ops.csv#inventory_date> "6/2/2010";
+       <tree-ops.csv#on_street> "EMERSON ST";
+       <tree-ops.csv#species> "Liquidambar styraciflua";
+       <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+     ];
+     csvw:rownum 2;
+     csvw:url <tree-ops.csv#row=3>
+   ];
+   csvw:url <tree-ops.csv> .
+
  [
     a csvw:TableGroup;
-    csvw:table [
-      a csvw:Table;
-      rdfs:label "invalid unsignedByte";
-      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above.";
-      csvw:row [
-        a csvw:Row;
-        csvw:describes [ <test175.csv#unsignedByte> "-123"];
-        csvw:rownum 1;
-        csvw:url <test175.csv#row=2>
-      ];
-      csvw:url <test175.csv>
-    ]
+    csvw:table <test102-metadata.json>
  ] .

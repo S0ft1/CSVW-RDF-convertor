@@ -7,14 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "duration not matching xsd pattern";
-      rdfs:comment "Value MUST be a valid xsd:duration.";
+      rdfs:label "decimal type with -INF";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test279.csv#duration> "Foo"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test279.csv#row=2>
+        csvw:describes [ <test167.csv#decimal> "-INF"];
+        csvw:rownum 1;
+        csvw:url <test167.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test279.csv>
+      csvw:url <test167.csv>
     ]
  ] .

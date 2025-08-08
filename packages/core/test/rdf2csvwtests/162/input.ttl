@@ -7,14 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "`@base` set in `@context` overriding eg CSV location";
-      rdfs:comment "If present, its value MUST be a string that is interpreted as a URL which is resolved against the location of the metadata document to provide the **base URL** for other URLs in the metadata document.";
+      rdfs:label "numeric format (consecutive groupChar)";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains two consecutive groupChar strings.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test273/action.csv#name> "Foo"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test273/action.csv#row=2>
+        csvw:describes [ <test162.csv#decimal> "123,,456.789"];
+        csvw:rownum 1;
+        csvw:url <test162.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test273/action.csv>
+      csvw:url <test162.csv>
     ]
  ] .

@@ -7,14 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "invalid #0.# 1,234.5";
-      rdfs:comment "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.";
+      rdfs:label "boolean format (value not matching format)";
+      rdfs:comment "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`..";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test297.csv#%230.%23> "1,234.5"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test297.csv#row=2>
+        csvw:describes [ <test185.csv#boolean> "true"];
+        csvw:rownum 1;
+        csvw:url <test185.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test297.csv>
+      csvw:url <test185.csv>
     ]
  ] .

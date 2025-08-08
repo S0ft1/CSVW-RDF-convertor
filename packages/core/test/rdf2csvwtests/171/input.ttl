@@ -7,48 +7,14 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "valid number patterns (signs and percent/permille)";
-      rdfs:comment "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.";
+      rdfs:label "decimal with per-mille";
+      rdfs:comment "Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%25000> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2B0> "+1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2D0> "-1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%E2%80%B0000> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%25> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%E2%80%B0> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000.0%25> "1.234"^^xsd:decimal
-        ];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%25000> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2B0> "+1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2D0> "-1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%E2%80%B0000> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%25> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%E2%80%B0> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000.0%25> "1.234"^^xsd:decimal
-        ];
-        csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv#row=3>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%25000> "-1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2B0> "+1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2D0> "-1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%E2%80%B0000> "-0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%25> "-1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%E2%80%B0> "-0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000.0%25> "-1.234"^^xsd:decimal
-        ];
-        csvw:rownum "3"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv#row=4>
+        csvw:describes [ <test171.csv#decimal> 123.456789 ];
+        csvw:rownum 1;
+        csvw:url <test171.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv>
+      csvw:url <test171.csv>
     ]
  ] .

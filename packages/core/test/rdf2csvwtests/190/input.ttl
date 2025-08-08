@@ -7,14 +7,24 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "invalid #0.0#,# 1";
-      rdfs:comment "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.";
+      rdfs:label "date format (valid dateTime combinations with formats)";
+      rdfs:comment "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test302.csv#%230.0%23> "1"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test302.csv#row=2>
+        csvw:describes [
+          <test190.csv#d%2DM%2Dyyyy%20HHmm> "2015-03-15T15:02:00"^^xsd:dateTime;
+          <test190.csv#d%2DM%2Dyyyy%20HHmm%20X> "2015-03-15T15:02:00Z"^^xsd:dateTime;
+          <test190.csv#dd%2DMM%2Dyyyy%20HH%3Amm> "2015-03-15T15:02:00"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2Ddd%20HH%3Amm%3Ass> "2015-03-15T15:02:37"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2Ddd%20HH%3Amm%3Ass%20X> "2015-03-15T15:02:37+08:00"^^xsd:dateTimeStamp;
+          <test190.csv#yyyy%2DMM%2DddTHH%3Amm> "2015-03-15T15:02:00"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2DddTHH%3Amm%3Ass> "2015-03-15T15:02:37"^^xsd:dateTime;
+          <test190.csv#yyyy%2DMM%2DddTHH%3Amm%3AssXXX> "2015-03-15T15:02:37-05:00"^^xsd:dateTime;
+          <test190.csv#yyyyMMdd%20HHmmss> "2015-03-15T15:02:37"^^xsd:dateTime
+        ];
+        csvw:rownum 1;
+        csvw:url <test190.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test302.csv>
+      csvw:url <test190.csv>
     ]
  ] .

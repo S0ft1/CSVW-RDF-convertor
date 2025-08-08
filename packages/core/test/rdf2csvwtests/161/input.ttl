@@ -7,31 +7,18 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "`null` contains an array of (valid) string & (invalid) numeric values";
-      rdfs:comment "Processors MUST issue a warning if a property is set to an invalid value type.";
+      rdfs:label "number format (not matching values without pattern)";
+      rdfs:comment "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "1";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-10-18"^^xsd:date;
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "ADDISON AV";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Celtis australis";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
+          <test161.csv#decimal> "10.10e1";
+          <test161.csv#double> "foo";
+          <test161.csv#integer> "10.1"
         ];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "2";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#inventory_date> "2010-06-02"^^xsd:date;
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#on_street> "EMERSON ST";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#species> "Liquidambar styraciflua";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
-        ];
-        csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=3>
+        csvw:rownum 1;
+        csvw:url <test161.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv>
+      csvw:url <test161.csv>
     ]
  ] .

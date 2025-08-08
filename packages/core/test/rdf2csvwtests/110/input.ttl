@@ -7,41 +7,30 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "boolean format (valid combinations)";
-      rdfs:comment "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`..";
+      rdfs:comment "Title with value which is not a string is ignored";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test183.csv#boolean> true;
-          <test183.csv#boolean1> true
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#inventory_date> "10/18/2010";
+          <tree-ops.csv#on_street> "ADDISON AV";
+          <tree-ops.csv#species> "Celtis australis";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 1;
-        csvw:url <test183.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <test183.csv#boolean> false;
-          <test183.csv#boolean1> false
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#inventory_date> "6/2/2010";
+          <tree-ops.csv#on_street> "EMERSON ST";
+          <tree-ops.csv#species> "Liquidambar styraciflua";
+          <tree-ops.csv#trim_cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 2;
-        csvw:url <test183.csv#row=3>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test183.csv#boolean> true;
-          <test183.csv#boolean1> true
-        ];
-        csvw:rownum 3;
-        csvw:url <test183.csv#row=4>
-      ],  [
-        a csvw:Row;
-        csvw:describes [
-          <test183.csv#boolean> false;
-          <test183.csv#boolean1> false
-        ];
-        csvw:rownum 4;
-        csvw:url <test183.csv#row=5>
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <test183.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

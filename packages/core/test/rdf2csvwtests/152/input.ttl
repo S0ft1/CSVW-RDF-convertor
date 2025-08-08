@@ -7,17 +7,21 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "date format (valid time combinations with formats and milliseconds)";
-      rdfs:comment "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.";
+      rdfs:label "string format (valid combinations)";
+      rdfs:comment "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test245.csv#HH%3Amm%3Ass.S> "15:02:37.1"^^xsd:time;
-          <test245.csv#HH%3Amm%3Ass.SS> "15:02:37.14"^^xsd:time
+          <test152.csv#NMTOKEN> "foobar"^^xsd:NMTOKEN;
+          <test152.csv#anyUri> "http://example.org"^^xsd:anyURI;
+          <test152.csv#normalizedString> "bar"^^xsd:normalizedString;
+          <test152.csv#string1> "AaAaA";
+          <test152.csv#string2> "GED";
+          <test152.csv#string3> "foo bar"
         ];
         csvw:rownum 1;
-        csvw:url <test245.csv#row=2>
+        csvw:url <test152.csv#row=2>
       ];
-      csvw:url <test245.csv>
+      csvw:url <test152.csv>
     ]
  ] .

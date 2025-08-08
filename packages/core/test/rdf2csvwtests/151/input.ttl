@@ -7,14 +7,31 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "datatype @id an absolute URL that does not resolve";
-      rdfs:comment "If included, @id is a link property that identifies the datatype described by this datatype description.";
+      rdfs:label "non-builtin datatype (base value)";
+      rdfs:comment "If the value of this property is a string, it MUST be one of the built-in datatypes";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <test242.csv#string> "foo"^^<http://example.org/datatpe>];
+        csvw:describes [
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#Inventory%20Date> "10/18/2010";
+          <tree-ops.csv#On%20Street> "ADDISON AV";
+          <tree-ops.csv#Species> "Celtis australis";
+          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"
+        ];
         csvw:rownum 1;
-        csvw:url <test242.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#Inventory%20Date> "6/2/2010";
+          <tree-ops.csv#On%20Street> "EMERSON ST";
+          <tree-ops.csv#Species> "Liquidambar styraciflua";
+          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"
+        ];
+        csvw:rownum 2;
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <test242.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

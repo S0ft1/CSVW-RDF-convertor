@@ -5,18 +5,40 @@
 
  [
     a csvw:TableGroup;
+    rdfs:comment "Uses directory metadata";
     csvw:table [
       a csvw:Table;
-      rdfs:label "date format (bad format string)";
-      rdfs:comment "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test191.csv#date> "15-06-05"
+          <action.csv?query#countryCode> "AD";
+          <action.csv?query#latitude> "42.546245"^^xsd:double;
+          <action.csv?query#longitude> "1.601554"^^xsd:double;
+          <action.csv?query#name> "Andorra"
         ];
         csvw:rownum 1;
-        csvw:url <test191.csv#row=2>
+        csvw:url <action.csv?query#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <action.csv?query#countryCode> "AE";
+          <action.csv?query#latitude> "23.424076"^^xsd:double;
+          <action.csv?query#longitude> "53.847818"^^xsd:double;
+          <action.csv?query#name> "United Arab Emirates"
+        ];
+        csvw:rownum 2;
+        csvw:url <action.csv?query#row=3>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <action.csv?query#countryCode> "AF";
+          <action.csv?query#latitude> "33.93911"^^xsd:double;
+          <action.csv?query#longitude> "67.709953"^^xsd:double;
+          <action.csv?query#name> "Afghanistan"
+        ];
+        csvw:rownum 3;
+        csvw:url <action.csv?query#row=4>
       ];
-      csvw:url <test191.csv>
+      csvw:url <action.csv?query>
     ]
  ] .

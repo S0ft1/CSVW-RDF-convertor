@@ -7,14 +7,41 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "invalid #,##,#00 1,234,567";
-      rdfs:comment "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.";
+      rdfs:label "boolean format (valid combinations)";
+      rdfs:comment "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`..";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test295.csv#%23%2C%23%23%2C%2300> "1,234,567"];
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test295.csv#row=2>
+        csvw:describes [
+          <test183.csv#boolean> true;
+          <test183.csv#boolean1> true
+        ];
+        csvw:rownum 1;
+        csvw:url <test183.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> false;
+          <test183.csv#boolean1> false
+        ];
+        csvw:rownum 2;
+        csvw:url <test183.csv#row=3>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> true;
+          <test183.csv#boolean1> true
+        ];
+        csvw:rownum 3;
+        csvw:url <test183.csv#row=4>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <test183.csv#boolean> false;
+          <test183.csv#boolean1> false
+        ];
+        csvw:rownum 4;
+        csvw:url <test183.csv#row=5>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test295.csv>
+      csvw:url <test183.csv>
     ]
  ] .

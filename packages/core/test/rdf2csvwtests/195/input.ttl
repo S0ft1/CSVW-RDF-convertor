@@ -3,33 +3,22 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<test307.csv#about> <test307.csv#value>
-     ("1" "2" "3"),
-     "4",
-     "5",
-     "6",
-     ("a" "b" "c"),
-     "d",
-     "e",
-     "f" .
-
  [
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "multiple values with same subject and property (ordered and unordered)";
-      rdfs:comment "Values in separate columns using the same propertyUrl are kept in proper relative order.";
+      rdfs:label "values with matching length";
+      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.";
       csvw:row [
         a csvw:Row;
-        csvw:describes <test307.csv#about>;
-        csvw:rownum "1"^^xsd:integer;
-        csvw:url <test307.csv#row=2>
-      ],  [
-        a csvw:Row;
-        csvw:describes <test307.csv#about>;
-        csvw:rownum "2"^^xsd:integer;
-        csvw:url <test307.csv#row=3>
+        csvw:describes [
+          <test195.csv#NMTOKEN> "token"^^xsd:NMTOKEN;
+          <test195.csv#base64Binary> "U2VuZCByZWluZm9yY2VtZW50cw=="^^xsd:base64Binary;
+          <test195.csv#hexBinary> "0FB7"^^xsd:hexBinary
+        ];
+        csvw:rownum 1;
+        csvw:url <test195.csv#row=2>
       ];
-      csvw:url <test307.csv>
+      csvw:url <test195.csv>
     ]
  ] .

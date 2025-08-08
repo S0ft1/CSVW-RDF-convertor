@@ -7,21 +7,30 @@
     a csvw:TableGroup;
     csvw:table [
       a csvw:Table;
-      rdfs:label "float value constraint not matching maxInclusive";
-      rdfs:comment "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell";
+      rdfs:comment "column names are restricted ... names beginning with '_' are reserved by this specification and MUST NOT be used within metadata documents.";
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <test207.csv#maxExclusive> "4"^^xsd:float;
-          <test207.csv#maxInclusive> "5"^^xsd:float;
-          <test207.csv#maximum> "5"^^xsd:float;
-          <test207.csv#minExclusive> "5";
-          <test207.csv#minInclusive> "5"^^xsd:float;
-          <test207.csv#minimum> "5"^^xsd:float
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#Inventory%20Date> "10/18/2010";
+          <tree-ops.csv#On%20Street> "ADDISON AV";
+          <tree-ops.csv#Species> "Celtis australis";
+          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"
         ];
         csvw:rownum 1;
-        csvw:url <test207.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
+      ],  [
+        a csvw:Row;
+        csvw:describes [
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#Inventory%20Date> "6/2/2010";
+          <tree-ops.csv#On%20Street> "EMERSON ST";
+          <tree-ops.csv#Species> "Liquidambar styraciflua";
+          <tree-ops.csv#Trim%20Cycle> "Large Tree Routine Prune"
+        ];
+        csvw:rownum 2;
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <test207.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

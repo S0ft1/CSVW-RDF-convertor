@@ -1,0 +1,2244 @@
+[
+  {
+    "id": "011",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "011/input.ttl",
+    "metadata": "011/csv-metadata.json",
+    "result": [
+      "011/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "012",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with directory metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "012/input.ttl",
+    "metadata": "012/csv-metadata.json",
+    "result": [
+      "012/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "013",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example from user metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "013/input.ttl",
+    "metadata": "013/csv-metadata.json",
+    "result": [
+      "013/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "014",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with linked metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "014/input.ttl",
+    "metadata": "014/csv-metadata.json",
+    "result": [
+      "014/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "015",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with user and directory metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "015/input.ttl",
+    "metadata": "015/csv-metadata.json",
+    "result": [
+      "015/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "016",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with linked and directory metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "016/input.ttl",
+    "metadata": "016/csv-metadata.json",
+    "result": [
+      "016/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "017",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with file and directory metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "017/input.ttl",
+    "metadata": "017/csv-metadata.json",
+    "result": [
+      "017/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "018",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with user, file and directory metadata",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "018/input.ttl",
+    "metadata": "018/csv-metadata.json",
+    "result": [
+      "018/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "023",
+    "type": "ToCsvwTest",
+    "name": "dialect: header=false",
+    "comment": "If `true`, sets the `header row count` flag to 1, and if `false` to 0, unless `headerRowCount` is provided, in which case the value provided for the `header` property is ignored.",
+    "action": "023/input.ttl",
+    "metadata": "023/csv-metadata.json",
+    "result": [
+      "023/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "027",
+    "type": "ToCsvwTest",
+    "name": "tree-ops minimal output",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "027/input.ttl",
+    "metadata": "027/csv-metadata.json",
+    "result": [
+      "027/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "030",
+    "type": "ToCsvwTest",
+    "name": "countries.json example",
+    "comment": "countries.json from metadata",
+    "action": "030/input.ttl",
+    "metadata": "030/csv-metadata.json",
+    "result": [
+      "030/countries.csv",
+      "030/country_slice.csv"
+    ]
+  },
+  {
+    "id": "031",
+    "type": "ToCsvwTest",
+    "name": "countries.json example minimal output",
+    "comment": "countries.json from metadata minimal output",
+    "action": "031/input.ttl",
+    "metadata": "031/csv-metadata.json",
+    "result": [
+      "031/countries.csv",
+      "031/country_slice.csv"
+    ]
+  },
+  {
+    "id": "032",
+    "type": "ToCsvwTest",
+    "name": "events-listing.csv example",
+    "comment": "events-listing example from metadata, virtual columns and multiple subjects per row",
+    "action": "032/input.ttl",
+    "metadata": "032/csv-metadata.json",
+    "result": [
+      "032/events-listing.csv"
+    ]
+  },
+  {
+    "id": "033",
+    "type": "ToCsvwTest",
+    "name": "events-listing.csv minimal output",
+    "comment": "events-listing example from metadata, virtual columns and multiple subjects per row; minimal output",
+    "action": "033/input.ttl",
+    "metadata": "033/csv-metadata.json",
+    "result": [
+      "033/events-listing.csv"
+    ]
+  },
+  {
+    "id": "034",
+    "type": "ToCsvwTest",
+    "name": "roles example",
+    "comment": "Public Sector Roles example with referenced schemas. Validation fails because organization.csv intentionally contains an invalid reference.",
+    "action": "034/input.ttl",
+    "metadata": "034/csv-metadata.json",
+    "result": [
+      "034/senior-roles.csv",
+      "034/junior-roles.csv"
+    ]
+  },
+  {
+    "id": "035",
+    "type": "ToCsvwTest",
+    "name": "roles minimal",
+    "comment": "Public Sector Roles example with referenced schemas; minimal output. Validation fails because organization.csv intentionally contains an invalid reference.",
+    "action": "035/input.ttl",
+    "metadata": "035/csv-metadata.json",
+    "result": [
+      "035/senior-roles.csv",
+      "035/junior-roles.csv"
+    ]
+  },
+  {
+    "id": "036",
+    "type": "ToCsvwTest",
+    "name": "tree-ops-ext example",
+    "comment": "tree-ops extended example",
+    "action": "036/input.ttl",
+    "metadata": "036/csv-metadata.json",
+    "result": [
+      "036/tree-ops-ext.csv"
+    ]
+  },
+  {
+    "id": "037",
+    "type": "ToCsvwTest",
+    "name": "tree-ops-ext minimal",
+    "comment": "tree-ops extended example; minimal output",
+    "action": "037/input.ttl",
+    "metadata": "037/csv-metadata.json",
+    "result": [
+      "037/tree-ops-ext.csv"
+    ]
+  },
+  {
+    "id": "038",
+    "type": "ToCsvwTest",
+    "name": "inherited properties propagation",
+    "comment": "Setting inherited properties at different levels inherit to cell",
+    "action": "038/input.ttl",
+    "metadata": "038/csv-metadata.json",
+    "result": [
+      "038/test038.csv"
+    ]
+  },
+  {
+    "id": "039",
+    "type": "ToCsvwTest",
+    "name": "valid inherited properties",
+    "comment": "Different combinations of valid inherited properties",
+    "action": "039/input.ttl",
+    "metadata": "039/csv-metadata.json",
+    "result": [
+      "039/test039.csv"
+    ]
+  },
+  {
+    "id": "040",
+    "type": "ToCsvwTest",
+    "name": "invalid null",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "040/input.ttl",
+    "metadata": "040/csv-metadata.json",
+    "result": [
+      "040/test040.csv"
+    ]
+  },
+  {
+    "id": "041",
+    "type": "ToCsvwTest",
+    "name": "invalid lang",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "041/input.ttl",
+    "metadata": "041/csv-metadata.json",
+    "result": [
+      "041/test041.csv"
+    ]
+  },
+  {
+    "id": "042",
+    "type": "ToCsvwTest",
+    "name": "invalid textDirection",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "042/input.ttl",
+    "metadata": "042/csv-metadata.json",
+    "result": [
+      "042/test042.csv"
+    ]
+  },
+  {
+    "id": "043",
+    "type": "ToCsvwTest",
+    "name": "invalid separator",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "043/input.ttl",
+    "metadata": "043/csv-metadata.json",
+    "result": [
+      "043/test043.csv"
+    ]
+  },
+  {
+    "id": "044",
+    "type": "ToCsvwTest",
+    "name": "invalid ordered",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "044/input.ttl",
+    "metadata": "044/csv-metadata.json",
+    "result": [
+      "044/test044.csv"
+    ]
+  },
+  {
+    "id": "045",
+    "type": "ToCsvwTest",
+    "name": "invalid default",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "045/input.ttl",
+    "metadata": "045/csv-metadata.json",
+    "result": [
+      "045/test045.csv"
+    ]
+  },
+  {
+    "id": "046",
+    "type": "ToCsvwTest",
+    "name": "invalid dataype",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "046/input.ttl",
+    "metadata": "046/csv-metadata.json",
+    "result": [
+      "046/test046.csv"
+    ]
+  },
+  {
+    "id": "047",
+    "type": "ToCsvwTest",
+    "name": "invalid aboutUrl",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "047/input.ttl",
+    "metadata": "047/csv-metadata.json",
+    "result": [
+      "047/test047.csv"
+    ]
+  },
+  {
+    "id": "048",
+    "type": "ToCsvwTest",
+    "name": "invalid propertyUrl",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "048/input.ttl",
+    "metadata": "048/csv-metadata.json",
+    "result": [
+      "048/test048.csv"
+    ]
+  },
+  {
+    "id": "049",
+    "type": "ToCsvwTest",
+    "name": "invalid valueUrl",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "049/input.ttl",
+    "metadata": "049/csv-metadata.json",
+    "result": [
+      "049/test049.csv"
+    ]
+  },
+  {
+    "id": "059",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid commentPrefix",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "059/input.ttl",
+    "metadata": "059/csv-metadata.json",
+    "result": [
+      "059/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "060",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid delimiter",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "060/input.ttl",
+    "metadata": "060/csv-metadata.json",
+    "result": [
+      "060/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "061",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid doubleQuote",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "061/input.ttl",
+    "metadata": "061/csv-metadata.json",
+    "result": [
+      "061/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "062",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid encoding",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "062/input.ttl",
+    "metadata": "062/csv-metadata.json",
+    "result": [
+      "062/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "063",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid header",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "063/input.ttl",
+    "metadata": "063/csv-metadata.json",
+    "result": [
+      "063/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "065",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid headerRowCount",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "065/input.ttl",
+    "metadata": "065/csv-metadata.json",
+    "result": [
+      "065/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "066",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid lineTerminators",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "066/input.ttl",
+    "metadata": "066/csv-metadata.json",
+    "result": [
+      "066/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "067",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid quoteChar",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "067/input.ttl",
+    "metadata": "067/csv-metadata.json",
+    "result": [
+      "067/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "068",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid skipBlankRows",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "068/input.ttl",
+    "metadata": "068/csv-metadata.json",
+    "result": [
+      "068/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "069",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid skipColumns",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "069/input.ttl",
+    "metadata": "069/csv-metadata.json",
+    "result": [
+      "069/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "070",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid skipInitialSpace",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "070/input.ttl",
+    "metadata": "070/csv-metadata.json",
+    "result": [
+      "070/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "071",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid skipRows",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "071/input.ttl",
+    "metadata": "071/csv-metadata.json",
+    "result": [
+      "071/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "072",
+    "type": "ToCsvwTest",
+    "name": "dialect: invalid trim",
+    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
+    "action": "072/input.ttl",
+    "metadata": "072/csv-metadata.json",
+    "result": [
+      "072/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "073",
+    "type": "ToCsvwTest",
+    "name": "invalid @language",
+    "comment": "The value of `@language` MUST be a valid `BCP47` language code",
+    "action": "073/input.ttl",
+    "metadata": "073/csv-metadata.json",
+    "result": [
+      "073/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "075",
+    "type": "ToCsvwTest",
+    "name": "invalid tableGroup tableDirection",
+    "comment": "An atomic property that MUST have a single string value that is one of \"rtl\", \"ltr\" or \"auto\".",
+    "action": "075/input.ttl",
+    "metadata": "075/csv-metadata.json",
+    "result": [
+      "075/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "076",
+    "type": "ToCsvwTest",
+    "name": "invalid table tableDirection",
+    "comment": "An atomic property that MUST have a single string value that is one of \"rtl\", \"ltr\" or \"auto\".",
+    "action": "076/input.ttl",
+    "metadata": "076/csv-metadata.json",
+    "result": [
+      "076/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "093",
+    "type": "ToCsvwTest",
+    "name": "undefined properties",
+    "comment": "Compliant applications MUST ignore properties (aside from _common properties_) which are not defined in this specification and MUST generate a warning when they are encoutered",
+    "action": "093/input.ttl",
+    "metadata": "093/csv-metadata.json",
+    "result": [
+      "093/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "095",
+    "type": "ToCsvwTest",
+    "name": "inconsistent array values: transformations",
+    "comment": "Any items within an array that are not valid objects of the type expected are ignored",
+    "action": "095/input.ttl",
+    "metadata": "095/csv-metadata.json",
+    "result": [
+      "095/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "097",
+    "type": "ToCsvwTest",
+    "name": "inconsistent array values: foreignKeys",
+    "comment": "Any items within an array that are not valid objects of the type expected are ignored",
+    "action": "097/input.ttl",
+    "metadata": "097/csv-metadata.json",
+    "result": [
+      "097/countries.csv",
+      "097/country_slice.csv"
+    ]
+  },
+  {
+    "id": "099",
+    "type": "ToCsvwTest",
+    "name": "inconsistent array values: transformations",
+    "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
+    "action": "099/input.ttl",
+    "metadata": "099/csv-metadata.json",
+    "result": [
+      "099/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "100",
+    "type": "ToCsvwTest",
+    "name": "inconsistent array values: columns",
+    "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
+    "action": "100/input.ttl",
+    "metadata": "100/csv-metadata.json",
+    "result": [
+      "100/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "101",
+    "type": "ToCsvwTest",
+    "name": "inconsistent array values: foreignKeys",
+    "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
+    "action": "101/input.ttl",
+    "metadata": "101/csv-metadata.json",
+    "result": [
+      "101/countries.csv",
+      "101/country_slice.csv"
+    ]
+  },
+  {
+    "id": "102",
+    "type": "ToCsvwTest",
+    "name": "inconsistent link values: @id",
+    "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
+    "action": "102/input.ttl",
+    "metadata": "102/csv-metadata.json",
+    "result": [
+      "102/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "105",
+    "type": "ToCsvwTest",
+    "name": "invalid primaryKey",
+    "comment": "The referenced description object MUST have a name property",
+    "action": "105/input.ttl",
+    "metadata": "105/csv-metadata.json",
+    "result": [
+      "105/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "106",
+    "type": "ToCsvwTest",
+    "name": "invalid dialect",
+    "comment": "If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.",
+    "action": "106/input.ttl",
+    "metadata": "106/csv-metadata.json",
+    "result": [
+      "106/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "107",
+    "type": "ToCsvwTest",
+    "name": "invalid tableSchema",
+    "comment": "If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.",
+    "action": "107/input.ttl",
+    "metadata": "107/csv-metadata.json",
+    "result": [
+      "107/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "109",
+    "type": "ToCsvwTest",
+    "name": "titles with invalid language",
+    "comment": "Natural Language properties may be objects whose properties MUST be language codes as defined by [BCP47] and whose values are either strings or arrays, providing natural language strings in that language. Validation fails because without a title, the metadata is incompatible with the CSV, which isn't a problem when not validating.",
+    "action": "109/input.ttl",
+    "metadata": "109/csv-metadata.json",
+    "result": [
+      "109/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "110",
+    "type": "ToCsvwTest",
+    "name": "titles with non-string values",
+    "comment": "Natural Language properties may be objects whose properties MUST be language codes as defined by [BCP47] and whose values are either strings or arrays, providing natural language strings in that language",
+    "action": "110/input.ttl",
+    "metadata": "110/csv-metadata.json",
+    "result": [
+      "110/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "111",
+    "type": "ToCsvwTest",
+    "name": "titles with invalid value",
+    "comment": "If the supplied value of a natural language property is not a string, array or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an empty array. Validation fails because without a title, the metadata is incompatible with the CSV, which isn't a problem when not validating.",
+    "action": "111/input.ttl",
+    "metadata": "111/csv-metadata.json",
+    "result": [
+      "111/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "112",
+    "type": "ToCsvwTest",
+    "name": "titles with non-string array values",
+    "comment": "If the supplied value is an array, any items in that array that are not strings MUST be ignored",
+    "action": "112/input.ttl",
+    "metadata": "112/csv-metadata.json",
+    "result": [
+      "112/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "113",
+    "type": "ToCsvwTest",
+    "name": "invalid suppressOutput",
+    "comment": "Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type",
+    "action": "113/input.ttl",
+    "metadata": "113/csv-metadata.json",
+    "result": [
+      "113/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "114",
+    "type": "ToCsvwTest",
+    "name": "invalid name",
+    "comment": "Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type",
+    "action": "114/input.ttl",
+    "metadata": "114/csv-metadata.json",
+    "result": [
+      "114/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "115",
+    "type": "ToCsvwTest",
+    "name": "invalid virtual",
+    "comment": "Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type",
+    "action": "115/input.ttl",
+    "metadata": "115/csv-metadata.json",
+    "result": [
+      "115/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "116",
+    "type": "ToCsvwTest",
+    "name": "file-metadata with query component not found",
+    "comment": "processors MUST attempt to locate a metadata documents through site-wide configuration.",
+    "action": "116/input.ttl",
+    "metadata": "116/csv-metadata.json",
+    "result": [
+      "116/test116.csv"
+    ]
+  },
+  {
+    "id": "117",
+    "type": "ToCsvwTest",
+    "name": "file-metadata not referencing file",
+    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
+    "action": "117/input.ttl",
+    "metadata": "117/csv-metadata.json",
+    "result": [
+      "117/test117.csv"
+    ]
+  },
+  {
+    "id": "118",
+    "type": "ToCsvwTest",
+    "name": "directory-metadata with query component",
+    "comment": "processors MUST attempt to locate a metadata documents through site-wide configuration. component.",
+    "action": "118/input.ttl",
+    "metadata": "118/csv-metadata.json",
+    "result": [
+      "118/action.csv"
+    ]
+  },
+  {
+    "id": "119",
+    "type": "ToCsvwTest",
+    "name": "directory-metadata not referencing file",
+    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
+    "action": "119/input.ttl",
+    "metadata": "119/csv-metadata.json",
+    "result": [
+      "119/action.csv"
+    ]
+  },
+  {
+    "id": "120",
+    "type": "ToCsvwTest",
+    "name": "link-metadata not referencing file",
+    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
+    "action": "120/input.ttl",
+    "metadata": "120/csv-metadata.json",
+    "result": [
+      "120/test120.csv"
+    ]
+  },
+  {
+    "id": "121",
+    "type": "ToCsvwTest",
+    "name": "user-metadata not referencing file",
+    "comment": "User-specified metadata does not need to reference the starting CSV",
+    "action": "121/input.ttl",
+    "metadata": "121/csv-metadata.json",
+    "result": [
+      "121/test121-ref.csv"
+    ]
+  },
+  {
+    "id": "122",
+    "type": "ToCsvwTest",
+    "name": "link-metadata not describing file uses file-metadata",
+    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
+    "action": "122/input.ttl",
+    "metadata": "122/csv-metadata.json",
+    "result": [
+      "122/test122.csv"
+    ]
+  },
+  {
+    "id": "123",
+    "type": "ToCsvwTest",
+    "name": "file-metadata not describing file uses directory-metadata",
+    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
+    "action": "123/input.ttl",
+    "metadata": "123/csv-metadata.json",
+    "result": [
+      "123/action.csv"
+    ]
+  },
+  {
+    "id": "124",
+    "type": "ToCsvwTest",
+    "name": "metadata with columns not matching csv titles",
+    "comment": "If not validating, and one schema has a name property but not a titles property, and the other has a titles property but not a name property.",
+    "action": "124/input.ttl",
+    "metadata": "124/csv-metadata.json",
+    "result": [
+      "124/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "125",
+    "type": "ToCsvwTest",
+    "name": "required column with empty cell",
+    "comment": "If the column required annotation is true, add an error to the list of errors for the cell.",
+    "action": "125/input.ttl",
+    "metadata": "125/csv-metadata.json",
+    "result": [
+      "125/test125.csv"
+    ]
+  },
+  {
+    "id": "126",
+    "type": "ToCsvwTest",
+    "name": "required column with cell matching null",
+    "comment": "if the string is the same as any one of the values of the column null annotation, then the resulting value is null. If the column separator annotation is null and the column required annotation is true, add an error to the list of errors for the cell.",
+    "action": "126/input.ttl",
+    "metadata": "126/csv-metadata.json",
+    "result": [
+      "126/test126.csv"
+    ]
+  },
+  {
+    "id": "127",
+    "type": "ToCsvwTest",
+    "name": "incompatible table",
+    "comment": "if TM is not compatible with EM validators MUST raise an error, other processors MUST generate a warning and continue processing",
+    "action": "127/input.ttl",
+    "metadata": "127/csv-metadata.json",
+    "result": [
+      "127/test127.csv"
+    ]
+  },
+  {
+    "id": "129",
+    "type": "ToCsvwTest",
+    "name": "columnn name as integer",
+    "comment": "This (name) MUST be a string and this property has no default value, which means it MUST be ignored if the supplied value is not a string.",
+    "action": "129/input.ttl",
+    "metadata": "129/csv-metadata.json",
+    "result": [
+      "129/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "130",
+    "type": "ToCsvwTest",
+    "name": "invalid column name",
+    "comment": "column names are restricted as defined in Variables in [URI-TEMPLATE] ",
+    "action": "130/input.ttl",
+    "metadata": "130/csv-metadata.json",
+    "result": [
+      "130/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "131",
+    "type": "ToCsvwTest",
+    "name": "invalid column name",
+    "comment": "column names are restricted ... names beginning with '_' are reserved by this specification and MUST NOT be used within metadata documents.",
+    "action": "131/input.ttl",
+    "metadata": "131/csv-metadata.json",
+    "result": [
+      "131/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "132",
+    "type": "ToCsvwTest",
+    "name": "name annotation from title percent encoded",
+    "comment": "If there is no name property defined on this column, the first titles value having the same language tag as default language, or und or if no default language is specified, becomes the name annotation for the described column. This annotation MUST be percent-encoded as necessary to conform to the syntactic requirements defined in [RFC3986]",
+    "action": "132/input.ttl",
+    "metadata": "132/csv-metadata.json",
+    "result": [
+      "132/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "147",
+    "type": "ToCsvwTest",
+    "name": "title incompatible with title on case",
+    "comment": "If there is a non-empty case-sensitive intersection between the titles values, where matches MUST have a matching language; `und` matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.",
+    "action": "147/input.ttl",
+    "metadata": "147/csv-metadata.json",
+    "result": [
+      "147/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "148",
+    "type": "ToCsvwTest",
+    "name": "title incompatible with title on language",
+    "comment": "If there is a non-empty case-sensitive intersection between the titles values, where matches MUST have a matching language; `und` matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.",
+    "action": "148/input.ttl",
+    "metadata": "148/csv-metadata.json",
+    "result": [
+      "148/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "149",
+    "type": "ToCsvwTest",
+    "name": "title compatible with title on less specific language",
+    "comment": "If there is a non-empty case-sensitive intersection between the titles values, where matches MUST have a matching language; `und` matches any language, and languages match if they are equal when truncated, as defined in [BCP47], to the length of the shortest language tag.",
+    "action": "149/input.ttl",
+    "metadata": "149/csv-metadata.json",
+    "result": [
+      "149/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "150",
+    "type": "ToCsvwTest",
+    "name": "non-builtin datatype (datatype value)",
+    "comment": "If the value of this property is a string, it MUST be one of the built-in datatypes defined in section 5.11.1 Built-in Datatypes or an absolute URL",
+    "action": "150/input.ttl",
+    "metadata": "150/csv-metadata.json",
+    "result": [
+      "150/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "151",
+    "type": "ToCsvwTest",
+    "name": "non-builtin datatype (base value)",
+    "comment": "If the value of this property is a string, it MUST be one of the built-in datatypes",
+    "action": "151/input.ttl",
+    "metadata": "151/csv-metadata.json",
+    "result": [
+      "151/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "152",
+    "type": "ToCsvwTest",
+    "name": "string format (valid combinations)",
+    "comment": "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values",
+    "action": "152/input.ttl",
+    "metadata": "152/csv-metadata.json",
+    "result": [
+      "152/test152.csv"
+    ]
+  },
+  {
+    "id": "153",
+    "type": "ToCsvwTest",
+    "name": "string format (bad format string)",
+    "comment": "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values",
+    "action": "153/input.ttl",
+    "metadata": "153/csv-metadata.json",
+    "result": [
+      "153/test153.csv"
+    ]
+  },
+  {
+    "id": "154",
+    "type": "ToCsvwTest",
+    "name": "string format (value not matching format)",
+    "comment": "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values",
+    "action": "154/input.ttl",
+    "metadata": "154/csv-metadata.json",
+    "result": [
+      "154/test154.csv"
+    ]
+  },
+  {
+    "id": "155",
+    "type": "ToCsvwTest",
+    "name": "number format (valid combinations)",
+    "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
+    "action": "155/input.ttl",
+    "metadata": "155/csv-metadata.json",
+    "result": [
+      "155/test155.csv"
+    ]
+  },
+  {
+    "id": "156",
+    "type": "ToCsvwTest",
+    "name": "number format (bad format string)",
+    "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
+    "action": "156/input.ttl",
+    "metadata": "156/csv-metadata.json",
+    "result": [
+      "156/test156.csv"
+    ]
+  },
+  {
+    "id": "157",
+    "type": "ToCsvwTest",
+    "name": "number format (value not matching format)",
+    "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
+    "action": "157/input.ttl",
+    "metadata": "157/csv-metadata.json",
+    "result": [
+      "157/test157.csv"
+    ]
+  },
+  {
+    "id": "158",
+    "type": "ToCsvwTest",
+    "name": "number format (valid combinations)",
+    "comment": "Numeric dataype with object format",
+    "action": "158/input.ttl",
+    "metadata": "158/csv-metadata.json",
+    "result": [
+      "158/test158.csv"
+    ]
+  },
+  {
+    "id": "159",
+    "type": "ToCsvwTest",
+    "name": "number format (bad pattern format string)",
+    "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
+    "action": "159/input.ttl",
+    "metadata": "159/csv-metadata.json",
+    "result": [
+      "159/test159.csv"
+    ]
+  },
+  {
+    "id": "160",
+    "type": "ToCsvwTest",
+    "name": "number format (not matching values with pattern)",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
+    "action": "160/input.ttl",
+    "metadata": "160/csv-metadata.json",
+    "result": [
+      "160/test160.csv"
+    ]
+  },
+  {
+    "id": "161",
+    "type": "ToCsvwTest",
+    "name": "number format (not matching values without pattern)",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
+    "action": "161/input.ttl",
+    "metadata": "161/csv-metadata.json",
+    "result": [
+      "161/test161.csv"
+    ]
+  },
+  {
+    "id": "162",
+    "type": "ToCsvwTest",
+    "name": "numeric format (consecutive groupChar)",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains two consecutive groupChar strings",
+    "action": "162/input.ttl",
+    "metadata": "162/csv-metadata.json",
+    "result": [
+      "162/test162.csv"
+    ]
+  },
+  {
+    "id": "163",
+    "type": "ToCsvwTest",
+    "name": "integer datatype with decimalChar",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains the decimalChar, if the datatype base is integer or one of its sub-values",
+    "action": "163/input.ttl",
+    "metadata": "163/csv-metadata.json",
+    "result": [
+      "163/test163.csv"
+    ]
+  },
+  {
+    "id": "164",
+    "type": "ToCsvwTest",
+    "name": "decimal datatype with exponent",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, if the datatype base is decimal or one of its sub-values",
+    "action": "164/input.ttl",
+    "metadata": "164/csv-metadata.json",
+    "result": [
+      "164/test164.csv"
+    ]
+  },
+  {
+    "id": "165",
+    "type": "ToCsvwTest",
+    "name": "decimal type with NaN",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
+    "action": "165/input.ttl",
+    "metadata": "165/csv-metadata.json",
+    "result": [
+      "165/test165.csv"
+    ]
+  },
+  {
+    "id": "166",
+    "type": "ToCsvwTest",
+    "name": "decimal type with INF",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
+    "action": "166/input.ttl",
+    "metadata": "166/csv-metadata.json",
+    "result": [
+      "166/test166.csv"
+    ]
+  },
+  {
+    "id": "167",
+    "type": "ToCsvwTest",
+    "name": "decimal type with -INF",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
+    "action": "167/input.ttl",
+    "metadata": "167/csv-metadata.json",
+    "result": [
+      "167/test167.csv"
+    ]
+  },
+  {
+    "id": "168",
+    "type": "ToCsvwTest",
+    "name": "decimal with implicit groupChar",
+    "comment": "When parsing the string value of a cell against this format specification, implementations MUST recognise and parse numbers",
+    "action": "168/input.ttl",
+    "metadata": "168/csv-metadata.json",
+    "result": [
+      "168/test168.csv"
+    ]
+  },
+  {
+    "id": "169",
+    "type": "ToCsvwTest",
+    "name": "invalid decimal",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "169/input.ttl",
+    "metadata": "169/csv-metadata.json",
+    "result": [
+      "169/test169.csv"
+    ]
+  },
+  {
+    "id": "170",
+    "type": "ToCsvwTest",
+    "name": "decimal with percent",
+    "comment": "Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell",
+    "action": "170/input.ttl",
+    "metadata": "170/csv-metadata.json",
+    "result": [
+      "170/test170.csv"
+    ]
+  },
+  {
+    "id": "171",
+    "type": "ToCsvwTest",
+    "name": "decimal with per-mille",
+    "comment": "Implementations MUST use the sign, exponent, percent, and per-mille signs when parsing the string value of a cell to provide the value of the cell",
+    "action": "171/input.ttl",
+    "metadata": "171/csv-metadata.json",
+    "result": [
+      "171/test171.csv"
+    ]
+  },
+  {
+    "id": "172",
+    "type": "ToCsvwTest",
+    "name": "invalid byte",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "172/input.ttl",
+    "metadata": "172/csv-metadata.json",
+    "result": [
+      "172/test172.csv"
+    ]
+  },
+  {
+    "id": "173",
+    "type": "ToCsvwTest",
+    "name": "invald unsignedLong",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "173/input.ttl",
+    "metadata": "173/csv-metadata.json",
+    "result": [
+      "173/test173.csv"
+    ]
+  },
+  {
+    "id": "174",
+    "type": "ToCsvwTest",
+    "name": "invalid unsignedShort",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "174/input.ttl",
+    "metadata": "174/csv-metadata.json",
+    "result": [
+      "174/test174.csv"
+    ]
+  },
+  {
+    "id": "175",
+    "type": "ToCsvwTest",
+    "name": "invalid unsignedByte",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "175/input.ttl",
+    "metadata": "175/csv-metadata.json",
+    "result": [
+      "175/test175.csv"
+    ]
+  },
+  {
+    "id": "176",
+    "type": "ToCsvwTest",
+    "name": "invalid positiveInteger",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "176/input.ttl",
+    "metadata": "176/csv-metadata.json",
+    "result": [
+      "176/test176.csv"
+    ]
+  },
+  {
+    "id": "177",
+    "type": "ToCsvwTest",
+    "name": "invalid negativeInteger",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "177/input.ttl",
+    "metadata": "177/csv-metadata.json",
+    "result": [
+      "177/test177.csv"
+    ]
+  },
+  {
+    "id": "178",
+    "type": "ToCsvwTest",
+    "name": "invalid nonPositiveInteger",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "178/input.ttl",
+    "metadata": "178/csv-metadata.json",
+    "result": [
+      "178/test178.csv"
+    ]
+  },
+  {
+    "id": "179",
+    "type": "ToCsvwTest",
+    "name": "invalid nonNegativeInteger",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "179/input.ttl",
+    "metadata": "179/csv-metadata.json",
+    "result": [
+      "179/test179.csv"
+    ]
+  },
+  {
+    "id": "180",
+    "type": "ToCsvwTest",
+    "name": "invalid double",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "180/input.ttl",
+    "metadata": "180/csv-metadata.json",
+    "result": [
+      "180/test180.csv"
+    ]
+  },
+  {
+    "id": "181",
+    "type": "ToCsvwTest",
+    "name": "invalid number",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "181/input.ttl",
+    "metadata": "181/csv-metadata.json",
+    "result": [
+      "181/test181.csv"
+    ]
+  },
+  {
+    "id": "182",
+    "type": "ToCsvwTest",
+    "name": "invalid float",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
+    "action": "182/input.ttl",
+    "metadata": "182/csv-metadata.json",
+    "result": [
+      "182/test182.csv"
+    ]
+  },
+  {
+    "id": "183",
+    "type": "ToCsvwTest",
+    "name": "boolean format (valid combinations)",
+    "comment": "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.",
+    "action": "183/input.ttl",
+    "metadata": "183/csv-metadata.json",
+    "result": [
+      "183/test183.csv"
+    ]
+  },
+  {
+    "id": "184",
+    "type": "ToCsvwTest",
+    "name": "boolean format (bad format string)",
+    "comment": "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.",
+    "action": "184/input.ttl",
+    "metadata": "184/csv-metadata.json",
+    "result": [
+      "184/test184.csv"
+    ]
+  },
+  {
+    "id": "185",
+    "type": "ToCsvwTest",
+    "name": "boolean format (value not matching format)",
+    "comment": "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.",
+    "action": "185/input.ttl",
+    "metadata": "185/csv-metadata.json",
+    "result": [
+      "185/test185.csv"
+    ]
+  },
+  {
+    "id": "186",
+    "type": "ToCsvwTest",
+    "name": "boolean format (not matching datatype)",
+    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
+    "action": "186/input.ttl",
+    "metadata": "186/csv-metadata.json",
+    "result": [
+      "186/test186.csv"
+    ]
+  },
+  {
+    "id": "187",
+    "type": "ToCsvwTest",
+    "name": "date format (valid native combinations)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "187/input.ttl",
+    "metadata": "187/csv-metadata.json",
+    "result": [
+      "187/test187.csv"
+    ]
+  },
+  {
+    "id": "188",
+    "type": "ToCsvwTest",
+    "name": "date format (valid date combinations with formats)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "188/input.ttl",
+    "metadata": "188/csv-metadata.json",
+    "result": [
+      "188/test188.csv"
+    ]
+  },
+  {
+    "id": "189",
+    "type": "ToCsvwTest",
+    "name": "date format (valid time combinations with formats)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "189/input.ttl",
+    "metadata": "189/csv-metadata.json",
+    "result": [
+      "189/test189.csv"
+    ]
+  },
+  {
+    "id": "190",
+    "type": "ToCsvwTest",
+    "name": "date format (valid dateTime combinations with formats)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "190/input.ttl",
+    "metadata": "190/csv-metadata.json",
+    "result": [
+      "190/test190.csv"
+    ]
+  },
+  {
+    "id": "191",
+    "type": "ToCsvwTest",
+    "name": "date format (bad format string)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "191/input.ttl",
+    "metadata": "191/csv-metadata.json",
+    "result": [
+      "191/test191.csv"
+    ]
+  },
+  {
+    "id": "192",
+    "type": "ToCsvwTest",
+    "name": "date format (value not matching format)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "192/input.ttl",
+    "metadata": "192/csv-metadata.json",
+    "result": [
+      "192/test192.csv"
+    ]
+  },
+  {
+    "id": "193",
+    "type": "ToCsvwTest",
+    "name": "duration format (valid combinations)",
+    "comment": "If the datatype base is a duration type, the datatype format annotation provides a regular expression for the string values",
+    "action": "193/input.ttl",
+    "metadata": "193/csv-metadata.json",
+    "result": [
+      "193/test193.csv"
+    ]
+  },
+  {
+    "id": "194",
+    "type": "ToCsvwTest",
+    "name": "duration format (value not matching format)",
+    "comment": "If the datatype base is a duration type, the datatype format annotation provides a regular expression for the string values",
+    "action": "194/input.ttl",
+    "metadata": "194/csv-metadata.json",
+    "result": [
+      "194/test194.csv"
+    ]
+  },
+  {
+    "id": "195",
+    "type": "ToCsvwTest",
+    "name": "values with matching length",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "195/input.ttl",
+    "metadata": "195/csv-metadata.json",
+    "result": [
+      "195/test195.csv"
+    ]
+  },
+  {
+    "id": "196",
+    "type": "ToCsvwTest",
+    "name": "values with wrong length",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "196/input.ttl",
+    "metadata": "196/csv-metadata.json",
+    "result": [
+      "196/test196.csv"
+    ]
+  },
+  {
+    "id": "197",
+    "type": "ToCsvwTest",
+    "name": "values with wrong maxLength",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "197/input.ttl",
+    "metadata": "197/csv-metadata.json",
+    "result": [
+      "197/test197.csv"
+    ]
+  },
+  {
+    "id": "198",
+    "type": "ToCsvwTest",
+    "name": "values with wrong minLength",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "198/input.ttl",
+    "metadata": "198/csv-metadata.json",
+    "result": [
+      "198/test198.csv"
+    ]
+  },
+  {
+    "id": "202",
+    "type": "ToCsvwTest",
+    "name": "float matching constraints",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "202/input.ttl",
+    "metadata": "202/csv-metadata.json",
+    "result": [
+      "202/test202.csv"
+    ]
+  },
+  {
+    "id": "203",
+    "type": "ToCsvwTest",
+    "name": "float value constraint not matching minimum",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "203/input.ttl",
+    "metadata": "203/csv-metadata.json",
+    "result": [
+      "203/test203.csv"
+    ]
+  },
+  {
+    "id": "204",
+    "type": "ToCsvwTest",
+    "name": "float value constraint not matching maximum",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "204/input.ttl",
+    "metadata": "204/csv-metadata.json",
+    "result": [
+      "204/test204.csv"
+    ]
+  },
+  {
+    "id": "205",
+    "type": "ToCsvwTest",
+    "name": "float value constraint not matching minInclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "205/input.ttl",
+    "metadata": "205/csv-metadata.json",
+    "result": [
+      "205/test205.csv"
+    ]
+  },
+  {
+    "id": "206",
+    "type": "ToCsvwTest",
+    "name": "float value constraint not matching minExclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "206/input.ttl",
+    "metadata": "206/csv-metadata.json",
+    "result": [
+      "206/test206.csv"
+    ]
+  },
+  {
+    "id": "207",
+    "type": "ToCsvwTest",
+    "name": "float value constraint not matching maxInclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "207/input.ttl",
+    "metadata": "207/csv-metadata.json",
+    "result": [
+      "207/test207.csv"
+    ]
+  },
+  {
+    "id": "208",
+    "type": "ToCsvwTest",
+    "name": "float value constraint not matching maxExclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "208/input.ttl",
+    "metadata": "208/csv-metadata.json",
+    "result": [
+      "208/test208.csv"
+    ]
+  },
+  {
+    "id": "209",
+    "type": "ToCsvwTest",
+    "name": "date matching constraints",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "209/input.ttl",
+    "metadata": "209/csv-metadata.json",
+    "result": [
+      "209/test209.csv"
+    ]
+  },
+  {
+    "id": "210",
+    "type": "ToCsvwTest",
+    "name": "date value constraint not matching minimum",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "210/input.ttl",
+    "metadata": "210/csv-metadata.json",
+    "result": [
+      "210/test210.csv"
+    ]
+  },
+  {
+    "id": "211",
+    "type": "ToCsvwTest",
+    "name": "date value constraint not matching maximum",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "211/input.ttl",
+    "metadata": "211/csv-metadata.json",
+    "result": [
+      "211/test211.csv"
+    ]
+  },
+  {
+    "id": "212",
+    "type": "ToCsvwTest",
+    "name": "date value constraint not matching minInclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "212/input.ttl",
+    "metadata": "212/csv-metadata.json",
+    "result": [
+      "212/test212.csv"
+    ]
+  },
+  {
+    "id": "213",
+    "type": "ToCsvwTest",
+    "name": "date value constraint not matching minExclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "213/input.ttl",
+    "metadata": "213/csv-metadata.json",
+    "result": [
+      "213/test213.csv"
+    ]
+  },
+  {
+    "id": "214",
+    "type": "ToCsvwTest",
+    "name": "date value constraint not matching maxInclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "214/input.ttl",
+    "metadata": "214/csv-metadata.json",
+    "result": [
+      "214/test214.csv"
+    ]
+  },
+  {
+    "id": "215",
+    "type": "ToCsvwTest",
+    "name": "date value constraint not matching maxExclusive",
+    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
+    "action": "215/input.ttl",
+    "metadata": "215/csv-metadata.json",
+    "result": [
+      "215/test215.csv"
+    ]
+  },
+  {
+    "id": "228",
+    "type": "ToCsvwTest",
+    "name": "length with separator",
+    "comment": "If the value is a list, the constraint applies to each element of the list.",
+    "action": "228/input.ttl",
+    "metadata": "228/csv-metadata.json",
+    "result": [
+      "228/test228.csv"
+    ]
+  },
+  {
+    "id": "229",
+    "type": "ToCsvwTest",
+    "name": "matching minLength with separator",
+    "comment": "If the value is a list, the constraint applies to each element of the list.",
+    "action": "229/input.ttl",
+    "metadata": "229/csv-metadata.json",
+    "result": [
+      "229/test229.csv"
+    ]
+  },
+  {
+    "id": "230",
+    "type": "ToCsvwTest",
+    "name": "failing minLength with separator",
+    "comment": "If the value is a list, the constraint applies to each element of the list.",
+    "action": "230/input.ttl",
+    "metadata": "230/csv-metadata.json",
+    "result": [
+      "230/test230.csv"
+    ]
+  },
+  {
+    "id": "231",
+    "type": "ToCsvwTest",
+    "name": "single column primaryKey success",
+    "comment": "As defined in [tabular-data-model], validators MUST check that each row has a unique combination of values of cells in the indicated columns.",
+    "action": "231/input.ttl",
+    "metadata": "231/csv-metadata.json",
+    "result": [
+      "231/test231.csv"
+    ]
+  },
+  {
+    "id": "232",
+    "type": "ToCsvwTest",
+    "name": "single column primaryKey violation",
+    "comment": "Validators MUST raise errors if there is more than one row with the same primary key",
+    "action": "232/input.ttl",
+    "metadata": "232/csv-metadata.json",
+    "result": [
+      "232/test232.csv"
+    ]
+  },
+  {
+    "id": "233",
+    "type": "ToCsvwTest",
+    "name": "multiple column primaryKey success",
+    "comment": "As defined in [tabular-data-model], validators MUST check that each row has a unique combination of values of cells in the indicated columns.",
+    "action": "233/input.ttl",
+    "metadata": "233/csv-metadata.json",
+    "result": [
+      "233/test233.csv"
+    ]
+  },
+  {
+    "id": "234",
+    "type": "ToCsvwTest",
+    "name": "multiple column primaryKey violation",
+    "comment": "Validators MUST raise errors if there is more than one row with the same primary key",
+    "action": "234/input.ttl",
+    "metadata": "234/csv-metadata.json",
+    "result": [
+      "234/test234.csv"
+    ]
+  },
+  {
+    "id": "235",
+    "type": "ToCsvwTest",
+    "name": "rowTitles on one column",
+    "comment": "if row titles is not null, insert any titles specified for the row. For each value, tv, of the row titles annotation",
+    "action": "235/input.ttl",
+    "metadata": "235/csv-metadata.json",
+    "result": [
+      "235/countries.csv",
+      "235/country_slice.csv"
+    ]
+  },
+  {
+    "id": "236",
+    "type": "ToCsvwTest",
+    "name": "rowTitles on multiple columns",
+    "comment": "if row titles is not null, insert any titles specified for the row. For each value, tv, of the row titles annotation",
+    "action": "236/input.ttl",
+    "metadata": "236/csv-metadata.json",
+    "result": [
+      "236/countries.csv",
+      "236/country_slice.csv"
+    ]
+  },
+  {
+    "id": "237",
+    "type": "ToCsvwTest",
+    "name": "rowTitles on one column (minimal)",
+    "comment": "if row titles is not null, insert any titles specified for the row. For each value, tv, of the row titles annotation",
+    "action": "237/input.ttl",
+    "metadata": "237/csv-metadata.json",
+    "result": [
+      "237/countries.csv",
+      "237/country_slice.csv"
+    ]
+  },
+  {
+    "id": "238",
+    "type": "ToCsvwTest",
+    "name": "datatype value an absolute URL",
+    "comment": "it must be the name of one of the built-in datatypes defined in section 5.11.1 Built-in Datatypes",
+    "action": "238/input.ttl",
+    "metadata": "238/csv-metadata.json",
+    "result": [
+      "238/test238.csv"
+    ]
+  },
+  {
+    "id": "242",
+    "type": "ToCsvwTest",
+    "name": "datatype @id an absolute URL",
+    "comment": "If included, @id is a link property that identifies the datatype described by this datatype description.",
+    "action": "242/input.ttl",
+    "metadata": "242/csv-metadata.json",
+    "result": [
+      "242/test242.csv"
+    ]
+  },
+  {
+    "id": "245",
+    "type": "ToCsvwTest",
+    "name": "date format (valid time combinations with formats and milliseconds)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "245/input.ttl",
+    "metadata": "245/csv-metadata.json",
+    "result": [
+      "245/test245.csv"
+    ]
+  },
+  {
+    "id": "246",
+    "type": "ToCsvwTest",
+    "name": "date format (valid dateTime combinations with formats and milliseconds)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "246/input.ttl",
+    "metadata": "246/csv-metadata.json",
+    "result": [
+      "246/test246.csv"
+    ]
+  },
+  {
+    "id": "247",
+    "type": "ToCsvwTest",
+    "name": "date format (extra milliseconds)",
+    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
+    "action": "247/input.ttl",
+    "metadata": "247/csv-metadata.json",
+    "result": [
+      "247/test247.csv"
+    ]
+  },
+  {
+    "id": "248",
+    "type": "ToCsvwTest",
+    "name": "Unicode in non-Normalized form",
+    "comment": "No Unicode normalization (as specified in [UAX15]) is applied to these string values",
+    "action": "248/input.ttl",
+    "metadata": "248/csv-metadata.json",
+    "result": [
+      "248/test248.csv"
+    ]
+  },
+  {
+    "id": "259",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with csvm.json (w3.org/.well-known/csvm)",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "259/input.ttl",
+    "metadata": "259/csv-metadata.json",
+    "result": [
+      "259/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "260",
+    "type": "ToCsvwTest",
+    "name": "tree-ops example with {+url}.json (w3.org/.well-known/csvm)",
+    "comment": "Processors MUST use the first metadata found for processing a tabular data file by using overriding metadata, if provided. Otherwise processors MUST attempt to locate the first metadata document from the Link header or the metadata located through site-wide configuration.",
+    "action": "260/input.ttl",
+    "metadata": "260/csv-metadata.json",
+    "result": [
+      "260/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "263",
+    "type": "ToCsvwTest",
+    "name": "@type on a common property can be a built-in type",
+    "comment": "The value of any member of `@type` MUST be either a _term_ defined in [csvw-context], a _prefixed name_ where the prefix is a term defined in [csvw-context], or an absolute URL.",
+    "action": "263/input.ttl",
+    "metadata": "263/csv-metadata.json",
+    "result": [
+      "263/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "264",
+    "type": "ToCsvwTest",
+    "name": "@type on a common property can be a CURIE if the prefix is one of the built-in ones",
+    "comment": "The value of any member of `@type` MUST be either a _term_ defined in [csvw-context], a _prefixed name_ where the prefix is a term defined in [csvw-context], or an absolute URL.",
+    "action": "264/input.ttl",
+    "metadata": "264/csv-metadata.json",
+    "result": [
+      "264/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "266",
+    "type": "ToCsvwTest",
+    "name": "`null` contains an array of (valid) string & (invalid) numeric values",
+    "comment": "Processors MUST issue a warning if a property is set to an invalid value type",
+    "action": "266/input.ttl",
+    "metadata": "266/csv-metadata.json",
+    "result": [
+      "266/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "268",
+    "type": "ToCsvwTest",
+    "name": "`base` missing on datatype (defaults to string)",
+    "comment": "An atomic property that contains a single string: the name of one of the built-in datatypes, as listed above (and which are defined as terms in the default context). Its default is string.",
+    "action": "268/input.ttl",
+    "metadata": "268/csv-metadata.json",
+    "result": [
+      "268/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "269",
+    "type": "ToCsvwTest",
+    "name": "`format` for a boolean datatype is a string but in the wrong form (eg YN)",
+    "comment": "If the datatype base for a cell is `boolean`, the datatype format annotation provides the true value followed by the false value, separated by `|`. If the format does not follow this syntax, implementations MUST issue a warning and proceed as if no format had been provided.",
+    "action": "269/input.ttl",
+    "metadata": "269/csv-metadata.json",
+    "result": [
+      "269/test269.csv"
+    ]
+  },
+  {
+    "id": "270",
+    "type": "ToCsvwTest",
+    "name": "transformation includes an invalid property (eg foo)",
+    "comment": "All terms used within a metadata document MUST be defined in [csvw-context] defined for this specification",
+    "action": "270/input.ttl",
+    "metadata": "270/csv-metadata.json",
+    "result": [
+      "270/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "273",
+    "type": "ToCsvwTest",
+    "name": "`@base` set in `@context` overriding eg CSV location",
+    "comment": "If present, its value MUST be a string that is interpreted as a URL which is resolved against the location of the metadata document to provide the **base URL** for other URLs in the metadata document.",
+    "action": "273/input.ttl",
+    "metadata": "273/csv-metadata.json",
+    "result": [
+      "273/test273/action.csv"
+    ]
+  },
+  {
+    "id": "275",
+    "type": "ToCsvwTest",
+    "name": "property acceptable on column appears on table group",
+    "comment": "Table Group may only use defined properties.",
+    "action": "275/input.ttl",
+    "metadata": "275/csv-metadata.json",
+    "result": [
+      "275/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "276",
+    "type": "ToCsvwTest",
+    "name": "property acceptable on column appears on table",
+    "comment": "Table may only use defined properties.",
+    "action": "276/input.ttl",
+    "metadata": "276/csv-metadata.json",
+    "result": [
+      "276/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "277",
+    "type": "ToCsvwTest",
+    "name": "property acceptable on table appears on column",
+    "comment": "Column may only use defined properties.",
+    "action": "277/input.ttl",
+    "metadata": "277/csv-metadata.json",
+    "result": [
+      "277/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "278",
+    "type": "ToCsvwTest",
+    "name": "CSV has more headers than there are columns in the metadata",
+    "comment": "Two schemas are compatible if they have the same number of non-virtual column descriptions, and the non-virtual column descriptions at the same index within each are compatible with each other.",
+    "action": "278/input.ttl",
+    "metadata": "278/csv-metadata.json",
+    "result": [
+      "278/tree-ops.csv"
+    ]
+  },
+  {
+    "id": "279",
+    "type": "ToCsvwTest",
+    "name": "duration not matching xsd pattern",
+    "comment": "Value MUST be a valid xsd:duration.",
+    "action": "279/input.ttl",
+    "metadata": "279/csv-metadata.json",
+    "result": [
+      "279/test279.csv"
+    ]
+  },
+  {
+    "id": "280",
+    "type": "ToCsvwTest",
+    "name": "dayTimeDuration not matching xsd pattern",
+    "comment": "Value MUST be a valid xsd:dayTimeDuration.",
+    "action": "280/input.ttl",
+    "metadata": "280/csv-metadata.json",
+    "result": [
+      "280/test280.csv"
+    ]
+  },
+  {
+    "id": "281",
+    "type": "ToCsvwTest",
+    "name": "yearMonthDuration not matching xsd pattern",
+    "comment": "Value MUST be a valid xsd:yearMonthDuration.",
+    "action": "281/input.ttl",
+    "metadata": "281/csv-metadata.json",
+    "result": [
+      "281/test281.csv"
+    ]
+  },
+  {
+    "id": "282",
+    "type": "ToCsvwTest",
+    "name": "valid number patterns",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "282/input.ttl",
+    "metadata": "282/csv-metadata.json",
+    "result": [
+      "282/test282.csv"
+    ]
+  },
+  {
+    "id": "283",
+    "type": "ToCsvwTest",
+    "name": "valid number patterns (signs and percent/permille)",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "283/input.ttl",
+    "metadata": "283/csv-metadata.json",
+    "result": [
+      "283/test283.csv"
+    ]
+  },
+  {
+    "id": "284",
+    "type": "ToCsvwTest",
+    "name": "valid number patterns (grouping)",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "284/input.ttl",
+    "metadata": "284/csv-metadata.json",
+    "result": [
+      "284/test284.csv"
+    ]
+  },
+  {
+    "id": "285",
+    "type": "ToCsvwTest",
+    "name": "valid number patterns (fractional grouping)",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "285/input.ttl",
+    "metadata": "285/csv-metadata.json",
+    "result": [
+      "285/test285.csv"
+    ]
+  },
+  {
+    "id": "286",
+    "type": "ToCsvwTest",
+    "name": "invalid ##0 1,234",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "286/input.ttl",
+    "metadata": "286/csv-metadata.json",
+    "result": [
+      "286/test286.csv"
+    ]
+  },
+  {
+    "id": "287",
+    "type": "ToCsvwTest",
+    "name": "invalid ##0 123.4",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "287/input.ttl",
+    "metadata": "287/csv-metadata.json",
+    "result": [
+      "287/test287.csv"
+    ]
+  },
+  {
+    "id": "288",
+    "type": "ToCsvwTest",
+    "name": "invalid #,#00 1",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "288/input.ttl",
+    "metadata": "288/csv-metadata.json",
+    "result": [
+      "288/test288.csv"
+    ]
+  },
+  {
+    "id": "289",
+    "type": "ToCsvwTest",
+    "name": "invalid #,#00 1234",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "289/input.ttl",
+    "metadata": "289/csv-metadata.json",
+    "result": [
+      "289/test289.csv"
+    ]
+  },
+  {
+    "id": "290",
+    "type": "ToCsvwTest",
+    "name": "invalid #,#00 12,34",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "290/input.ttl",
+    "metadata": "290/csv-metadata.json",
+    "result": [
+      "290/test290.csv"
+    ]
+  },
+  {
+    "id": "291",
+    "type": "ToCsvwTest",
+    "name": "invalid #,#00 12,34,567",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "291/input.ttl",
+    "metadata": "291/csv-metadata.json",
+    "result": [
+      "291/test291.csv"
+    ]
+  },
+  {
+    "id": "292",
+    "type": "ToCsvwTest",
+    "name": "invalid #,##,#00 1",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "292/input.ttl",
+    "metadata": "292/csv-metadata.json",
+    "result": [
+      "292/test292.csv"
+    ]
+  },
+  {
+    "id": "293",
+    "type": "ToCsvwTest",
+    "name": "invalid #,##,#00 1234",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "293/input.ttl",
+    "metadata": "293/csv-metadata.json",
+    "result": [
+      "293/test293.csv"
+    ]
+  },
+  {
+    "id": "294",
+    "type": "ToCsvwTest",
+    "name": "invalid #,##,#00 12,34",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "294/input.ttl",
+    "metadata": "294/csv-metadata.json",
+    "result": [
+      "294/test294.csv"
+    ]
+  },
+  {
+    "id": "295",
+    "type": "ToCsvwTest",
+    "name": "invalid #,##,#00 1,234,567",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "295/input.ttl",
+    "metadata": "295/csv-metadata.json",
+    "result": [
+      "295/test295.csv"
+    ]
+  },
+  {
+    "id": "296",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.# 12.34",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "296/input.ttl",
+    "metadata": "296/csv-metadata.json",
+    "result": [
+      "296/test296.csv"
+    ]
+  },
+  {
+    "id": "297",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.# 1,234.5",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "297/input.ttl",
+    "metadata": "297/csv-metadata.json",
+    "result": [
+      "297/test297.csv"
+    ]
+  },
+  {
+    "id": "298",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.0 1",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "298/input.ttl",
+    "metadata": "298/csv-metadata.json",
+    "result": [
+      "298/test298.csv"
+    ]
+  },
+  {
+    "id": "299",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.0 12.34",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "299/input.ttl",
+    "metadata": "299/csv-metadata.json",
+    "result": [
+      "299/test299.csv"
+    ]
+  },
+  {
+    "id": "300",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.0# 1",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "300/input.ttl",
+    "metadata": "300/csv-metadata.json",
+    "result": [
+      "300/test300.csv"
+    ]
+  },
+  {
+    "id": "301",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.0# 12.345",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "301/input.ttl",
+    "metadata": "301/csv-metadata.json",
+    "result": [
+      "301/test301.csv"
+    ]
+  },
+  {
+    "id": "302",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.0#,# 1",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "302/input.ttl",
+    "metadata": "302/csv-metadata.json",
+    "result": [
+      "302/test302.csv"
+    ]
+  },
+  {
+    "id": "303",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.0#,# 12.345",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "303/input.ttl",
+    "metadata": "303/csv-metadata.json",
+    "result": [
+      "303/test303.csv"
+    ]
+  },
+  {
+    "id": "304",
+    "type": "ToCsvwTest",
+    "name": "invalid #0.0#,# 12.34,567",
+    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
+    "action": "304/input.ttl",
+    "metadata": "304/csv-metadata.json",
+    "result": [
+      "304/test304.csv"
+    ]
+  },
+  {
+    "id": "305",
+    "type": "ToCsvwTest",
+    "name": "multiple values with same subject and property (unordered)",
+    "comment": "Values in separate columns using the same propertyUrl are kept in proper relative order.",
+    "action": "305/input.ttl",
+    "metadata": "305/csv-metadata.json",
+    "result": [
+      "305/test305.csv"
+    ]
+  },
+  {
+    "id": "306",
+    "type": "ToCsvwTest",
+    "name": "multiple values with same subject and property (ordered)",
+    "comment": "Values in separate columns using the same propertyUrl are kept in proper relative order.",
+    "action": "306/input.ttl",
+    "metadata": "306/csv-metadata.json",
+    "result": [
+      "306/test306.csv"
+    ]
+  },
+  {
+    "id": "307",
+    "type": "ToCsvwTest",
+    "name": "multiple values with same subject and property (ordered and unordered)",
+    "comment": "Values in separate columns using the same propertyUrl are kept in proper relative order.",
+    "action": "307/input.ttl",
+    "metadata": "307/csv-metadata.json",
+    "result": [
+      "307/test307.csv"
+    ]
+  }
+]
