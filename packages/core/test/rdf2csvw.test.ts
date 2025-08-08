@@ -1,4 +1,4 @@
-import { SimpleTest } from './types/manifest.js';
+import { SimpleTest, SimpleTestType } from './types/manifest.js';
 import {
   CsvwColumn,
   CsvwTablesStream,
@@ -39,15 +39,44 @@ describe('RDF -> CSVW with descriptor', () => {
         resolveRdfStreamFn: loadStringStream,
       };
       const convertor = new Rdf2CsvwConvertor(options);
-      const result = await convertor.convert(
-        resolve(testDir, entry.action),
-        await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
-      );
+      convertor.issueTracker.options.collectIssues = true;
 
-      const received = await toReceivedObject(result);
-      const expected = await loadExpectedObject(entry.result);
+      switch (entry.type) {
+        case SimpleTestType.Test:
+        case SimpleTestType.TestWithWarnings: {
+          const result = await convertor.convert(
+            resolve(testDir, entry.action),
+            await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
+          );
 
-      expect(received).toEqual(expected);
+          const received = await toReceivedObject(result);
+          const expected = await loadExpectedObject(entry.result);
+
+          expect(received).toEqual(expected);
+          if (entry.type === SimpleTestType.TestWithWarnings) {
+            expect(convertor.issueTracker.getWarnings()).not.toHaveLength(0);
+          } else {
+            expect(convertor.issueTracker.getWarnings()).toEqual([]);
+          }
+          break;
+        }
+
+        case SimpleTestType.NegativeTest: {
+          await expect(async () => {
+            await convertor.convert(
+              resolve(testDir, entry.action),
+              await readFile(
+                resolve(testDir, entry.metadata as string),
+                'utf-8',
+              ),
+            );
+          }).rejects.toThrow();
+          break;
+        }
+
+        default:
+          throw new Error('Unknown entry type.');
+      }
     });
   }
 });
