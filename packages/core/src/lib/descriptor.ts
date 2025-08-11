@@ -79,7 +79,7 @@ export async function normalizeDescriptor(
   const [internal, idMap]: [CompactedCsvwDescriptor, Map<string, Quad[]>] =
     await splitExternalProps(compactedExpanded, issueTracker);
 
-  return new DescriptorWrapper(
+  const wrapper = new DescriptorWrapper(
     (await compactCsvwNs(
       internal,
       docLoader,
@@ -87,6 +87,8 @@ export async function normalizeDescriptor(
     )) as unknown as CompactedCsvwDescriptor,
     idMap
   );
+
+  return inheritProperties(wrapper);
 }
 
 /**
@@ -224,6 +226,50 @@ async function loadReferencedSubdescriptors(
       }
     }
   }
+}
+
+/**
+ * Propagates inherited properties
+ * @param wrapper descriptor wrapper
+ * @returns descriptor wrapper with propagated inherited properties
+ */
+function inheritProperties(wrapper: DescriptorWrapper) {
+  const tables = wrapper.isTableGroup
+    ? wrapper.getTables()
+    : ([wrapper.descriptor] as CsvwTableDescription[]);
+
+  const inheritedProperties = [
+    'aboutUrl',
+    'datatype',
+    'default',
+    'lang',
+    'null',
+    'ordered',
+    'propertyUrl',
+    'required',
+    'separator',
+    'textDirection',
+    'valueUrl',
+  ] as const;
+
+  for (const table of tables) {
+    for (const prop of inheritedProperties) {
+      if (table[prop] === undefined)
+        table[prop] = wrapper.descriptor[prop] as any;
+
+      if (table.tableSchema) {
+        if (table.tableSchema[prop] === undefined)
+          table.tableSchema[prop] = table[prop] as any;
+
+        for (const column of table.tableSchema?.columns ?? []) {
+          if (column[prop] === undefined)
+            column[prop] = table.tableSchema[prop] as any;
+        }
+      }
+    }
+  }
+
+  return wrapper;
 }
 
 /**
@@ -368,32 +414,6 @@ export class DescriptorWrapper {
     } else {
       yield this.descriptor;
     }
-  }
-
-  /**
-   * get value of inherited property
-   * @param prop 
-   * @param table 
-   * @param column 
-   * @returns 
-   */
-  public getInheritedProp<K extends keyof CsvwInheritedProperties>(
-    prop: K,
-    table: CsvwTableDescription,
-    column?: CsvwColumnDescription,
-  ): CsvwInheritedProperties[K] {
-    const levels: (CsvwInheritedProperties | undefined)[] = [
-      column,
-      table.tableSchema,
-      table,
-      this.isTableGroup ? this.descriptor : undefined,
-    ];
-    for (const level of levels) {
-      if (level?.[prop] !== undefined) {
-        return level[prop];
-      }
-    }
-    return undefined;
   }
 
   /**

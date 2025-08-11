@@ -226,9 +226,9 @@ export class Rdf2CsvwConvertor {
     for (let index = 0; index < table.tableSchema.columns.length; index++) {
       const column = table.tableSchema.columns[index];
 
-      const aboutUrl = this.wrapper.getInheritedProp('aboutUrl', table, column);
+      const aboutUrl = column.aboutUrl;
       const referencedBy = table.tableSchema.columns.find((col) => {
-        const valueUrl = this.wrapper.getInheritedProp('valueUrl', table, col);
+        const valueUrl = col.valueUrl;
         return col !== column && valueUrl && valueUrl === aboutUrl;
       });
 
@@ -246,7 +246,7 @@ export class Rdf2CsvwConvertor {
         );
         // Required columns are prepended, because OPTIONAL pattern should not be at the beginning.
         // For more information, see createSelectOfOptionalSubjects function bellow.
-        if (this.wrapper.getInheritedProp('required', table, column)) {
+        if (column.required) {
           allOptional = false;
           lines.unshift(...patterns.split('\n'));
         } else {
@@ -304,21 +304,9 @@ ${lines.map((line) => `    ${line}`).join('\n')}
         .map((index) => {
           const column = table.tableSchema.columns[index];
 
-          const aboutUrl = this.wrapper.getInheritedProp(
-            'aboutUrl',
-            table,
-            column,
-          );
-          const propertyUrl = this.wrapper.getInheritedProp(
-            'propertyUrl',
-            table,
-            column,
-          );
-          const valueUrl = this.wrapper.getInheritedProp(
-            'valueUrl',
-            table,
-            column,
-          );
+          const aboutUrl = column.aboutUrl;
+          const propertyUrl = column.propertyUrl;
+          const valueUrl = column.valueUrl;
 
           const subject = '?_subject';
           const predicate = propertyUrl
@@ -341,11 +329,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
               _sourceColumn: index + 1,
               _name: columns[index].name,
             });
-            const datatype = this.wrapper.getInheritedProp(
-              'datatype',
-              table,
-              column,
-            );
+            const datatype = column.datatype;
             if (
               datatype === 'anyURI' ||
               predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
@@ -356,7 +340,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
 
           const lines = [`          ${subject} ${predicate} ${object} .`];
 
-          const lang = this.wrapper.getInheritedProp('lang', table, column);
+          const lang = column.lang;
           if (lang) {
             // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
             // TODO: Should we lower our expectations if the matching language is not found?
@@ -421,13 +405,9 @@ ${lines.join('\n')}
   ): string {
     const column = table.tableSchema.columns[index];
 
-    const aboutUrl = this.wrapper.getInheritedProp('aboutUrl', table, column);
-    const propertyUrl = this.wrapper.getInheritedProp(
-      'propertyUrl',
-      table,
-      column,
-    );
-    const valueUrl = this.wrapper.getInheritedProp('valueUrl', table, column);
+    const aboutUrl = column.aboutUrl;
+    const propertyUrl = column.propertyUrl;
+    const valueUrl = column.valueUrl;
 
     const predicate = propertyUrl
       ? `<${this.expandIri(
@@ -454,7 +434,7 @@ ${lines.join('\n')}
         _name: columns[index].name,
       });
       if (
-        this.wrapper.getInheritedProp('datatype', table, column) === 'anyURI' ||
+        column.datatype === 'anyURI' ||
         predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
       )
         object = `<${this.expandIri(object)}>`;
@@ -463,7 +443,7 @@ ${lines.join('\n')}
 
     const lines = [`  ${subject} ${predicate} ${object} .`];
 
-    const lang = this.wrapper.getInheritedProp('lang', table, column);
+    const lang = column.lang;
     if (lang) {
       // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
       // TODO: Should we lower our expectations if the matching language is not found?
@@ -506,7 +486,7 @@ ${lines.join('\n')}
       table.tableSchema.columns.forEach((col, i) => {
         if (
           col !== column &&
-          this.wrapper.getInheritedProp('aboutUrl', table, col) === valueUrl
+          col.aboutUrl === valueUrl
         ) {
           const patterns = this.createTriplePatterns(table, columns, i, object);
           lines.push(...patterns.split('\n'));
@@ -514,7 +494,7 @@ ${lines.join('\n')}
       });
     }
 
-    if (!this.wrapper.getInheritedProp('required', table, column)) {
+    if (!column.required) {
       return `  OPTIONAL {
 ${lines.map((line) => `  ${line}`).join('\n')}
   }`;

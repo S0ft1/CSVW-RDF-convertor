@@ -406,7 +406,7 @@ export class Csvw2RdfConvertor {
       if (col.suppressOutput) continue;
       ctx.col = col;
       for (const type of types) {
-        const template = this.input.getInheritedProp(`${type}Url`, ctx.table, ctx.col);
+        const template = ctx.col[`${type}Url`];
         if (template === undefined) continue;
         templates[type][col.name as string] = parseTemplate(template);
       }
@@ -426,7 +426,7 @@ export class Csvw2RdfConvertor {
     ctx: TableContext
   ): Promise<string[] | undefined> {
     const defaultLang =
-      this.input.getInheritedProp('lang', ctx.table) ??
+      ctx.table.lang ??
       (this.input.descriptor['@context']?.[1] as any)?.['@language'] ??
       '@none';
     if (ctx.table.tableSchema === undefined) ctx.table.tableSchema = {};
@@ -670,7 +670,7 @@ export class Csvw2RdfConvertor {
 
       for (const title of titles) {
         ctx.col = ctx.columns[titlemap[title]];
-        const lang = this.input.getInheritedProp('lang', ctx.table, ctx.col);
+        const lang = ctx.col?.lang;
         const val = ctx.rowRecord[title];
         if (!val) continue;
         this.emitTriple(
@@ -782,12 +782,12 @@ export class Csvw2RdfConvertor {
             ctx.table.url,
             ctx
           );
-    const lang = this.input.getInheritedProp('lang', ctx.table, ctx.col);
+    const lang = ctx.col.lang;
 
     if (ctx.templates.value[ctx.col.name as string] === undefined) {
       const val = ctx.rowRecord[ctx.col.name as string] as string | string[];
       if (Array.isArray(val)) {
-        if (this.input.getInheritedProp('ordered', ctx.table, ctx.col)) {
+        if (ctx.col.ordered) {
           const head = this.createRDFList(
             val.map((v) => this.datatypeToLiteral(v, dtUri as string, lang))
           );
@@ -826,7 +826,7 @@ export class Csvw2RdfConvertor {
    */
   private normalizeDatatype(ctx: TableContext): [string, CsvwDatatype] {
     const dtOrBuiltin =
-      this.input.getInheritedProp('datatype', ctx.table, ctx.col) ?? 'string';
+      ctx.col.datatype ?? 'string';
     const dt =
       typeof dtOrBuiltin === 'string' ? { base: dtOrBuiltin } : dtOrBuiltin;
     let dtUri = dt['@id'];
@@ -1157,7 +1157,7 @@ export class Csvw2RdfConvertor {
    * @returns true if the value is null, false otherwise
    */
   private isValueNull(value: string, ctx: TableContext): boolean {
-    const nullVal = this.input.getInheritedProp('null', ctx.table, ctx.col);
+    const nullVal = ctx.col.null;
     if (nullVal === undefined) return value === '';
     if (nullVal === value) return true;
     if (Array.isArray(nullVal)) {
@@ -1183,7 +1183,7 @@ export class Csvw2RdfConvertor {
       value = value.replace(/\t\r\n/g, ' ');
     }
     if (value === '') value = ctx.col.default ?? '';
-    const sep = this.input.getInheritedProp('separator', ctx.table, ctx.col);
+    const sep = ctx.col.separator;
     if (sep !== undefined) {
       if (value === '') return [];
       if (this.isValueNull(value, ctx)) return null;
