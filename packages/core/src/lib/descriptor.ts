@@ -3,8 +3,6 @@ import {
   CompactedCsvwDescriptor,
   CompactedExpandedCsvwDescriptor,
 } from './types/descriptor/descriptor.js';
-import { CsvwColumnDescription } from './types/descriptor/column-description.js';
-import { CsvwInheritedProperties } from './types/descriptor/inherited-properties.js';
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
 import { CsvwTableDescription } from './types/descriptor/table.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
@@ -16,6 +14,8 @@ import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { Quad } from '@rdfjs/types';
+import { validateTable } from './validation/table.js';
+import { validateTableGroup } from './validation/table-group.js';
 
 const { quad, fromQuad } = DataFactory;
 
@@ -88,7 +88,7 @@ export async function normalizeDescriptor(
     idMap
   );
 
-  return inheritProperties(wrapper);
+  return validateAndInheritProperties(wrapper, issueTracker);
 }
 
 /**
@@ -229,11 +229,24 @@ async function loadReferencedSubdescriptors(
 }
 
 /**
- * Propagates inherited properties
+ * Propagates inherited properties and validates the descriptor.
  * @param wrapper descriptor wrapper
+ * @param issueTracker issue tracker
  * @returns descriptor wrapper with propagated inherited properties
  */
-function inheritProperties(wrapper: DescriptorWrapper) {
+function validateAndInheritProperties(wrapper: DescriptorWrapper, issueTracker: IssueTracker) {
+  if (wrapper.isTableGroup) {
+    validateTableGroup(wrapper.descriptor as CsvwTableGroupDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  } else {
+    validateTable(wrapper.descriptor as CsvwTableDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  }
+
   const tables = wrapper.isTableGroup
     ? wrapper.getTables()
     : ([wrapper.descriptor] as CsvwTableDescription[]);

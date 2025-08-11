@@ -23,7 +23,6 @@ import {
   CsvwNumberFormat,
 } from '../types/descriptor/datatype.js';
 import { CsvwDialectDescription } from '../types/descriptor/dialect-description.js';
-import { CsvwTableGroupDescription } from '../types/descriptor/table-group.js';
 import { CsvwTableDescription } from '../types/descriptor/table.js';
 import { tz } from '@date-fns/tz';
 import { Quad, Stream } from '@rdfjs/types';
@@ -38,8 +37,6 @@ import { IssueTracker } from '../utils/issue-tracker.js';
 import { parseDate } from '../utils/parse-date.js';
 import { NumberParser } from '../utils/parse-number.js';
 import { replaceUrl } from '../utils/replace-url.js';
-import { validateTableGroup } from '../validation/table-group.js';
-import { validateTable } from '../validation/table.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -176,18 +173,6 @@ export class Csvw2RdfConvertor {
   private convertInner(): Promise<void> {
     if (!this.options.baseIri) {
       this.options.baseIri = this.input.descriptor['@id'] ?? '';
-    }
-
-    if (this.input.isTableGroup) {
-      validateTableGroup(this.input.descriptor as CsvwTableGroupDescription, {
-        input: this.input,
-        issueTracker: this.issueTracker,
-      });
-    } else {
-      validateTable(this.input.descriptor as CsvwTableDescription, {
-        input: this.input,
-        issueTracker: this.issueTracker,
-      });
     }
 
     // 1
