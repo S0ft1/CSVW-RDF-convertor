@@ -1,0 +1,128 @@
+openapi: 3.0.4
+info:
+  title: CSVW-RDF-Convertor - OpenAPI 3.0
+  description: |-
+    A web service for conversion between RDF and CSVW
+  version: 1.0.0
+paths:
+  /validate:
+    post:
+      description: Validate CSVW
+      tags:
+        - validate
+      summary: Validate CSVW
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                options:
+                  type: object
+                  properties:
+                    input:
+                      type: string
+                      description: >-
+                        URL of either the CSV file or the CSVW descriptor. Can also be a
+                        filename of an uploaded file.
+                    pathOverrides:
+                      type: object
+                      description: >-
+                        Record of path overrides where the key is a pattern and the value
+                        is the replacement. The pattern will be interpreted as a minimatch
+                        pattern.
+                      additionalProperties:
+                        type: string
+                    baseIri:
+                      type: string
+                      description: >-
+                        Base IRI for loading resources. Defaults to the URL of the CSVW
+                        descriptor.
+                  required:
+                    - input
+                  additionalProperties: false
+              required:
+                - options
+      responses:
+        '200':
+          description: Stream of validation issues in NDJSON format
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+                description: Each line is a JSON object representing an issue.
+  /csvw2rdf:
+    post:
+      description: Convert CSVW to RDF
+      tags:
+        - csvw2rdf
+      summary: Convert CSVW to RDF
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                options:
+                  type: object
+                  properties:
+                    input:
+                      type: string
+                      description: >-
+                        URL of either the CSV file or the CSVW descriptor. Can also be a
+                        filename of an uploaded file.
+                    pathOverrides:
+                      type: object
+                      description: >-
+                        Record of path overrides where the key is a pattern and the value is
+                        the replacement. The pattern will be interpreted as a minimatch
+                        pattern.
+                      additionalProperties:
+                        type: string
+                    minimal:
+                      type: boolean
+                      description: Use minimal conversion mode. Defaults to false.
+                    templateIris:
+                      type: boolean
+                      description: Use template IRIs instead of URIs. Defaults to false.
+                    baseIri:
+                      type: string
+                      description: >-
+                        Base IRI for loading resources. Defaults to the URL of the CSVW
+                        descriptor.
+                    format:
+                      type: string
+                      description: Output RDF serialization. Defaults to turtle.
+                      enum:
+                        - nquads
+                        - ntriples
+                        - turtle
+                        - trig
+                    includeWarnings:
+                      type: boolean
+                      description: Include warnings in the output. Defaults to false.
+                    turtle:
+                      type: object
+                      description: Options for the turtle serialization. Only used if format is turtle.
+                      properties:
+                        prefixes:
+                          type: object
+                          description: >-
+                            Record of prefixes where the key is the prefix and the value is
+                            the IRI.
+                          additionalProperties:
+                            type: string
+                      additionalProperties: false
+                  required:
+                    - input
+                  additionalProperties: false
+              required:
+                - options
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/rdf+xml: {}
+            text/turtle: {}
+            text/n3: {}
+            application/n-triples: {}
