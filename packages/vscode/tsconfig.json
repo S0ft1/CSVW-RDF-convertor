@@ -2,6 +2,9 @@
   "extends": "../../tsconfig.base.json",
   "files": [],
   "include": [],
+  "types": [
+    "vscode"
+  ],
   "references": [
     {
       "path": "../core"

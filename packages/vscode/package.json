@@ -6,6 +6,11 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "displayName": "CSVWRDFConvertor",
+  "description": "",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -35,5 +40,86 @@
   "dependencies": {
     "@swc/helpers": "~0.5.11",
     "@csvw-rdf-convertor/core": "0.5.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "csvwrdfconvertor.showInputFields",
+        "title": "Add Conversion",
+        "icon": "$(add)"
+      },
+      {
+        "command": "csvwrdfconvertor.convert",
+        "title": "Convert",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "csvwrdfconvertor.downloadOutput",
+        "title": "Download Output",
+        "icon": "$(cloud-download)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "csvw-rdf-converter",
+          "title": "CSVW RDF Converter",
+          "icon": "$(file-code)"
+        }
+      ]
+    },
+    "views": {
+      "csvw-rdf-converter": [
+        {
+          "id": "csvw-rdf-actions",
+          "name": "Actions",
+          "type": "tree"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "csvwrdfconvertor.showInputFields",
+          "when": "view == csvw-rdf-actions",
+          "group": "navigation@1"
+        },
+        {
+          "command": "csvwrdfconvertor.convert",
+          "when": "view == csvw-rdf-actions",
+          "group": "navigation@2"
+        },
+        {
+          "command": "csvwrdfconvertor.downloadOutput",
+          "when": "view == csvw-rdf-actions",
+          "group": "navigation@3"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.102.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.32.0",
+    "typescript": "^5.9.2"
   }
 }
