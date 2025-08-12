@@ -342,9 +342,8 @@ ${lines.map((line) => `    ${line}`).join('\n')}
 
           const lang = column.lang;
           if (lang) {
-            // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
             // TODO: Should we lower our expectations if the matching language is not found?
-            lines.push(`          FILTER (LANG(${object}) = '${lang}')`);
+            lines.push(`          FILTER LANGMATCHES (LANG(${object}), "${lang}")`);
           }
 
           if (aboutUrl)
@@ -445,9 +444,8 @@ ${lines.join('\n')}
 
     const lang = column.lang;
     if (lang) {
-      // TODO: Should we be more benevolent and use LANGMATCHES instead of string equality?
       // TODO: Should we lower our expectations if the matching language is not found?
-      lines.push(`  FILTER (LANG(${object}) = '${lang}')`);
+      lines.push(`  FILTER LANGMATCHES(LANG(${object}), "${lang}")`);
     }
 
     if (aboutUrl && subject === '?_subject') {
