@@ -2,6 +2,7 @@ import { Quad, Stream } from '@rdfjs/types';
 import { AnyCsvwDescriptor } from '../types/descriptor/descriptor.js';
 import { Csvw2RdfOptions } from '../conversion-options.js';
 import { Csvw2RdfConvertor } from './convertor.js';
+import { Issue } from '../utils/issue-tracker.js';
 
 /**
  * Converts CSVW to RDF from a descriptor.
@@ -29,4 +30,17 @@ export function csvUrlToRdf(
 ): Stream<Quad> {
   const convertor = new Csvw2RdfConvertor(options);
   return convertor.convertFromCsvUrl(url);
+}
+
+/**
+ * Converts CSVW to RDF from a descriptor.
+ * @param descriptor descriptor either as parsed or stringified JSON
+ * @param options conversion options
+ * @returns a stream of RDF quads
+ */
+export function validateCsvw(
+  descriptor: string | AnyCsvwDescriptor,
+  options: Csvw2RdfOptions & { originalUrl?: string }
+): AsyncIterable<Issue> {
+  return null as any;
 }
