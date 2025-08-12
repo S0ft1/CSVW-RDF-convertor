@@ -88,7 +88,19 @@ export async function normalizeDescriptor(
     idMap
   );
 
-  return validateAndInheritProperties(wrapper, issueTracker);
+  if (wrapper.isTableGroup) {
+    validateTableGroup(wrapper.descriptor as CsvwTableGroupDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  } else {
+    validateTable(wrapper.descriptor as CsvwTableDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  }
+
+  return inheritProperties(wrapper);
 }
 
 /**
@@ -229,24 +241,11 @@ async function loadReferencedSubdescriptors(
 }
 
 /**
- * Propagates inherited properties and validates the descriptor.
+ * Propagates inherited properties.
  * @param wrapper descriptor wrapper
- * @param issueTracker issue tracker
  * @returns descriptor wrapper with propagated inherited properties
  */
-function validateAndInheritProperties(wrapper: DescriptorWrapper, issueTracker: IssueTracker) {
-  if (wrapper.isTableGroup) {
-    validateTableGroup(wrapper.descriptor as CsvwTableGroupDescription, {
-      input: wrapper,
-      issueTracker: issueTracker,
-    });
-  } else {
-    validateTable(wrapper.descriptor as CsvwTableDescription, {
-      input: wrapper,
-      issueTracker: issueTracker,
-    });
-  }
-
+function inheritProperties(wrapper: DescriptorWrapper) {
   const tables = wrapper.isTableGroup
     ? wrapper.getTables()
     : ([wrapper.descriptor] as CsvwTableDescription[]);
