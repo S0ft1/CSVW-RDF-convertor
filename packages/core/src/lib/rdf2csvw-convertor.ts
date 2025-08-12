@@ -113,13 +113,13 @@ export class Rdf2CsvwConvertor {
       // TODO: use IssueTracker
       if (!table.tableSchema?.columns) {
         if (this.options.logLevel >= LogLevel.Warn)
-          console.warn(`Skipping table ${table.url}: no columns found`);
+          console.warn(`Skipping table ${table.url.replace(/[?#].*$/, '')}: no columns found`);
         continue;
       }
       if (table.suppressOutput === true) {
         if (this.options.logLevel >= LogLevel.Warn)
           console.warn(
-            `Skipping table ${table.url}: suppressOutput set to true`
+            `Skipping table ${table.url.replace(/[?#].*$/, '')}: suppressOutput set to true`
           );
         continue;
       }
@@ -193,7 +193,7 @@ export class Rdf2CsvwConvertor {
         this.issueTracker
       );
       openedStreamsCount++;
-      streams[tableWithRequiredColumns.url] = [
+      streams[tableWithRequiredColumns.url.replace(/[?#].*$/, '')] = [
         columns.filter(
           (col, i) => !tableWithRequiredColumns.tableSchema.columns[i].virtual
         ),
