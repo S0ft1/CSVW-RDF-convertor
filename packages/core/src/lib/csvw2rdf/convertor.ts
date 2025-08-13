@@ -104,7 +104,7 @@ export class Csvw2RdfConvertor {
    */
   public convert(
     descriptor: string | AnyCsvwDescriptor,
-    originalUrl?: string
+    originalUrl?: string,
   ): Stream<Quad> {
     if (this.used) {
       throw new Error('Csvw2RdfConvertor can be used only once');
@@ -114,7 +114,7 @@ export class Csvw2RdfConvertor {
       descriptor,
       this.options,
       this.issueTracker,
-      originalUrl
+      originalUrl,
     )
       .then((input) => {
         this.input = input;
@@ -153,11 +153,11 @@ export class Csvw2RdfConvertor {
       .then(([wrapper, resolvedUrl]) => {
         this.options.baseIri = resolvedUrl;
         const tablesWithoutUrl = Array.from(wrapper.getTables()).filter(
-          (table) => !table.url
+          (table) => !table.url,
         );
         if (tablesWithoutUrl.length > 1) {
           this.issueTracker.addError(
-            'Multiple tables without URL found in the descriptor'
+            'Multiple tables without URL found in the descriptor',
           );
         }
         if (tablesWithoutUrl.length === 1) {
@@ -193,14 +193,14 @@ export class Csvw2RdfConvertor {
 
     // 1
     const groupNode = this.createNode(
-      this.input.isTableGroup ? this.input.descriptor : {}
+      this.input.isTableGroup ? this.input.descriptor : {},
     );
     if (!this.options.minimal) {
       //2
       this.emitTriple(
         groupNode,
         namedNode(rdf + 'type'),
-        namedNode(csvw + 'TableGroup')
+        namedNode(csvw + 'TableGroup'),
       );
       //3
       if (this.input.isTableGroup) {
@@ -218,7 +218,7 @@ export class Csvw2RdfConvertor {
           if (!this.options.minimal) {
             this.emitTriple(groupNode, namedNode(csvw + 'table'), tableNode);
           }
-        })
+        }),
       );
     }
 
@@ -234,7 +234,7 @@ export class Csvw2RdfConvertor {
    * @returns URL of metadata file for the given CSV file
    */
   private async resolveMetadata(
-    csvUrl: string
+    csvUrl: string,
   ): Promise<[DescriptorWrapper, string]> {
     let expandedUrl = replaceUrl(csvUrl, this.options.pathOverrides);
     expandedUrl = new URL(expandedUrl, this.options.baseIri || expandedUrl)
@@ -251,7 +251,7 @@ export class Csvw2RdfConvertor {
     for (const template of await this.getWellKnownUris(expandedUrl)) {
       let resolvedUrl = new URL(
         template.expand({ url: cleanUrl.href }),
-        expandedUrl
+        expandedUrl,
       ).href;
       resolvedUrl = replaceUrl(resolvedUrl, this.options.pathOverrides);
       result = await this.verifyMetadataUrl(resolvedUrl, expandedUrl);
@@ -270,7 +270,7 @@ export class Csvw2RdfConvertor {
         },
         this.options,
         this.issueTracker,
-        expandedUrl
+        expandedUrl,
       ),
       expandedUrl,
     ];
@@ -284,18 +284,18 @@ export class Csvw2RdfConvertor {
    */
   private async verifyMetadataUrl(
     url: string,
-    csvUrl: string
+    csvUrl: string,
   ): Promise<[DescriptorWrapper, string] | null> {
     try {
       const descriptor = await this.options.resolveJsonldFn(
         url,
-        this.options.baseIri
+        this.options.baseIri,
       );
       const wrapper = await normalizeDescriptor(
         JSON.parse(descriptor),
         this.options,
         this.issueTracker,
-        url
+        url,
       );
       for (const t of wrapper.getTables()) {
         let expandedUrl = replaceUrl(t.url ?? '', this.options.pathOverrides);
@@ -305,7 +305,7 @@ export class Csvw2RdfConvertor {
         }
       }
       this.issueTracker.addWarning(
-        `Metadata file ${url} does not contain a table that matches the CSV file ${csvUrl}`
+        `Metadata file ${url} does not contain a table that matches the CSV file ${csvUrl}`,
       );
     } catch {
       // ignore errors
@@ -350,13 +350,13 @@ export class Csvw2RdfConvertor {
       this.emitTriple(
         tableNode,
         namedNode(rdf + 'type'),
-        namedNode(csvw + 'Table')
+        namedNode(csvw + 'Table'),
       );
       //4.4
       this.emitTriple(
         tableNode,
         namedNode(csvw + 'url'),
-        namedNode(ctx.table.url)
+        namedNode(ctx.table.url),
       );
       //4.5
       this.emitExternalProps(ctx.table, tableNode);
@@ -389,7 +389,7 @@ export class Csvw2RdfConvertor {
   }
   private getSrcRowsOffset(ctx: TableContext): number {
     const headerRows =
-      ctx.dialect.headerRowCount ?? (ctx.dialect.header ?? true ? 1 : 0);
+      ctx.dialect.headerRowCount ?? ((ctx.dialect.header ?? true) ? 1 : 0);
     return headerRows + (ctx.dialect.skipRows ?? 0);
   }
 
@@ -424,7 +424,7 @@ export class Csvw2RdfConvertor {
    */
   private async processCsvHeader(
     stream: AsyncIterator<string[]>,
-    ctx: TableContext
+    ctx: TableContext,
   ): Promise<string[] | undefined> {
     const defaultLang =
       this.inherit('lang', ctx.table, ctx) ??
@@ -434,7 +434,7 @@ export class Csvw2RdfConvertor {
     const schema = ctx.table.tableSchema;
 
     const headerRowCount =
-      ctx.dialect.headerRowCount ?? (ctx.dialect.header ?? true ? 1 : 0);
+      ctx.dialect.headerRowCount ?? ((ctx.dialect.header ?? true) ? 1 : 0);
     if (!schema.columns) {
       schema.columns = [];
     }
@@ -447,7 +447,7 @@ export class Csvw2RdfConvertor {
       ctx.columns.slice(0, physicalColCount).find((c) => c.virtual)
     ) {
       this.issueTracker.addError(
-        'Table schema has virtual columns before physical ones'
+        'Table schema has virtual columns before physical ones',
       );
       ctx.columns.sort((a, b) => (a.virtual ? 1 : 0) - (b.virtual ? 1 : 0));
     }
@@ -457,13 +457,13 @@ export class Csvw2RdfConvertor {
       headerRowCount,
       physicalColCount,
       stream,
-      ctx
+      ctx,
     );
     if (maybeRow) return maybeRow;
     this.columnTitlesToNames(defaultLang, ctx);
 
     this.validateDuplicateColumns(
-      ctx.columns.filter((col) => col.name !== undefined)
+      ctx.columns.filter((col) => col.name !== undefined),
     );
     return undefined;
   }
@@ -480,7 +480,7 @@ export class Csvw2RdfConvertor {
     headerRowCount: number,
     physicalColCount: number | undefined,
     stream: AsyncIterator<string[]>,
-    ctx: TableContext
+    ctx: TableContext,
   ): Promise<string[] | undefined> {
     for (const col of ctx.columns) {
       if (
@@ -504,7 +504,7 @@ export class Csvw2RdfConvertor {
       const vals = header.value.slice(ctx.dialect.skipColumns ?? 0);
       if (physicalColCount !== undefined && vals.length !== physicalColCount) {
         this.issueTracker.addWarning(
-          `Header row ${i} has ${vals.length} columns, but the table schema has ${physicalColCount} non-virtual columns`
+          `Header row ${i} has ${vals.length} columns, but the table schema has ${physicalColCount} non-virtual columns`,
         );
       }
       this.headerRowToTitles(vals, defaultLang, i === 0, ctx);
@@ -527,7 +527,7 @@ export class Csvw2RdfConvertor {
     vals: string[],
     defaultLang: string,
     firstRow: boolean,
-    ctx: TableContext
+    ctx: TableContext,
   ): void {
     for (let j = 0; j < vals.length; ++j) {
       if (!vals[j]) continue;
@@ -564,15 +564,15 @@ export class Csvw2RdfConvertor {
         const title = coerceArray(
           typeof col.titles === 'object' && !Array.isArray(col.titles)
             ? col.titles[defaultLang]
-            : col.titles
+            : col.titles,
         )[0];
         if (title === vals[j]) {
           this.issueTracker.addWarning(
-            `Column title language is different from header in the CSV file "${vals[j]}"@${defaultLang}`
+            `Column title language is different from header in the CSV file "${vals[j]}"@${defaultLang}`,
           );
         } else {
           this.issueTracker.addWarning(
-            `Column title "${title}" is different from header in the CSV file "${vals[j]}"`
+            `Column title "${title}" is different from header in the CSV file "${vals[j]}"`,
           );
         }
       }
@@ -612,7 +612,7 @@ export class Csvw2RdfConvertor {
       for (let j = 0; j < i; ++j) {
         if (columns[i].name === columns[j].name) {
           this.issueTracker.addError(
-            `Duplicate column name "${columns[i].name}"`
+            `Duplicate column name "${columns[i].name}"`,
           );
         }
       }
@@ -627,7 +627,7 @@ export class Csvw2RdfConvertor {
   private convertTableRow(
     rowNum: number,
     rowsOffset: number,
-    ctx: TableContext
+    ctx: TableContext,
   ): BlankNode {
     this.location.update({ row: rowNum });
 
@@ -640,19 +640,19 @@ export class Csvw2RdfConvertor {
       this.emitTriple(
         rowNode,
         namedNode(rdf + 'type'),
-        namedNode(csvw + 'Row')
+        namedNode(csvw + 'Row'),
       );
       //4.6.4
       this.emitTriple(
         rowNode,
         namedNode(csvw + 'rownum'),
-        literal(rowNum.toString(), namedNode(xsd + 'integer'))
+        literal(rowNum.toString(), namedNode(xsd + 'integer')),
       );
       //4.6.5
       this.emitTriple(
         rowNode,
         namedNode(csvw + 'url'),
-        namedNode(ctx.table.url + '#row=' + (rowNum + rowsOffset))
+        namedNode(ctx.table.url + '#row=' + (rowNum + rowsOffset)),
       );
 
       //4.6.7
@@ -677,7 +677,7 @@ export class Csvw2RdfConvertor {
         this.emitTriple(
           rowNode,
           namedNode(csvw + 'title'),
-          literal(val as string, lang)
+          literal(val as string, lang),
         );
       }
     }
@@ -691,7 +691,7 @@ export class Csvw2RdfConvertor {
   private convertTableRowValues(
     rowNode: BlankNode,
     rowsOffset: number,
-    ctx: TableContext
+    ctx: TableContext,
   ): void {
     const colsOffset = ctx.dialect.skipColumns ?? 0;
 
@@ -710,7 +710,7 @@ export class Csvw2RdfConvertor {
         ctx.row[i],
         dtUri,
         dt,
-        ctx
+        ctx,
       );
     }
 
@@ -725,7 +725,7 @@ export class Csvw2RdfConvertor {
         i,
         rowsOffset,
         colsOffset,
-        ctx
+        ctx,
       );
     }
   }
@@ -744,7 +744,7 @@ export class Csvw2RdfConvertor {
     colNum: number,
     rowsOffset: number,
     colsOffset: number,
-    ctx: TableContext
+    ctx: TableContext,
   ): void {
     this.location.update({ column: colNum });
 
@@ -767,7 +767,7 @@ export class Csvw2RdfConvertor {
             colNum + colsOffset,
             rowNum + rowsOffset,
             ctx.table.url,
-            ctx
+            ctx,
           );
     if (!this.options.minimal) {
       //4.6.8.2
@@ -781,7 +781,7 @@ export class Csvw2RdfConvertor {
             colNum + colsOffset,
             rowNum + rowsOffset,
             ctx.table.url,
-            ctx
+            ctx,
           );
     const lang = this.inherit('lang', ctx.col, ctx);
 
@@ -790,7 +790,7 @@ export class Csvw2RdfConvertor {
       if (Array.isArray(val)) {
         if (this.inherit('ordered', ctx.col, ctx)) {
           const head = this.createRDFList(
-            val.map((v) => this.datatypeToLiteral(v, dtUri as string, lang))
+            val.map((v) => this.datatypeToLiteral(v, dtUri as string, lang)),
           );
           this.emitTriple(subject, predicate, head);
         } else {
@@ -798,7 +798,7 @@ export class Csvw2RdfConvertor {
             this.emitTriple(
               subject,
               predicate,
-              this.datatypeToLiteral(item, dtUri as string, lang)
+              this.datatypeToLiteral(item, dtUri as string, lang),
             );
           }
         }
@@ -806,7 +806,7 @@ export class Csvw2RdfConvertor {
         this.emitTriple(
           subject,
           predicate,
-          this.datatypeToLiteral(val, dtUri as string, lang)
+          this.datatypeToLiteral(val, dtUri as string, lang),
         );
       }
     } else {
@@ -815,7 +815,7 @@ export class Csvw2RdfConvertor {
         colNum + colsOffset,
         rowNum + rowsOffset,
         ctx.table.url,
-        ctx
+        ctx,
       );
       this.emitTriple(subject, predicate, val);
     }
@@ -863,7 +863,7 @@ export class Csvw2RdfConvertor {
     this.emitTriple(
       current,
       namedNode(rdf + 'first'),
-      values[values.length - 1]
+      values[values.length - 1],
     );
     this.emitTriple(current, namedNode(rdf + 'rest'), namedNode(rdf + 'nil'));
     return head;
@@ -875,19 +875,19 @@ export class Csvw2RdfConvertor {
   private emitTriple(
     first: NamedNode | BlankNode,
     second: NamedNode,
-    third: NamedNode | BlankNode | Literal
+    third: NamedNode | BlankNode | Literal,
   ): void {
     this.outputStream.push(quad(first, second, third, defaultGraph()));
   }
 
   private emitExternalProps(
     object: { notes?: unknown },
-    node: BlankNode | NamedNode
+    node: BlankNode | NamedNode,
   ): void {
     if (object.notes === undefined) return;
     for (const prop of this.input.getExternalProps(
       object.notes as string,
-      node
+      node,
     )) {
       this.outputStream.push(prop);
     }
@@ -914,7 +914,7 @@ export class Csvw2RdfConvertor {
     value: string,
     dtUri: string,
     dt: CsvwDatatype,
-    ctx: TableContext
+    ctx: TableContext,
   ): string | string[] | null {
     const normalizedValue = this.normalizeValue(value, dtUri, ctx);
     if (normalizedValue === null) return null;
@@ -941,12 +941,12 @@ export class Csvw2RdfConvertor {
   private datatypeToLiteral(
     value: string,
     dtUri: string,
-    lang?: string
+    lang?: string,
   ): Literal {
     if (dtUri !== xsd + 'string' && value.startsWith(invalidValuePrefix)) {
       return literal(
         value.slice(invalidValuePrefix.length),
-        namedNode(xsd + 'string')
+        namedNode(xsd + 'string'),
       );
     }
     if (dtUri === xsd + 'string' && lang) {
@@ -967,7 +967,7 @@ export class Csvw2RdfConvertor {
     value: string,
     dtUri: string,
     dt: CsvwDatatype,
-    ctx: TableContext
+    ctx: TableContext,
   ): string | null {
     if (value === '') value = ctx.col.default ?? '';
     if (this.isValueNull(value, ctx)) return null;
@@ -977,7 +977,7 @@ export class Csvw2RdfConvertor {
         value,
         dt.format as CsvwNumberFormat,
         dtUri,
-        dt
+        dt,
       );
     } else if (dateTypes.has(dtUri)) {
       value = this.reformatDate(value, dtUri, dt);
@@ -991,7 +991,7 @@ export class Csvw2RdfConvertor {
     ) {
       if (!value.match(dt.format)) {
         this.issueTracker.addWarning(
-          `Value "${value}" does not match the format "${dt.format}"`
+          `Value "${value}" does not match the format "${dt.format}"`,
         );
         if (dtUri !== xsd + 'string') {
           return invalidValuePrefix + value;
@@ -1008,22 +1008,22 @@ export class Csvw2RdfConvertor {
   private validateValueLength(
     value: string,
     dtUri: string,
-    dt: CsvwDatatype
+    dt: CsvwDatatype,
   ): boolean {
     const valLength = this.getValueLength(value, dtUri);
     if (dt.length !== undefined && dt.length !== valLength) {
       this.issueTracker.addWarning(
-        `Value "${value}" does not match the length "${dt.length}"`
+        `Value "${value}" does not match the length "${dt.length}"`,
       );
       return false;
     } else if (dt.minLength !== undefined && dt.minLength > valLength) {
       this.issueTracker.addWarning(
-        `Value "${value}" does not match the minLength "${dt.minLength}"`
+        `Value "${value}" does not match the minLength "${dt.minLength}"`,
       );
       return false;
     } else if (dt.maxLength !== undefined && dt.maxLength < valLength) {
       this.issueTracker.addWarning(
-        `Value "${value}" does not match the maxLength "${dt.maxLength}"`
+        `Value "${value}" does not match the maxLength "${dt.maxLength}"`,
       );
       return false;
     }
@@ -1049,7 +1049,7 @@ export class Csvw2RdfConvertor {
       else if (value === falseVal) value = 'false';
       else {
         this.issueTracker.addWarning(
-          `Value "${value}" does not match the format "${dt.format}"`
+          `Value "${value}" does not match the format "${dt.format}"`,
         );
         return invalidValuePrefix + value;
       }
@@ -1058,7 +1058,7 @@ export class Csvw2RdfConvertor {
       else if (value === 'false' || value === '0') value = 'false';
       else {
         this.issueTracker.addWarning(
-          `Value "${value}" does not match the format "true|false" or "1|0"`
+          `Value "${value}" does not match the format "true|false" or "1|0"`,
         );
         return invalidValuePrefix + value;
       }
@@ -1071,7 +1071,7 @@ export class Csvw2RdfConvertor {
     if (Number.isNaN(date.getTime())) {
       if (dt.format) {
         this.issueTracker.addWarning(
-          `Value "${value}" does not match the format "${dt.format}"`
+          `Value "${value}" does not match the format "${dt.format}"`,
         );
       } else {
         this.issueTracker.addWarning(`Value "${value}" is not a valid date`);
@@ -1087,8 +1087,8 @@ export class Csvw2RdfConvertor {
       dtUri === xsd + 'date'
         ? 'yyyy-MM-dd'
         : dtUri === xsd + 'time'
-        ? 'HH:mm:ss'
-        : "yyyy-MM-dd'T'HH:mm:ss";
+          ? 'HH:mm:ss'
+          : "yyyy-MM-dd'T'HH:mm:ss";
     let millis = date.getMilliseconds();
     if (millis) {
       resultFormat += '.';
@@ -1111,7 +1111,7 @@ export class Csvw2RdfConvertor {
   private validateDateMinMax(
     value: Date,
     dtUri: string,
-    dt: CsvwDatatype
+    dt: CsvwDatatype,
   ): boolean {
     const minimum = dt.minimum ?? dt.minInclusive ?? undefined;
     const maximum = dt.maximum ?? dt.maxInclusive ?? undefined;
@@ -1120,13 +1120,13 @@ export class Csvw2RdfConvertor {
 
     if (minimum !== undefined && value < parseDate(minimum as string, dtUri)) {
       this.issueTracker.addWarning(
-        `Value "${value}" does not meet the minimum "${minimum}"`
+        `Value "${value}" does not meet the minimum "${minimum}"`,
       );
       return false;
     }
     if (maximum !== undefined && value > parseDate(maximum as string, dtUri)) {
       this.issueTracker.addWarning(
-        `Value "${value}" does not meet the maximum "${maximum}"`
+        `Value "${value}" does not meet the maximum "${maximum}"`,
       );
       return false;
     }
@@ -1135,7 +1135,7 @@ export class Csvw2RdfConvertor {
       value <= parseDate(minExclusive as string, dtUri)
     ) {
       this.issueTracker.addWarning(
-        `Value "${value}" does not meet the minimum exclusive "${minExclusive}"`
+        `Value "${value}" does not meet the minimum exclusive "${minExclusive}"`,
       );
       return false;
     }
@@ -1144,7 +1144,7 @@ export class Csvw2RdfConvertor {
       value >= parseDate(maxExclusive as string, dtUri)
     ) {
       this.issueTracker.addWarning(
-        `Value "${value}" does not meet the maximum exclusive "${maxExclusive}"`
+        `Value "${value}" does not meet the maximum exclusive "${maxExclusive}"`,
       );
       return false;
     }
@@ -1175,7 +1175,7 @@ export class Csvw2RdfConvertor {
   private normalizeValue(
     value: string,
     dtype: string,
-    ctx: TableContext
+    ctx: TableContext,
   ): string | string[] | null {
     if (!Csvw2RdfConvertor.normalizeWsTypes.has(dtype)) {
       value = value.replace(/\s+/, ' ').trim();
@@ -1203,7 +1203,7 @@ export class Csvw2RdfConvertor {
   private inherit<K extends keyof CsvwInheritedProperties>(
     prop: K,
     mostSpecific: CsvwInheritedProperties,
-    ctx: TableContext
+    ctx: TableContext,
   ): CsvwInheritedProperties[K] {
     const levels: (CsvwInheritedProperties | undefined)[] = [
       ctx.col,
@@ -1272,7 +1272,7 @@ export class Csvw2RdfConvertor {
     srcCol: number,
     srcRow: number,
     baseIri: string,
-    ctx: TableContext
+    ctx: TableContext,
   ): NamedNode {
     let uri = template.expand({
       ...ctx.rowRecord,
@@ -1288,7 +1288,7 @@ export class Csvw2RdfConvertor {
       const parsed = URL.parse(uri) as URL;
       uri = parsed.href.replace(
         parsed.hostname,
-        uts46.toUnicode(parsed.hostname)
+        uts46.toUnicode(parsed.hostname),
       );
       uri = decodeURI(uri);
     }
