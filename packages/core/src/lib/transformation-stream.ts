@@ -8,9 +8,8 @@ import {
   CsvwTableDescriptionWithRequiredColumns,
 } from './types/descriptor/table.js';
 import {
-  convertColumnToNumberFormattedColumn,
-  isNumberColumn,
-  transformNumber,
+  isNumericColumn,
+  formatNumber,
 } from './utils/number-formating.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { DataFactory } from 'rdf-data-factory';
@@ -71,20 +70,16 @@ export function transformStream(
             factory.literal(formattedValue)
           );
         }
-      } else if (isNumberColumn(columnDescription)) {
-        const convertedNumberColumn =
-          convertColumnToNumberFormattedColumn(columnDescription);
-        if (convertedNumberColumn) {
-          const formattedValue = transformNumber(
-            value,
-            convertedNumberColumn,
-            issueTracker
-          );
-          bindings = bindings.set(
-            columns[i].queryVariable,
-            factory.literal(formattedValue)
-          );
-        }
+      } else if (isNumericColumn(columnDescription)) {
+        const formattedValue = formatNumber(
+          value,
+          columnDescription,
+          issueTracker
+        );
+        bindings = bindings.set(
+          columns[i].queryVariable,
+          factory.literal(formattedValue)
+        );
       } else if (columnDescription.valueUrl) {
         const formattedValue = trimUrl(
           value,

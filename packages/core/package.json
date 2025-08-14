@@ -65,15 +65,16 @@
     "idna-uts46-hx": "^6.0.8",
     "jsonld": "^8.3.3",
     "jsonld-streaming-parser": "^5.0.0",
+    "ldml-number": "^1.1.0",
     "memory-level": "^3.0.0",
     "mnemonist": "^0.40.2",
     "n3": "^1.23.1",
     "quadstore": "^15.3.0",
     "quadstore-comunica": "^6.0.1",
+    "rdf-data-factory": "2.0.2",
     "rdfxml-streaming-parser": "^3.0.1",
     "readable-stream": "^4.7.0",
-    "url-template": "^3.1.1",
-    "rdf-data-factory": "2.0.2"
+    "url-template": "^3.1.1"
   },
   "devDependencies": {
     "@types/jsonld": "^1.5.15",

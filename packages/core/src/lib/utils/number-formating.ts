@@ -1,195 +1,248 @@
 import {
-  ColumnDescriptionWithNumberDataTypeAndFormat,
   CsvwColumnDescription,
+  CsvwColumnDescriptionWithNumericDatatype,
 } from '../types/descriptor/column-description.js';
 import {
+  CsvwBuiltinDatatype,
   CsvwDatatype,
-  CsvwNumberFormat,
 } from '../types/descriptor/datatype.js';
 import { IssueTracker } from './issue-tracker.js';
+import ldmlnum from 'ldml-number';
 
-export function findFormatedColumns(allColumns: CsvwColumnDescription[]) {
-  const castedColumns = [];
-  for (const column of allColumns) {
-    castedColumns.push(convertColumnToNumberFormattedColumn(column));
-  }
-  return castedColumns;
-}
+type NumericDatatypeValidation = {
+  regex: RegExp;
+  pattern: string;
+  minInclusive?: number | bigint;
+  maxInclusive?: number | bigint;
+  minExclusive?: number | bigint;
+  maxExclusive?: number | bigint;
+};
 
-export function isNumberColumn(column: CsvwColumnDescription) {
-  if (column.datatype) {
-    const dataType = column.datatype as CsvwDatatype;
-    if (dataType.format) {
-      const format = dataType.format as CsvwNumberFormat;
-      if (format.pattern) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
+const numericDatatypePatterns: {
+  [datatype: string]: NumericDatatypeValidation;
+} = {
+  decimal: {
+    regex: /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)$/,
+    pattern: '0.######',
+  },
+  integer: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+  },
+  long: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: -9223372036854775808n,
+    maxInclusive: 9223372036854775807n,
+  },
+  int: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: -2147483648,
+    maxInclusive: 2147483647,
+  },
+  short: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: -32768,
+    maxInclusive: 32767,
+  },
+  byte: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: -128,
+    maxInclusive: 127,
+  },
+  nonNegativeInteger: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: 0,
+  },
+  positiveInteger: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: 1,
+  },
+  unsignedLong: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: 0,
+    maxInclusive: 18446744073709551615n,
+  },
+  unsignedInt: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: 0,
+    maxInclusive: 4294967295,
+  },
+  unsignedShort: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: 0,
+    maxInclusive: 65535,
+  },
+  unsignedByte: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    minInclusive: 0,
+    maxInclusive: 255,
+  },
+  nonPositiveInteger: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    maxInclusive: 0,
+  },
+  negativeInteger: {
+    regex: /^[-+]?[0-9]+$/,
+    pattern: '0',
+    maxInclusive: -1,
+  },
+  double: {
+    regex:
+      /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$/,
+    pattern: '0.######',
+  },
+  number: {
+    regex:
+      /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$/,
+    pattern: '0.######',
+  },
+  float: {
+    regex:
+      /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$/,
+    pattern: '0.######',
+  },
+};
 
-export function convertColumnToNumberFormattedColumn(
-  column: CsvwColumnDescription
-) {
-  if (column.datatype) {
-    const dataType = column.datatype as CsvwDatatype;
-    if (dataType.format) {
-      const format = dataType.format as CsvwNumberFormat;
-      if (format.pattern) {
-        return column as ColumnDescriptionWithNumberDataTypeAndFormat;
-      }
-    }
-  }
-  return null;
-}
-
-function patternIsValid(pattern: string): boolean {
-  //This probably doesnt encapsulate all the rules of a valid pattern.
-  let hasDecimal = false;
-  let hasGrouping = false;
-  for (const char of pattern) {
-    if (char !== '#' && char != '0' && char != '.' && char != ',') {
-      return false;
-    }
-    if (char === '.') {
-      if (hasDecimal) {
-        return false;
-      }
-      hasDecimal = true;
-    } else if (char === ',') {
-      if (hasGrouping) {
-        return false;
-      }
-      hasGrouping = true;
-    }
-  }
-  return true;
-}
-
-export function transformNumber(
-  value: string,
-  columnDescription: ColumnDescriptionWithNumberDataTypeAndFormat,
-  issueTracker: IssueTracker
-): string {
-  if (columnDescription.datatype.format.pattern) {
-    if (!patternIsValid(columnDescription.datatype.format.pattern)) {
-      issueTracker.addError(
-        `Invalid pattern: ${columnDescription.datatype.format.pattern} take a look at https://www.unicode.org/reports/tr35/tr35-39/tr35-numbers.html#Number_Patterns`,
-        true
-      );
-      return value;
-    }
-    const splitted = value.split('.');
-    if (splitted.length == 1) {
-      return value;
-    } else if (splitted.length == 2) {
-      const decimalChar = columnDescription.datatype.format.decimalChar || '.';
-      const groupChar = columnDescription.datatype.format.groupChar || ',';
-      const pattern = columnDescription.datatype.format.pattern;
-      const decimalPart = splitted[1];
-      const integerPart = splitted[0];
-      const splittedPattern = pattern.split('.');
-      const integerPattern = splittedPattern[0];
-      const decimalPattern = splittedPattern[1];
-      const reversedIntegerPart = integerPart.split('').reverse().join('');
-      const reversedIntegerPattern = integerPattern
-        .split('')
-        .reverse()
-        .join('');
-      const transformedNumber =
-        transformNumberInner(
-          reversedIntegerPattern,
-          reversedIntegerPart,
-          groupChar
-        )
-          .split('')
-          .reverse()
-          .join('') +
-        decimalChar +
-        transformNumberInner(decimalPattern, decimalPart, groupChar); //merging the integer and decimal parts on decimalChar
-      const stringTransformedNumber = +transformedNumber;
-      return stringTransformedNumber.toString();
-    } else {
-      issueTracker.addError(
-        `Too many decimal characters in value: ${value}`,
-        true
-      );
-      return value;
-    }
+function constraintToNumber(
+  value: string | number | undefined,
+): number | undefined {
+  if (typeof value === 'string') {
+    if (value === 'INF') return Infinity;
+    if (value === '-INF') return -Infinity;
+    return +value;
   }
   return value;
 }
 
-function transformNumberInner(
-  pattern: string,
-  number: string,
-  groupChar: string
-): string {
-  let transformedPart = '';
-  let patternLongerThanNumber = false;
-  let numberIndex = 0;
-  for (let i = 0; i < pattern.length; i++) {
-    if (numberIndex == number.length) {
-      patternLongerThanNumber = true;
-    }
-    if (pattern[i] == '0') {
-      transformedPart += patternLongerThanNumber ? '0' : number[numberIndex];
-      numberIndex++;
-    } else if (pattern[i] == '#' && !patternLongerThanNumber) {
-      transformedPart += number[numberIndex] || '';
-      numberIndex++;
-    } else if (pattern[i] == ',' && !patternLongerThanNumber) {
-      transformedPart += groupChar;
-    } else if (pattern[i] == 'E' || pattern[i] == 'e') {
-      transformedPart += 'E'; //this will be taken care later using + operation at let stringTransformedNumber = +transformedNumber;
-    }
+export function isNumericColumn(
+  column: CsvwColumnDescription,
+): column is CsvwColumnDescriptionWithNumericDatatype {
+  if (column.datatype === undefined) {
+    return false;
+  } else if (typeof column.datatype === 'string') {
+    const datatype = column.datatype as CsvwBuiltinDatatype;
+    return Object.keys(numericDatatypePatterns).some(
+      (type) => type === datatype,
+    );
+  } else {
+    const datatype = column.datatype as CsvwDatatype;
+    return Object.keys(numericDatatypePatterns).some(
+      (type) => type === datatype.base,
+    );
   }
-  /*
-    if (!patternLongerThanNumber) {
-      //add the rest of the number
-      //maybe this should not happend in case of decimal part, as shown in the table https://www.unicode.org/reports/tr35/tr35-numbers.html#Number_Format_Patterns
-      transformedPart += number.substring(pattern.length);
-    }*/
-  return transformedPart;
 }
 
-/**
- * Transforms numeric values in a JSON table string based on the column formatting
- * specified in the provided descriptor. The transformation is applied to columns
- * that are identified as requiring formatting.
- *
- * @param jsonTable - The JSON table as a string where numeric values need to be transformed.
- * @param descriptor - The descriptor wrapper containing metadata about the table schema and columns.
- * @param issueTracker - An issue tracker instance to log any issues encountered during transformation.
- * @returns The transformed JSON table as a string with formatted numeric values.
- */
-
-/*
-export function transformNumbersInTable(
-  jsonTable: string,
-  descriptor: DescriptorWrapper,
-  issueTracker: IssueTracker
+export function formatNumber(
+  value: string,
+  column: CsvwColumnDescription,
+  issueTracker: IssueTracker,
 ): string {
-  const rgxForNumberRowInJson = `\\s*:\\s*"\\d*\\.*\\d*"`;
-  const regexForNumberInJson = /"(\d*\.?\d*)"/;
-  const colums = descriptor.descriptor.tableSchema?.columns;
-  if (colums) {
-    const formatedColumns = findFormatedColumns(colums);
-    for (const column of formatedColumns) {
-      if (column.name) {
-        const regex = new RegExp(
-          `"${column.name}"${rgxForNumberRowInJson}`,
-          'g'
-        );
-        jsonTable = jsonTable.replace(regex, (match) => {
-          const value = match.match(regexForNumberInJson)?.[1] || '';
-          const transformedValue = transformNumber(value, column, issueTracker);
-          return match.replace(value, transformedValue);
-        });
-      }
+  if (!isNumericColumn(column)) return value;
+
+  let validation: NumericDatatypeValidation;
+  if (typeof column.datatype === 'string') {
+    // validation must be cloned since it is later updated
+    validation = {...numericDatatypePatterns[column.datatype]};
+  } else {
+    if (typeof column.datatype.base === 'string') {
+      // validation must be cloned since it is later updated
+      validation = {...numericDatatypePatterns[column.datatype.base]};
+    } else {
+      validation = {
+        regex:
+          /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)? |(\+|-)?INF|NaN$/,
+        pattern:
+          typeof column.datatype.format === 'string'
+            ? column.datatype.format
+            : (column.datatype.format?.pattern ?? '0.######'),
+      };
+    }
+
+    validation.minInclusive =
+      constraintToNumber(
+        column.datatype.minimum ?? column.datatype.minInclusive,
+      ) ?? validation.minInclusive;
+    validation.maxInclusive =
+      constraintToNumber(
+        column.datatype.maximum ?? column.datatype.maxExclusive,
+      ) ?? validation.maxInclusive;
+    validation.minExclusive =
+      constraintToNumber(column.datatype.minExclusive) ??
+      validation.minExclusive;
+    validation.maxExclusive =
+      constraintToNumber(column.datatype.maxExclusive) ??
+      validation.maxExclusive;
+  }
+
+  ldmlnum.locale.csvw = ldmlnum.locale(',', '.', '+', '-', 'E', 'INF', 'NaN');
+  if (
+    typeof column.datatype !== 'string' &&
+    typeof column.datatype.format !== 'string'
+  ) {
+    ldmlnum.locale.csvw.thousands_separator =
+      column.datatype.format?.groupChar ?? ',';
+    ldmlnum.locale.csvw.decimal_separator =
+      column.datatype.format?.decimalChar ?? '.';
+  }
+
+  if (!validation.regex.test(value)) {
+    issueTracker.addWarning(
+      `The value "${value}" does not match ${(typeof column.datatype === 'string' ? column.datatype : column.datatype.base) ?? 'numeric'} type.`,
+      true,
+    );
+    return value;
+  }
+  if (!isNaN(+value)) {
+    if (validation.minInclusive !== undefined && +value < validation.minInclusive) {
+      issueTracker.addWarning(
+        `The value "${value}" is less than inclusive minimum.`,
+        true,
+      );
+      return value;
+    }
+    if (validation.maxInclusive !== undefined && +value > validation.maxInclusive) {
+      issueTracker.addWarning(
+        `The value "${value}" is greater than inclusive maximum.`,
+        true,
+      );
+      return value;
+    }
+    if (validation.minExclusive !== undefined && +value <= validation.minExclusive) {
+      issueTracker.addWarning(
+        `The value "${value}" is less than or equal to exclusive minimum.`,
+        true,
+      );
+      return value;
+    }
+    if (validation.maxExclusive !== undefined && +value >= validation.maxExclusive) {
+      issueTracker.addWarning(
+        `The value "${value}" is greater than or equal to exclusive maximum.`,
+        true,
+      );
+      return value;
     }
   }
-  return jsonTable;
+
+  try {
+    const format_fn = ldmlnum(validation.pattern, 'csvw');
+    const formated = format_fn(+value);
+    return formated;
+  } catch {
+    issueTracker.addError(
+      `Invalid numeric format pattern "${validation.pattern}", take a look at https://www.unicode.org/reports/tr35/tr35-39/tr35-numbers.html#Number_Patterns`,
+      true,
+    );
+    return value;
+  }
 }
-*/
