@@ -223,10 +223,6 @@ export function formatNumber(
     else pattern = column.datatype.format.pattern;
   }
 
-  if (pattern === undefined) {
-    return value;
-  }
-
   ldmlnum.locale.csvw = ldmlnum.locale(',', '.', '+', '-', 'E', 'INF', 'NaN');
   if (
     typeof column.datatype !== 'string' &&
@@ -236,6 +232,10 @@ export function formatNumber(
       column.datatype.format?.groupChar ?? ',';
     ldmlnum.locale.csvw.decimal_separator =
       column.datatype.format?.decimalChar ?? '.';
+  }
+
+  if (pattern === undefined) {
+    return value.replace('.', ldmlnum.locale.csvw.decimal_separator);
   }
 
   try {
