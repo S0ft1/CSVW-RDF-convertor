@@ -766,7 +766,7 @@
   },
   {
     "id": "125",
-    "type": "ToCsvwTestWithWarnings",
+    "type": "ToCsvwTest",
     "name": "required column with empty cell",
     "comment": "If the column required annotation is true, add an error to the list of errors for the cell.",
     "action": "125/input.ttl",
@@ -777,7 +777,7 @@
   },
   {
     "id": "126",
-    "type": "ToCsvwTestWithWarnings",
+    "type": "ToCsvwTest",
     "name": "required column with cell matching null",
     "comment": "if the string is the same as any one of the values of the column null annotation, then the resulting value is null. If the column separator annotation is null and the column required annotation is true, add an error to the list of errors for the cell.",
     "action": "126/input.ttl",
