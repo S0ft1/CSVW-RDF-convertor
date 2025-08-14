@@ -1,5 +1,5 @@
 boolean,boolean1
 true,Y
 false,N
-1,Y
-0,N
+true,Y
+false,N
