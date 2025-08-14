@@ -127,7 +127,8 @@ async function loadExpectedObject(
       const row = {} as SimpleTestRow;
 
       for (const columnTitle of Object.keys(line)) {
-        row[columnTitle] = line[columnTitle];
+        if (line[columnTitle] !== '')
+          row[columnTitle] = line[columnTitle];
       }
 
       table.push(row);
