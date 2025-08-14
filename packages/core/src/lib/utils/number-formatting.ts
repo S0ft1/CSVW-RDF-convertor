@@ -179,7 +179,6 @@ export function formatNumber(
         `The value "${value}" is less than inclusive minimum.`,
         true,
       );
-      return value;
     }
     if (
       validation.maxInclusive !== undefined &&
@@ -189,7 +188,6 @@ export function formatNumber(
         `The value "${value}" is greater than inclusive maximum.`,
         true,
       );
-      return value;
     }
     if (
       validation.minExclusive !== undefined &&
@@ -199,7 +197,6 @@ export function formatNumber(
         `The value "${value}" is less than or equal to exclusive minimum.`,
         true,
       );
-      return value;
     }
     if (
       validation.maxExclusive !== undefined &&
@@ -209,7 +206,6 @@ export function formatNumber(
         `The value "${value}" is greater than or equal to exclusive maximum.`,
         true,
       );
-      return value;
     }
   }
 
@@ -247,6 +243,6 @@ export function formatNumber(
       `Invalid numeric format pattern "${pattern}", take a look at https://www.unicode.org/reports/tr35/tr35-39/tr35-numbers.html#Number_Patterns`,
       true,
     );
-    return value;
+    return value.replace('.', ldmlnum.locale.csvw.decimal_separator);
   }
 }

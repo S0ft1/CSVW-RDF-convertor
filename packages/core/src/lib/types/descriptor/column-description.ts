@@ -36,6 +36,9 @@ export interface CsvwColumnDescription extends CsvwInheritedProperties {
   '@type'?: 'Column';
 }
 
+type CsvwDatatypeWithBooleanFormat = Omit<CsvwDatatype, 'format'> & { format?: string }
+export type CsvwColumnDescriptionWithBooleanDatatype = Omit<CsvwColumnDescription, 'datatype'> & { datatype: CsvwBuiltinDatatype | CsvwDatatypeWithBooleanFormat }
+
 type CsvwDatatypeWithNumericFormat = Omit<CsvwDatatype, 'format'> & { format?: string | CsvwNumberFormat }
 export type CsvwColumnDescriptionWithNumericDatatype = Omit<CsvwColumnDescription, 'datatype'> & { datatype: CsvwBuiltinDatatype | CsvwDatatypeWithNumericFormat }
 

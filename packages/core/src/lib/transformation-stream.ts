@@ -1,21 +1,17 @@
-import { Bindings, ResultStream } from '@rdfjs/types';
+import { CsvwColumn } from './rdf2csvw-convertor.js';
+import { formatBoolean, isBooleanColumn } from './utils/boolean-formatting.js';
+import { isNumericColumn, formatNumber } from './utils/number-formatting.js';
 import {
   convertColumnToDateFormattedColumn,
   formatDate,
   isDateFormattedColumn,
 } from './utils/date-formatting.js';
-import {
-  CsvwTableDescriptionWithRequiredColumns,
-} from './types/descriptor/table.js';
-import {
-  isNumericColumn,
-  formatNumber,
-} from './utils/number-formatting.js';
-import { IssueTracker } from './utils/issue-tracker.js';
-import { DataFactory } from 'rdf-data-factory';
 import { trimUrl } from './utils/url-trimming.js';
-import { CsvwColumn } from './rdf2csvw-convertor.js';
+import { IssueTracker } from './utils/issue-tracker.js';
+import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
 import { Readable } from 'readable-stream';
+import { DataFactory } from 'rdf-data-factory';
+import { Bindings, ResultStream } from '@rdfjs/types';
 const factory = new DataFactory();
 
 export function transformStream(
@@ -57,7 +53,27 @@ export function transformStream(
         }
       }
       const value = bindings.get(columns[i].queryVariable).value;
-      if (isDateFormattedColumn(columnDescription)) {
+      if (isBooleanColumn(columnDescription)) {
+        const formattedValue = formatBoolean(
+          value,
+          columnDescription,
+          issueTracker,
+        );
+        bindings = bindings.set(
+          columns[i].queryVariable,
+          factory.literal(formattedValue),
+        );
+      } else if (isNumericColumn(columnDescription)) {
+        const formattedValue = formatNumber(
+          value,
+          columnDescription,
+          issueTracker,
+        );
+        bindings = bindings.set(
+          columns[i].queryVariable,
+          factory.literal(formattedValue),
+        );
+      } else if (isDateFormattedColumn(columnDescription)) {
         const convertedDateColumn =
           convertColumnToDateFormattedColumn(columnDescription);
         if (convertedDateColumn) {
@@ -70,16 +86,6 @@ export function transformStream(
             factory.literal(formattedValue)
           );
         }
-      } else if (isNumericColumn(columnDescription)) {
-        const formattedValue = formatNumber(
-          value,
-          columnDescription,
-          issueTracker
-        );
-        bindings = bindings.set(
-          columns[i].queryVariable,
-          factory.literal(formattedValue)
-        );
       } else if (columnDescription.valueUrl) {
         const formattedValue = trimUrl(
           value,
