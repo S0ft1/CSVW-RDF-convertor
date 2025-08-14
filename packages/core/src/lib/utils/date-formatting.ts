@@ -8,7 +8,7 @@ export function formatDate(dateStr: string, formatStr: string): string {
     return format(date, formatStr).toString();
 }
 
-export function isDateFormatedColumn(column: CsvwColumnDescription | undefined): boolean {
+export function isDateFormattedColumn(column: CsvwColumnDescription | undefined): boolean {
     if (column === undefined) {
         return false;
     }

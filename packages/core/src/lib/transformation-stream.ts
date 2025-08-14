@@ -2,7 +2,7 @@ import { Bindings, ResultStream } from '@rdfjs/types';
 import {
   convertColumnToDateFormattedColumn,
   formatDate,
-  isDateFormatedColumn,
+  isDateFormattedColumn,
 } from './utils/date-formatting.js';
 import {
   CsvwTableDescriptionWithRequiredColumns,
@@ -10,7 +10,7 @@ import {
 import {
   isNumericColumn,
   formatNumber,
-} from './utils/number-formating.js';
+} from './utils/number-formatting.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { DataFactory } from 'rdf-data-factory';
 import { trimUrl } from './utils/url-trimming.js';
@@ -57,7 +57,7 @@ export function transformStream(
         }
       }
       const value = bindings.get(columns[i].queryVariable).value;
-      if (isDateFormatedColumn(columnDescription)) {
+      if (isDateFormattedColumn(columnDescription)) {
         const convertedDateColumn =
           convertColumnToDateFormattedColumn(columnDescription);
         if (convertedDateColumn) {

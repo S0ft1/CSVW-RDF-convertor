@@ -11,7 +11,6 @@ import ldmlnum from 'ldml-number';
 
 type NumericDatatypeValidation = {
   regex: RegExp;
-  pattern: string;
   minInclusive?: number | bigint;
   maxInclusive?: number | bigint;
   minExclusive?: number | bigint;
@@ -23,94 +22,77 @@ const numericDatatypePatterns: {
 } = {
   decimal: {
     regex: /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)$/,
-    pattern: '0.######',
   },
   integer: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
   },
   long: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: -9223372036854775808n,
     maxInclusive: 9223372036854775807n,
   },
   int: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: -2147483648,
     maxInclusive: 2147483647,
   },
   short: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: -32768,
     maxInclusive: 32767,
   },
   byte: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: -128,
     maxInclusive: 127,
   },
   nonNegativeInteger: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: 0,
   },
   positiveInteger: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: 1,
   },
   unsignedLong: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: 0,
     maxInclusive: 18446744073709551615n,
   },
   unsignedInt: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: 0,
     maxInclusive: 4294967295,
   },
   unsignedShort: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: 0,
     maxInclusive: 65535,
   },
   unsignedByte: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     minInclusive: 0,
     maxInclusive: 255,
   },
   nonPositiveInteger: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     maxInclusive: 0,
   },
   negativeInteger: {
     regex: /^[-+]?[0-9]+$/,
-    pattern: '0',
     maxInclusive: -1,
   },
   double: {
     regex:
       /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$/,
-    pattern: '0.######',
   },
   number: {
     regex:
       /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$/,
-    pattern: '0.######',
   },
   float: {
     regex:
       /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$/,
-    pattern: '0.######',
   },
 };
 
@@ -153,19 +135,15 @@ export function formatNumber(
   let validation: NumericDatatypeValidation;
   if (typeof column.datatype === 'string') {
     // validation must be cloned since it is later updated
-    validation = {...numericDatatypePatterns[column.datatype]};
+    validation = { ...numericDatatypePatterns[column.datatype] };
   } else {
     if (typeof column.datatype.base === 'string') {
       // validation must be cloned since it is later updated
-      validation = {...numericDatatypePatterns[column.datatype.base]};
+      validation = { ...numericDatatypePatterns[column.datatype.base] };
     } else {
       validation = {
         regex:
           /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)? |(\+|-)?INF|NaN$/,
-        pattern:
-          typeof column.datatype.format === 'string'
-            ? column.datatype.format
-            : (column.datatype.format?.pattern ?? '0.######'),
       };
     }
 
@@ -185,6 +163,70 @@ export function formatNumber(
       validation.maxExclusive;
   }
 
+  if (!validation.regex.test(value)) {
+    issueTracker.addWarning(
+      `The value "${value}" does not match ${(typeof column.datatype === 'string' ? column.datatype : column.datatype.base) ?? 'numeric'} type.`,
+      true,
+    );
+    return value;
+  }
+  if (!isNaN(+value)) {
+    if (
+      validation.minInclusive !== undefined &&
+      +value < validation.minInclusive
+    ) {
+      issueTracker.addWarning(
+        `The value "${value}" is less than inclusive minimum.`,
+        true,
+      );
+      return value;
+    }
+    if (
+      validation.maxInclusive !== undefined &&
+      +value > validation.maxInclusive
+    ) {
+      issueTracker.addWarning(
+        `The value "${value}" is greater than inclusive maximum.`,
+        true,
+      );
+      return value;
+    }
+    if (
+      validation.minExclusive !== undefined &&
+      +value <= validation.minExclusive
+    ) {
+      issueTracker.addWarning(
+        `The value "${value}" is less than or equal to exclusive minimum.`,
+        true,
+      );
+      return value;
+    }
+    if (
+      validation.maxExclusive !== undefined &&
+      +value >= validation.maxExclusive
+    ) {
+      issueTracker.addWarning(
+        `The value "${value}" is greater than or equal to exclusive maximum.`,
+        true,
+      );
+      return value;
+    }
+  }
+
+  let pattern: string | undefined;
+  if (
+    typeof column.datatype !== 'string' &&
+    column.datatype.format !== undefined
+  ) {
+    if (typeof column.datatype.format === 'string')
+      pattern = column.datatype.format;
+    else pattern = column.datatype.format.pattern;
+  }
+
+  if (pattern === undefined) {
+    return value;
+  }
+
   ldmlnum.locale.csvw = ldmlnum.locale(',', '.', '+', '-', 'E', 'INF', 'NaN');
   if (
     typeof column.datatype !== 'string' &&
@@ -196,51 +238,13 @@ export function formatNumber(
       column.datatype.format?.decimalChar ?? '.';
   }
 
-  if (!validation.regex.test(value)) {
-    issueTracker.addWarning(
-      `The value "${value}" does not match ${(typeof column.datatype === 'string' ? column.datatype : column.datatype.base) ?? 'numeric'} type.`,
-      true,
-    );
-    return value;
-  }
-  if (!isNaN(+value)) {
-    if (validation.minInclusive !== undefined && +value < validation.minInclusive) {
-      issueTracker.addWarning(
-        `The value "${value}" is less than inclusive minimum.`,
-        true,
-      );
-      return value;
-    }
-    if (validation.maxInclusive !== undefined && +value > validation.maxInclusive) {
-      issueTracker.addWarning(
-        `The value "${value}" is greater than inclusive maximum.`,
-        true,
-      );
-      return value;
-    }
-    if (validation.minExclusive !== undefined && +value <= validation.minExclusive) {
-      issueTracker.addWarning(
-        `The value "${value}" is less than or equal to exclusive minimum.`,
-        true,
-      );
-      return value;
-    }
-    if (validation.maxExclusive !== undefined && +value >= validation.maxExclusive) {
-      issueTracker.addWarning(
-        `The value "${value}" is greater than or equal to exclusive maximum.`,
-        true,
-      );
-      return value;
-    }
-  }
-
   try {
-    const format_fn = ldmlnum(validation.pattern, 'csvw');
-    const formated = format_fn(+value);
-    return formated;
+    const format_fn = ldmlnum(pattern, 'csvw');
+    const formatted = format_fn(+value);
+    return formatted;
   } catch {
     issueTracker.addError(
-      `Invalid numeric format pattern "${validation.pattern}", take a look at https://www.unicode.org/reports/tr35/tr35-39/tr35-numbers.html#Number_Patterns`,
+      `Invalid numeric format pattern "${pattern}", take a look at https://www.unicode.org/reports/tr35/tr35-39/tr35-numbers.html#Number_Patterns`,
       true,
     );
     return value;
