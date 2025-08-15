@@ -1,10 +1,8 @@
 import { CsvwColumn } from './rdf2csvw-convertor.js';
-import { formatBoolean, isBooleanColumn } from './utils/boolean-formatting.js';
-import { isNumericColumn, formatNumber } from './utils/number-formatting.js';
-import {
-  formatDateTime,
-  isDateTimeColumn,
-} from './utils/datetime-formatting.js';
+import { formatBoolean, isBooleanColumn } from './utils/format-boolean.js';
+import { isNumericColumn, formatNumber } from './utils/format-number.js';
+import { isDateTimeColumn, formatDateTime } from './utils/format-datetime.js';
+import { formatOther } from './utils/format-other.js'
 import { trimUrl } from './utils/url-trimming.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
@@ -86,7 +84,19 @@ export function transformStream(
           factory.literal(formattedValue)
         );
       // TODO: format durations and other types
-      } else if (columnDescription.valueUrl) {
+      } else {
+        const formattedValue = formatOther(
+          value,
+          columnDescription,
+          issueTracker,
+        );
+        bindings = bindings.set(
+          columns[i].queryVariable,
+          factory.literal(formattedValue),
+        );
+      }
+
+      if (columnDescription.valueUrl) {
         const formattedValue = trimUrl(
           value,
           columnDescription.valueUrl,
