@@ -146,7 +146,7 @@ export function formatNumber(
       ) ?? validation.minInclusive;
     validation.maxInclusive =
       constraintToNumber(
-        column.datatype.maximum ?? column.datatype.maxExclusive,
+        column.datatype.maximum ?? column.datatype.maxInclusive,
       ) ?? validation.maxInclusive;
     validation.minExclusive =
       constraintToNumber(column.datatype.minExclusive) ??
