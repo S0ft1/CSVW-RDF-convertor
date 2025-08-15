@@ -20,10 +20,10 @@ export function isBooleanColumn(
 
 export function formatBoolean(
   value: string,
-  column: CsvwColumnDescription,
+  column: CsvwColumnDescriptionWithBooleanDatatype,
   issueTracker: IssueTracker,
 ): string {
-  if (!isBooleanColumn(column)) return value;
+  value = value.trim();
 
   let pattern = ['true', 'false'];
 
@@ -47,7 +47,7 @@ export function formatBoolean(
     return pattern[1];
   } else {
     issueTracker.addWarning(
-      `The value "${value}" does not match formatted boolean, use "${pattern[0]}" or "${pattern[1]}".`,
+      `The value "${value}" does not match boolean.`,
       true,
     );
     return value;

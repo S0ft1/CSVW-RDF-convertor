@@ -127,25 +127,18 @@ export function isNumericColumn(
 
 export function formatNumber(
   value: string,
-  column: CsvwColumnDescription,
+  column: CsvwColumnDescriptionWithNumericDatatype,
   issueTracker: IssueTracker,
 ): string {
-  if (!isNumericColumn(column)) return value;
+  value = value.trim();
 
   let validation: NumericDatatypeValidation;
   if (typeof column.datatype === 'string') {
     // validation must be cloned since it is later updated
     validation = { ...numericDatatypePatterns[column.datatype] };
   } else {
-    if (typeof column.datatype.base === 'string') {
-      // validation must be cloned since it is later updated
-      validation = { ...numericDatatypePatterns[column.datatype.base] };
-    } else {
-      validation = {
-        regex:
-          /^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)? |(\+|-)?INF|NaN$/,
-      };
-    }
+    // validation must be cloned since it is later updated
+    validation = { ...numericDatatypePatterns[column.datatype.base] };
 
     validation.minInclusive =
       constraintToNumber(
@@ -165,7 +158,7 @@ export function formatNumber(
 
   if (!validation.regex.test(value)) {
     issueTracker.addWarning(
-      `The value "${value}" does not match ${(typeof column.datatype === 'string' ? column.datatype : column.datatype.base) ?? 'numeric'} type.`,
+      `The value "${value}" does not match ${typeof column.datatype === 'string' ? column.datatype : column.datatype.base} type.`,
       true,
     );
     return value;

@@ -2,16 +2,16 @@ import { CsvwColumn } from './rdf2csvw-convertor.js';
 import { formatBoolean, isBooleanColumn } from './utils/boolean-formatting.js';
 import { isNumericColumn, formatNumber } from './utils/number-formatting.js';
 import {
-  convertColumnToDateFormattedColumn,
-  formatDate,
-  isDateFormattedColumn,
-} from './utils/date-formatting.js';
+  formatDateTime,
+  isDateTimeColumn,
+} from './utils/datetime-formatting.js';
 import { trimUrl } from './utils/url-trimming.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
 import { Readable } from 'readable-stream';
 import { DataFactory } from 'rdf-data-factory';
 import { Bindings, ResultStream } from '@rdfjs/types';
+import { Term } from 'n3';
 const factory = new DataFactory();
 
 export function transformStream(
@@ -27,7 +27,7 @@ export function transformStream(
     },
   });
   //This part is called when the stream is piped to another stream and gets data.
-  stream.on('data', (bindings) => {
+  stream.on('data', (bindings: Bindings) => {
     for (
       let i = 0;
       i < tableDescription.tableSchema.columns.length &&
@@ -52,7 +52,9 @@ export function transformStream(
           continue;
         }
       }
-      const value = bindings.get(columns[i].queryVariable).value;
+
+      const term = bindings.get(columns[i].queryVariable) as Term;
+      const value = term.value;
       if (isBooleanColumn(columnDescription)) {
         const formattedValue = formatBoolean(
           value,
@@ -73,19 +75,17 @@ export function transformStream(
           columns[i].queryVariable,
           factory.literal(formattedValue),
         );
-      } else if (isDateFormattedColumn(columnDescription)) {
-        const convertedDateColumn =
-          convertColumnToDateFormattedColumn(columnDescription);
-        if (convertedDateColumn) {
-          const formattedValue = formatDate(
-            value,
-            convertedDateColumn.datatype.format
-          );
-          bindings = bindings.set(
-            columns[i].queryVariable,
-            factory.literal(formattedValue)
-          );
-        }
+      } else if (isDateTimeColumn(columnDescription)) {
+        const formattedValue = formatDateTime(
+          value,
+          columnDescription,
+          issueTracker
+        );
+        bindings = bindings.set(
+          columns[i].queryVariable,
+          factory.literal(formattedValue)
+        );
+      // TODO: format durations and other types
       } else if (columnDescription.valueUrl) {
         const formattedValue = trimUrl(
           value,
