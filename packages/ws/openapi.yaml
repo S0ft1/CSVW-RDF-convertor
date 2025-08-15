@@ -13,7 +13,7 @@ paths:
       summary: Validate CSVW
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:

@@ -17,3 +17,4 @@ export * from './lib/utils/rdf-serialization.js';
 export * from './lib/utils/issue-tracker.js';
 export * from './lib/utils/code-location.js';
 export * from './lib/utils/number-formating.js';
+export * from './lib/utils/event-emitter.js';
