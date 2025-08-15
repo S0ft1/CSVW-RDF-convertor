@@ -2,7 +2,7 @@ import { CsvwColumn } from './rdf2csvw-convertor.js';
 import { formatBoolean, isBooleanColumn } from './utils/format-boolean.js';
 import { isNumericColumn, formatNumber } from './utils/format-number.js';
 import { isDateTimeColumn, formatDateTime } from './utils/format-datetime.js';
-import { formatOther } from './utils/format-other.js'
+import { formatOther } from './utils/format-other.js';
 import { trimUrl } from './utils/url-trimming.js';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { CsvwTableDescriptionWithRequiredColumns } from './types/descriptor/table.js';
@@ -46,9 +46,8 @@ export function transformStream(
               factory.literal(columnDescription.null)
             );
           }
-        } else {
-          continue;
         }
+        continue;
       }
 
       const term = bindings.get(columns[i].queryVariable) as Term;
