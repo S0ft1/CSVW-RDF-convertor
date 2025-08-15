@@ -6,18 +6,46 @@ export function formatOther(
   column: CsvwColumnDescription,
   issueTracker: IssueTracker,
 ) {
-  if (
-    typeof column.datatype !== 'string' &&
-    (typeof column.datatype?.format === 'string' ||
-      column.datatype?.format instanceof RegExp)
-  ) {
-    const regex = new RegExp(column.datatype.format);
-    if (!regex.test(value)) {
+  if (column.datatype !== undefined && typeof column.datatype !== 'string') {
+    if (
+      column.datatype.format !== undefined &&
+      !(column.datatype.format as RegExp).test(value)
+    ) {
       issueTracker.addWarning(
-        `The value "${value}" does not match format "${regex}".`,
+        `The value "${value}" does not match the format "${column.datatype.format}".`,
+        true,
+      );
+    }
+
+    // TODO: Does this length comparison works for binary type?
+    if (
+      column.datatype.length !== undefined &&
+      value.length !== column.datatype.length
+    ) {
+      issueTracker.addWarning(
+        `The value "${value}" does not have the exact length "${column.datatype.length}".`,
+        true,
+      );
+    }
+    if (
+      column.datatype.minLength !== undefined &&
+      value.length < column.datatype.minLength
+    ) {
+      issueTracker.addWarning(
+        `The value "${value}" is shorter than the minimum length "${column.datatype.minLength}".`,
+        true,
+      );
+    }
+    if (
+      column.datatype.maxLength !== undefined &&
+      value.length > column.datatype.maxLength
+    ) {
+      issueTracker.addWarning(
+        `The value "${value}" is longer than the maximum length "${column.datatype.maxLength}".`,
         true,
       );
     }
   }
+
   return value;
 }
