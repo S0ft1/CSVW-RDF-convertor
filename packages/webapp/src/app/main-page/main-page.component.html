@@ -4,8 +4,17 @@
     <a href="https://csvw.org"><strong>CSVW</strong></a> in your browser.
   </p>
 </section>
-<section class="links">
-  <a matButton="filled" routerLink="c2r">CSVW to RDF</a>
-  <a matButton="filled">RDF to CSVW</a>
-  <a matButton="filled">Validate CSVW</a>
+<section class="columns">
+  <section class="links csvw">
+    <header><app-csvw-icon /> CSVW</header>
+    <a matButton="filled" routerLink="c2r-simple">Convert to RDF</a>
+    <a matButton="filled" routerLink="c2r">Convert to RDF (advanced)</a>
+    <a matButton="filled" routerLink="validate-simple">Validate</a>
+    <a matButton="filled" routerLink="validate">Validate (advanced)</a>
+  </section>
+  <section class="links rdf">
+    <header><app-rdf-icon /> RDF</header>
+    <a matButton="filled" routerLink="r2c-simple">Convert to CSVW</a>
+    <a matButton="filled" routerLink="r2c">Convert to CSVW (advanced)</a>
+  </section>
 </section>

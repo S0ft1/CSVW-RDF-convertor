@@ -1,0 +1,30 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: color(from var(--mat-sys-background) srgb r g b / 0.6);
+  color: var(--mat-sys-on-background);
+  backdrop-filter: blur(5px);
+  animation: fade 0.3s ease-in-out;
+  z-index: 2;
+}
+
+mat-progress-spinner {
+  animation: fade 0.3s ease-in-out;
+  animation-delay: 2s;
+  animation-fill-mode: backwards;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
