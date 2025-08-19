@@ -3,28 +3,13 @@ import { CommonArgs } from '../../common.js';
 import { ArgsWithDefaults, handler } from './handler.js';
 import { input } from '@inquirer/prompts';
 
-export type TurtleOptions = {
-  base?: string;
-  prefix?: Record<string, string>;
-} & (
-  | {
-      prefixLookup?: true;
-      streaming?: false;
-    }
-  | {
-      prefixLookup?: false;
-      streaming?: true;
-    }
-);
-
 export interface ValidateArgs extends CommonArgs {
   interactive: boolean;
 }
 
-export const csvw2rdf: CommandModule<CommonArgs, ValidateArgs> = {
-  command: 'csvw2rdf',
-  aliases: ['c2r'],
-  describe: 'Convert CSVW to RDF',
+export const validate: CommandModule<CommonArgs, ValidateArgs> = {
+  command: 'validate',
+  describe: 'Validate CSVW',
   builder: {
     interactive: {
       describe: 'Interactive mode',
@@ -47,9 +32,8 @@ async function interactiveOptions(args: ValidateArgs): Promise<void> {
   args.baseIri ??=
     (await input({
       message: `Base IRI for loading resources ${args.input ? '' : '[empty]'}`,
-      default: args.input ?? '',
+      default: '',
     })) || undefined;
 }
-function defaultOptions(args: ValidateArgs): void {
-  args.baseIri ??= args.input;
-}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function defaultOptions(args: ValidateArgs): void {}

@@ -224,6 +224,7 @@ export class Csvw2RdfConvertor {
 
     return Promise.all(tablePromises).then(() => {
       this.outputStream.push(null);
+      this.outputStream.emit('end');
     });
   }
 

@@ -72,6 +72,7 @@ export async function* validateCsvwFromUrl(
       csvUrlToRdf(url, { ...options, minimal: true }),
       'warning',
     );
+    console.log('done');
   } catch (error) {
     if (error instanceof ValidationError) {
       yield { type: 'error', message: error.message, location: error.location };
