@@ -20,10 +20,12 @@
       <button matButton="filled" (click)="showResult.set(!resultShown)">
         {{ resultShown ? 'Hide' : 'Show' }} Result
       </button>
-      <button matButton="tonal" (click)="downloadConfig()">
-        Export Config File
-      </button>
-      <a matButton="tonal" routerLink="/c2r">Convert Again</a>
+      @if (!simple) {
+        <button matButton="tonal" (click)="downloadConfig()">
+          Export Config File
+        </button>
+      }
+      <a matButton="tonal" [routerLink]="lastUrl">Convert Again</a>
     </div>
     @if (resultShown) {
       <mat-card>

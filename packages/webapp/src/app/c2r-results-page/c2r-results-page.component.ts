@@ -41,16 +41,8 @@ export class C2rResultsPageComponent implements OnDestroy {
   );
   showResult = signal(false);
   router = inject(Router);
-
-  constructor() {
-    if (
-      !this.service.converting() &&
-      !this.service.result() &&
-      !this.service.issues().length
-    ) {
-      this.router.navigate(['/c2r']);
-    }
-  }
+  lastUrl = this.router.lastSuccessfulNavigation.initialUrl.toString();
+  simple = this.lastUrl.endsWith('simple');
 
   copyToClipboard() {
     navigator.clipboard

@@ -1,5 +1,11 @@
+@use '@angular/material' as mat;
+
+:host {
+  --hero-size: min(350px, 50vh);
+}
+
 .hero {
-  height: min(430px, 50vh);
+  height: var(--hero-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,6 +26,50 @@
 
   a {
     margin: 10px;
-    width: 200px;
+    width: 240px;
+  }
+}
+
+.columns {
+  --toolbar-height: var(--mat-toolbar-standard-height, 64px);
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - var(--toolbar-height) - var(--hero-size));
+
+  & > * {
+    flex-basis: 50%;
+  }
+  header {
+    font-size: 1.75em;
+    font-weight: bold;
+    padding: 20px 0;
+  }
+
+  @media (max-width: 599px) {
+    flex-wrap: wrap;
+    --toolbar-height: var(--mat-toolbar-mobile-height, 56px);
+
+    & > * {
+      flex-basis: 100%;
+    }
+  }
+
+  .rdf {
+    background-color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    --old-primary: var(--mat-sys-primary);
+    --old-on-primary: var(--mat-sys-on-primary);
+
+    button,
+    a {
+      --mat-sys-on-primary: var(--old-primary);
+      --mat-sys-primary: var(--old-on-primary);
+      // @include mat.button-overrides(
+      //   (
+      //     filled-container-color: var(--mat-sys-on-primary),
+      //   )
+      // );
+      // color: var(--mat-sys-primary);
+    }
   }
 }

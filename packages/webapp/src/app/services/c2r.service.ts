@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Issue, RDFSerialization } from '@csvw-rdf-convertor/core';
+import { ConversionService } from './conversion.service';
 
 export interface InitC2RParams {
   files: {
@@ -37,25 +38,9 @@ export type WorkerMessage = DataMessage | ErrorMessage;
 @Injectable({
   providedIn: 'root',
 })
-export class C2RService {
-  converting = signal(false);
-  result = signal<string>(null);
-  issues = signal<Issue[]>([], {
-    equal: (a, b) => a === b && a.length === b.length,
-  });
-  /** JSON config */
-  config: Record<string, any> = null;
-  params: InitC2RParams = null;
-
-  public initConversion(params: InitC2RParams) {
-    if (this.converting()) {
-      console.warn('Conversion already in progress');
-      return;
-    }
-    this.reset();
-    this.converting.set(true);
-    this.config = this.buildConfigFile(params);
-    this.params = params;
+export class C2RService extends ConversionService<InitC2RParams> {
+  public override initConversion(params: InitC2RParams): boolean {
+    if (!super.initConversion(params)) return false;
 
     const worker = new Worker(new URL('./c2r.worker', import.meta.url));
     worker.onmessage = ({ data }: { data: WorkerMessage }) => {
@@ -82,24 +67,21 @@ export class C2RService {
       });
     };
     worker.postMessage(params);
+    return true;
   }
 
-  public reset() {
-    this.converting.set(false);
-    this.result.set(null);
-    this.issues.set([]);
-    this.config = null;
-    this.params = null;
-  }
-
-  private buildConfigFile(params: InitC2RParams): Record<string, any> {
+  protected override buildConfigFile(
+    params: InitC2RParams,
+  ): Record<string, any> {
     return {
       options: params.options,
       format: params.format,
     };
   }
 
-  public configToParams(config: Record<string, any>): Partial<InitC2RParams> {
+  public override configToParams(
+    config: Record<string, any>,
+  ): Partial<InitC2RParams> {
     return {
       options: {
         baseIri: config.options.baseIri,
