@@ -1,17 +1,19 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { isAbsolute, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
-import { csvUrlToRdf, csvwDescriptorToRdf, defaultResolveJsonldFn, defaultResolveStreamFn, defaultResolveTextFn, validateCsvwFromDescriptor } from '@csvw-rdf-convertor/core'
+import { csvUrlToRdf, csvwDescriptorToRdf, CsvwTablesStream, defaultResolveJsonldFn, defaultResolveStreamFn, defaultResolveTextFn, Rdf2CsvOptions, Rdf2CsvwConvertor, rdfStreamToArray, validateCsvwFromDescriptor } from '@csvw-rdf-convertor/core'
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core'
 import { Readable } from 'node:stream';
 import fs from 'node:fs';
-// Interface for conversion options
-interface ConversionOptions {
-	templateIRIs: boolean;
-	minimalMode: boolean;
+import TurtleSerializer from '@rdfjs/serializer-turtle';
+import * as csv from 'csv';
+
+interface MiniOptions {
+  templateIris?: boolean;
+  minimal?: boolean;
 }
 
 // Interface for conversion items
@@ -331,72 +333,160 @@ function getDefaultOutputContent(conversionName: string): string {
 }
 
 // Function to convert RDF to CSVW
-function convertRDF2CSVW(descriptorText: string, inputText: string, options: ConversionOptions) {
-	// TODO: Implement RDF to CSVW conversion logic here
-	// This function will handle converting RDF data to CSV format using CSVW metadata
-	// Parameters:
-	// - descriptorText: CSVW metadata descriptor
-	// - inputText: RDF data (Turtle, RDF/XML, N-Triples, JSON-LD, etc.)
-	// - options: Conversion options (templateIRIs, minimalMode)
-	return "XXXXXXXXCSV conversion result will be implemented here";
+async function convertRDF2CSVW(descriptorText: string, inputPath: string, descriptorPath: string,conversion:any): Promise<string> {
+const options: Rdf2CsvOptions = {
+      baseIri: conversion.folderPath,
+      resolveJsonldFn: async (path, base) => {
+        const url =
+          URL.parse(path, base)?.href ??
+          URL.parse(path)?.href ??
+          resolve(base, path);
+        if (!isAbsolute(url) && URL.canParse(url)) {
+          if (url.startsWith('file:')) {
+            return readFile(fileURLToPath(url), 'utf-8');
+          }
+          return defaultResolveJsonldFn(url, base);
+        }
+
+        return await readFile(url, 'utf-8');
+      },
+      resolveRdfStreamFn: (path, base) => {
+        const url =
+          URL.parse(path, base)?.href ??
+          URL.parse(path)?.href ??
+          resolve(base, path);
+        if (
+          !isAbsolute(url) &&
+          (URL.canParse(url) || URL.canParse(url, base))
+        ) {
+          if (url.startsWith('file:')) {
+            return Promise.resolve(
+              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+            );
+          }
+          return defaultResolveStreamFn(url, base);
+        }
+        return Promise.resolve(
+          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
+        );
+      },
+    };
+	const convertor = new Rdf2CsvwConvertor(options);
+	let streams: CsvwTablesStream;
+	let descriptor: string = '';
+	if (descriptorPath) {
+		descriptor = (await options.resolveJsonldFn?.(descriptorPath, '')) ?? '';
+	}
+	if (descriptorPath === "") {
+		streams = await convertor.convert(inputPath);
+	} else {
+		streams = await convertor.convert(inputPath, descriptor);
+	}
+	let outputText: string = '';
+
+	for (const [tableName, [columns, stream]] of Object.entries(streams)) {
+		const descriptorObj = convertor.getDescriptor();
+		const normalizedDescriptor = descriptorObj?.descriptor ?? {};
+		const dialect = normalizedDescriptor.dialect ?? {};
+		const descriptorOptions = {
+			header: dialect.header ?? true,
+			columns: columns.map((column) => ({
+				key: column.queryVariable,
+				header: column.title,
+			})),
+			...(dialect.delimiter !== undefined && { delimiter: dialect.delimiter }),
+			...(dialect.doubleQuote !== undefined && { escape: dialect.doubleQuote ? '"' : '\\' }),
+			...((dialect.quoteChar !== undefined && dialect.quoteChar !== null) && { quote: dialect.quoteChar }),
+
+		};
+		const stringifier = csv.stringify(descriptorOptions);
+		stringifier.pipe(process.stdout);
+		console.log("pred for awaitem")
+		console.log("stream: " + stream)
+		for await (const bindings of stream) {
+			console.log("v for awaitu")
+			const row = {} as { [key: string]: string };
+			for (const [key, value] of bindings) {
+				row[key.value] = value.value;
+			}
+			console.log(`Row: ${row}`);
+			stringifier.write(row);
+		}
+	}
+	return outputText;
 }
 
 // Function to convert CSVW to RDF
-async function convertCSVW2RDF(descriptorText: string, inputText: string, options: ConversionOptions): Promise<string> {
-	// Create Csvw2RdfOptions object from our ConversionOptions
-	const csvw2RdfOptions: Csvw2RdfOptions = {
-		templateIris: options.templateIRIs,
-		minimal: options.minimalMode
+async function convertCSVW2RDF(descriptorText: string, options: MiniOptions,conversion:any): Promise<string> {
+	const getUrl = (path: string, base: string) => URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
+	let opts: Csvw2RdfOptions = {
+		templateIris: options.templateIris,
+		minimal: options.minimal,
+		baseIri: conversion.folderPath,
+		resolveJsonldFn: async (path, base) => {
+			const url = getUrl(path, base);
+			if (!isAbsolute(url) && URL.canParse(url)) {
+				if (url.startsWith('file:')) {
+					return readFile(fileURLToPath(url), 'utf-8');
+				}
+				return defaultResolveJsonldFn(url, base);
+			}
+			return await readFile(url, 'utf-8');
+		},
+		resolveWkfFn: async (path, base) => {
+			const url = getUrl(path, base);
+			if (!isAbsolute(url) && URL.canParse(url)) {
+				if (url.startsWith('file:')) {
+					return readFile(fileURLToPath(url), 'utf-8');
+				}
+				return defaultResolveTextFn(url, base);
+			}
+			return await readFile(url, 'utf-8');
+		},
+		resolveCsvStreamFn: (path, base) => {
+			const url = getUrl(path, base);
+			if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
+				if (url.startsWith('file:')) {
+					return Promise.resolve(
+						Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
+					);
+				}
+				return defaultResolveStreamFn(url, base);
+			}
+			return Promise.resolve(
+				Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
+			);
+		}
 	};
-
 	try {
-		// Use the existing input file URL
-		const rdfStream = csvwDescriptorToRdf(descriptorText, csvw2RdfOptions);
-		// Collect all data from the stream
-		return new Promise<string>((resolve) => {
-			let rdfData = '';
-
-			rdfStream.on('data', (chunk) => {
-				rdfData += chunk.toString();
-			});
-
-			rdfStream.on('end', () => {
-				console.log('RDF conversion completed, total length:', rdfData.length);
-				resolve(rdfData);
-			});
-
-			rdfStream.on('error', (error) => {
-				console.error('Error in RDF stream:', error);
-			});
-		});
+		const rdfStream = csvwDescriptorToRdf(descriptorText, opts);
+		const quads = await rdfStreamToArray(rdfStream);
+		const writer = new TurtleSerializer();
+		return writer.transform(quads);
 	} catch (error) {
 		console.error('Error in CSV to RDF conversion:', error);
 		return `Error in CSV to RDF conversion: ${error instanceof Error ? error.message : 'Unknown error'}`;
 	}
 }
 
-async function handleConversion(descriptorText: string, inputText: string, templateIRIs: boolean = false, minimalMode: boolean = false): Promise<string> {
+async function handleConversion(descriptorText: string, inputText: string, templateIRIs: boolean = false, minimalMode: boolean = false, conversion: any): Promise<string> {
 	// Create ConversionOptions object from the boolean parameters
-	const options: ConversionOptions = {
-		templateIRIs: templateIRIs,
-		minimalMode: minimalMode
-	};
-
+	
 	const detection = isRdfContent(inputText);
 
 	if (!detection.isRecognized) {
 		vscode.window.showWarningMessage('⚠️ Warning: Input content format could not be recognized as either RDF or CSV. Please verify your input data format.');
 	}
-
-	//const isRdf = detection.isRdf;
-	const isRdf = false;
+	let opts: MiniOptions = {
+		templateIris: templateIRIs,
+		minimal: minimalMode
+	};
+	const isRdf = detection.isRdf;
 	let outputText: string;
 	if (isRdf) {
-		// Handle RDF input - convert RDF to CSVW
-		outputText = convertRDF2CSVW(descriptorText, inputText, options);
+		outputText = await convertRDF2CSVW(descriptorText, conversion.inputFilePath,conversion.descriptorFilePath,conversion);
 	} else {
-		// Handle CSV input - convert CSVW to RDF
-		outputText = await convertCSVW2RDF(descriptorText, inputText, options);
+		outputText = await convertCSVW2RDF(descriptorText, opts,conversion);
 	}
 	return outputText;
 }
@@ -532,7 +622,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const changeListener = vscode.workspace.onDidChangeTextDocument(async (event) => {
 		const fileName = event.document.fileName || event.document.uri.path;
 		const changedDocument = event.document;
-		console.log('File changed:', fileName);
 
 		// Process changes in Descriptor or Input fields - make case insensitive
 		const lowerFileName = fileName.toLowerCase();
@@ -567,7 +656,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const minimalMode = conversion?.minimalModeChecked || false;
 
 					// Call conversion with actual options from the conversion object
-					const result = await handleConversion(changedContent, inputContent, templateIRIs, minimalMode);
+					const result = await handleConversion(changedContent, inputContent, templateIRIs, minimalMode, conversion);
 
 					// Try to update output file
 					const outputPath = fileName.replace(/descriptor\.jsonld/i, 'output.ttl');
@@ -595,7 +684,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 			} else if (lowerFileName.includes('input')) {
-				vscode.window.showWarningMessage('Processing input file: ' + fileName);
 
 				// Handle input changes
 				console.log('Input changed:', changedContent);
@@ -612,8 +700,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const minimalMode = conversion?.minimalModeChecked || false;
 
 					// Call conversion with actual options from the conversion object
-					const result = await handleConversion(descriptorContent, changedContent, templateIRIs, minimalMode);
-					console.log('Auto-conversion result:', result);
+					const result = await handleConversion(descriptorContent, changedContent, templateIRIs, minimalMode, conversion);
 
 					// Try to update output file
 					const outputPath = correspondingDescriptorPath.replace(/descriptor\.jsonld/i, 'output.ttl');
@@ -913,7 +1000,6 @@ id,name,value
 				return;
 			}
 
-			// Read content from files
 			try {
 				const descriptorUri = vscode.Uri.file(conversion.descriptorFilePath);
 				const inputUri = vscode.Uri.file(conversion.inputFilePath);
@@ -925,11 +1011,10 @@ id,name,value
 				const descriptorContent = decoder.decode(descriptorBytes);
 				const inputContent = decoder.decode(inputBytes);
 
-				// Get conversion options from the conversion item
 				const templateIRIs = conversion.templateIRIsChecked || false;
 				const minimalMode = conversion.minimalModeChecked || false;
 
-				const convertedOutput = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode);
+				const convertedOutput = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode, conversion);
 
 				const encoder = new TextEncoder();
 				await vscode.workspace.fs.writeFile(outputUri, encoder.encode(convertedOutput));
@@ -949,7 +1034,6 @@ id,name,value
 	);
 
 	async function validateDocument(conversion: ConversionItem | any) {
-		// Find the descriptor editor if it's open
 		const descriptorEditor = vscode.window.visibleTextEditors.find(
 			editor => editor.document.uri.fsPath === conversion.descriptorFilePath
 		);
@@ -959,13 +1043,8 @@ id,name,value
 			return;
 		}
 
-		// Clear existing red underlines first
 		clearRedUnderlines(descriptorEditor);
-
-		// Get the content to validate from the descriptor field
 		const content = descriptorEditor.document.getText();
-
-		// Get conversion options from the conversion item
 		const templateIRIs = conversion.templateIRIsChecked || false;
 		const minimalMode = conversion.minimalModeChecked || false;
 		const getUrl = (path: string, base: string) => URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
@@ -1008,457 +1087,444 @@ id,name,value
 				);
 			}
 		};
-	console.log(opts);
-	let validationResult = validateCsvwFromDescriptor(content, opts);
-	// Parse validation result into two arrays
-	const messages: string[] = [];
-	const locations: number[] = [];
+		let validationResult = validateCsvwFromDescriptor(content, opts);
+		console.log("po validaci")
+		const messages: string[] = [];
+		const locations: number[] = [];
 
-	// Collect all issues from the async iterable
-	for await (const issue of validationResult) {
-		// Add the message (include type prefix)
-		const messageWithType = `[${issue.type.toUpperCase()}] ${issue.message}`;
-		messages.push(messageWithType);
-
-		// Add the location (convert to 0-based line number for VS Code)
-		// Use row-1 if available, otherwise default to line 0
-		const lineNumber = issue.location?.row ? issue.location.row - 1 : 0;
-		locations.push(lineNumber);
+		for await (const issue of validationResult) {
+			const messageWithType = `[${issue.type.toUpperCase()}] ${issue.message}`;
+			messages.push(messageWithType);
+			const lineNumber = issue.location?.row ? issue.location.row - 1 : 0;
+			locations.push(lineNumber);
+		}
+		if (messages.length > 0) {
+			addRedUnderlineToLines(descriptorEditor, locations, messages);
+			vscode.window.showInformationMessage(`🔍 Validation complete for "${conversion.name}". Found ${messages.length} issue(s) on lines: ${locations.map(l => l + 1).join(', ')}`);
+		} else {
+			vscode.window.showInformationMessage(`✅ Validation complete for "${conversion.name}". No errors found!`);
+		}
 	}
-	// Apply red underlines to the problematic lines with the actual validation messages
-	if (messages.length > 0) {
-		addRedUnderlineToLines(descriptorEditor, locations, messages);
-		vscode.window.showInformationMessage(`🔍 Validation complete for "${conversion.name}". Found ${messages.length} issue(s) on lines: ${locations.map(l => l + 1).join(', ')}`);
-	} else {
-		vscode.window.showInformationMessage(`✅ Validation complete for "${conversion.name}". No errors found!`);
-	}
-}
 
-// Command to validate a specific conversion
-const validateSpecific = vscode.commands.registerCommand(
-	'csvwrdfconvertor.validateSpecific',
-	async (conversionId: string) => {
-		const conversion = csvwActionsProvider.getConversion(conversionId);
-		if (!conversion) {
-			vscode.window.showErrorMessage('❌ Conversion not found');
-			return;
+	const validateSpecific = vscode.commands.registerCommand(
+		'csvwrdfconvertor.validateSpecific',
+		async (conversionId: string) => {
+			const conversion = csvwActionsProvider.getConversion(conversionId);
+			if (!conversion) {
+				vscode.window.showErrorMessage('❌ Conversion not found');
+				return;
+			}
+
+			if (!conversion.descriptorFilePath) {
+				vscode.window.showWarningMessage(`Please open fields for "${conversion.name}" first`);
+				return;
+			}
+			validateDocument(conversion);
 		}
+	);
 
-		if (!conversion.descriptorFilePath) {
-			vscode.window.showWarningMessage(`Please open fields for "${conversion.name}" first`);
-			return;
-		}
-		validateDocument(conversion);
-	}
-);
+	// Command to add another input file to a conversion
+	const addAnotherInput = vscode.commands.registerCommand(
+		'csvwrdfconvertor.addAnotherInput',
+		async (conversionId: string) => {
+			const conversion = csvwActionsProvider.getConversion(conversionId);
+			if (!conversion) {
+				vscode.window.showErrorMessage('❌ Conversion not found');
+				return;
+			}
 
-// Command to add another input file to a conversion
-const addAnotherInput = vscode.commands.registerCommand(
-	'csvwrdfconvertor.addAnotherInput',
-	async (conversionId: string) => {
-		const conversion = csvwActionsProvider.getConversion(conversionId);
-		if (!conversion) {
-			vscode.window.showErrorMessage('❌ Conversion not found');
-			return;
-		}
+			if (!conversion.folderPath) {
+				vscode.window.showWarningMessage(`Please open fields for "${conversion.name}" first`);
+				return;
+			}
 
-		if (!conversion.folderPath) {
-			vscode.window.showWarningMessage(`Please open fields for "${conversion.name}" first`);
-			return;
-		}
+			try {
+				// Get the conversion directory
+				const conversionDir = vscode.Uri.file(conversion.folderPath);
 
-		try {
-			// Get the conversion directory
-			const conversionDir = vscode.Uri.file(conversion.folderPath);
+				// Find the next available input file number
+				let inputNumber = 2;
+				let inputFileName: string;
+				let inputFilePath: vscode.Uri;
 
-			// Find the next available input file number
-			let inputNumber = 2;
-			let inputFileName: string;
-			let inputFilePath: vscode.Uri;
+				do {
+					inputFileName = `input${inputNumber}.csv`;
+					inputFilePath = vscode.Uri.joinPath(conversionDir, inputFileName);
 
-			do {
-				inputFileName = `input${inputNumber}.csv`;
-				inputFilePath = vscode.Uri.joinPath(conversionDir, inputFileName);
+					try {
+						await vscode.workspace.fs.stat(inputFilePath);
+						inputNumber++;
+					} catch {
+						break;
+					}
+				} while (true);
 
-				try {
-					await vscode.workspace.fs.stat(inputFilePath);
-					inputNumber++;
-				} catch {
-					break;
-				}
-			} while (true);
-
-			// Create the new input file with default content
-			const defaultContent = `# Additional Input Data ${inputNumber - 1} for ${conversion.name}
+				// Create the new input file with default content
+				const defaultContent = `# Additional Input Data ${inputNumber - 1} for ${conversion.name}
 # Add your CSV data below
 
 id,name,value
 1,"Sample Data ${inputNumber - 1}",100
 2,"More Data",200`;
 
-			const encoder = new TextEncoder();
-			await vscode.workspace.fs.writeFile(inputFilePath, encoder.encode(defaultContent));
+				const encoder = new TextEncoder();
+				await vscode.workspace.fs.writeFile(inputFilePath, encoder.encode(defaultContent));
 
-			// Open the file in editor as a new tab in column 2
-			const document = await vscode.workspace.openTextDocument(inputFilePath);
-			await vscode.window.showTextDocument(document, {
-				viewColumn: vscode.ViewColumn.Two,
-				preserveFocus: true, // Don't steal focus from current tab
-				preview: false // Create permanent tab, not preview
-			});
+				// Open the file in editor as a new tab in column 2
+				const document = await vscode.workspace.openTextDocument(inputFilePath);
+				await vscode.window.showTextDocument(document, {
+					viewColumn: vscode.ViewColumn.Two,
+					preserveFocus: true, // Don't steal focus from current tab
+					preview: false // Create permanent tab, not preview
+				});
 
-			// Track this new input file
-			if (!conversion.additionalInputFilePaths) {
-				conversion.additionalInputFilePaths = [];
-			}
-			conversion.additionalInputFilePaths.push(inputFilePath.fsPath);
+				// Track this new input file
+				if (!conversion.additionalInputFilePaths) {
+					conversion.additionalInputFilePaths = [];
+				}
+				conversion.additionalInputFilePaths.push(inputFilePath.fsPath);
 
-			// Update the descriptor file to include the new input URL
-			if (conversion.descriptorFilePath) {
-				try {
-					const descriptorUri = vscode.Uri.file(conversion.descriptorFilePath);
-					const descriptorBytes = await vscode.workspace.fs.readFile(descriptorUri);
-					const decoder = new TextDecoder();
-					const descriptorContent = decoder.decode(descriptorBytes);
+				// Update the descriptor file to include the new input URL
+				if (conversion.descriptorFilePath) {
+					try {
+						const descriptorUri = vscode.Uri.file(conversion.descriptorFilePath);
+						const descriptorBytes = await vscode.workspace.fs.readFile(descriptorUri);
+						const decoder = new TextDecoder();
+						const descriptorContent = decoder.decode(descriptorBytes);
 
-					// Parse the descriptor JSON
-					const descriptor = JSON.parse(descriptorContent);
+						// Parse the descriptor JSON
+						const descriptor = JSON.parse(descriptorContent);
 
-					// Ensure tables array exists
-					if (!descriptor.tables) {
-						descriptor.tables = [];
-					}
-
-					// Add the new input file to the tables array
-					const newTable = {
-						url: inputFileName,
-						tableSchema: {
-							columns: []
+						// Ensure tables array exists
+						if (!descriptor.tables) {
+							descriptor.tables = [];
 						}
-					};
 
-					descriptor.tables.push(newTable);
+						// Add the new input file to the tables array
+						const newTable = {
+							url: inputFileName,
+							tableSchema: {
+								columns: []
+							}
+						};
 
-					// Write the updated descriptor back to file
-					const updatedDescriptorContent = JSON.stringify(descriptor, null, 2);
-					const encoderDesc = new TextEncoder();
-					await vscode.workspace.fs.writeFile(descriptorUri, encoderDesc.encode(updatedDescriptorContent));
+						descriptor.tables.push(newTable);
 
-					// Refresh the descriptor editor if it's open
-					const descriptorEditor = vscode.window.visibleTextEditors.find(
-						editor => editor.document.uri.fsPath === conversion.descriptorFilePath
-					);
-					if (descriptorEditor) {
-						await vscode.commands.executeCommand('workbench.action.files.revert', descriptorUri);
+						// Write the updated descriptor back to file
+						const updatedDescriptorContent = JSON.stringify(descriptor, null, 2);
+						const encoderDesc = new TextEncoder();
+						await vscode.workspace.fs.writeFile(descriptorUri, encoderDesc.encode(updatedDescriptorContent));
+
+						// Refresh the descriptor editor if it's open
+						const descriptorEditor = vscode.window.visibleTextEditors.find(
+							editor => editor.document.uri.fsPath === conversion.descriptorFilePath
+						);
+						if (descriptorEditor) {
+							await vscode.commands.executeCommand('workbench.action.files.revert', descriptorUri);
+						}
+
+						vscode.window.showInformationMessage(`✅ Added new input file: ${inputFileName} and updated descriptor for "${conversion.name}"`);
+
+					} catch (parseError) {
+						vscode.window.showWarningMessage(`⚠️ Added input file but failed to update descriptor: ${parseError}`);
+						vscode.window.showInformationMessage(`✅ Added new input file: ${inputFileName} for "${conversion.name}"`);
 					}
-
-					vscode.window.showInformationMessage(`✅ Added new input file: ${inputFileName} and updated descriptor for "${conversion.name}"`);
-
-				} catch (parseError) {
-					vscode.window.showWarningMessage(`⚠️ Added input file but failed to update descriptor: ${parseError}`);
+				} else {
 					vscode.window.showInformationMessage(`✅ Added new input file: ${inputFileName} for "${conversion.name}"`);
 				}
-			} else {
-				vscode.window.showInformationMessage(`✅ Added new input file: ${inputFileName} for "${conversion.name}"`);
-			}
 
-		} catch (error) {
-			vscode.window.showErrorMessage(`❌ Failed to add input file: ${error}`);
+			} catch (error) {
+				vscode.window.showErrorMessage(`❌ Failed to add input file: ${error}`);
+			}
 		}
-	}
-);
+	);
 
-// Command to delete a conversion
-const deleteConversion = vscode.commands.registerCommand(
-	'csvwrdfconvertor.deleteConversion',
-	async (conversionItem: any) => {
-		// Handle both direct TreeItem and command argument cases
-		const conversionId = conversionItem?.id || conversionItem;
-		const conversion = csvwActionsProvider.getConversion(conversionId);
+	// Command to delete a conversion
+	const deleteConversion = vscode.commands.registerCommand(
+		'csvwrdfconvertor.deleteConversion',
+		async (conversionItem: any) => {
+			// Handle both direct TreeItem and command argument cases
+			const conversionId = conversionItem?.id || conversionItem;
+			const conversion = csvwActionsProvider.getConversion(conversionId);
 
-		if (!conversion) {
-			vscode.window.showErrorMessage('❌ Conversion not found');
-			return;
-		}
-
-		// Confirm deletion
-		const choice = await vscode.window.showWarningMessage(
-			`⚠️ Are you sure you want to delete the conversion "${conversion.name}"?\n\nThis will permanently delete all files and cannot be undone.`,
-			{ modal: true },
-			'Delete Conversion'
-		);
-
-		if (choice !== 'Delete Conversion') {
-			return;
-		}
-
-		try {
-			// Close any open files from this conversion first using tracked file paths
-			const pathsToClose: string[] = [];
-
-			// Add descriptor file path
-			if (conversion.descriptorFilePath) {
-				pathsToClose.push(conversion.descriptorFilePath);
+			if (!conversion) {
+				vscode.window.showErrorMessage('❌ Conversion not found');
+				return;
 			}
 
-			// Add main input file path
-			if (conversion.inputFilePath) {
-				pathsToClose.push(conversion.inputFilePath);
+			// Confirm deletion
+			const choice = await vscode.window.showWarningMessage(
+				`⚠️ Are you sure you want to delete the conversion "${conversion.name}"?\n\nThis will permanently delete all files and cannot be undone.`,
+				{ modal: true },
+				'Delete Conversion'
+			);
+
+			if (choice !== 'Delete Conversion') {
+				return;
 			}
 
-			// Add all tracked additional input file paths
-			if (conversion.additionalInputFilePaths) {
-				pathsToClose.push(...conversion.additionalInputFilePaths);
-			}
+			try {
+				// Close any open files from this conversion first using tracked file paths
+				const pathsToClose: string[] = [];
 
-			// Add output file path
-			if (conversion.outputFilePath) {
-				pathsToClose.push(conversion.outputFilePath);
-			}
+				// Add descriptor file path
+				if (conversion.descriptorFilePath) {
+					pathsToClose.push(conversion.descriptorFilePath);
+				}
 
-			// Close all tabs for this conversion using Tab Groups API
-			if (pathsToClose.length > 0) {
-				const tabsToClose: vscode.Tab[] = [];
+				// Add main input file path
+				if (conversion.inputFilePath) {
+					pathsToClose.push(conversion.inputFilePath);
+				}
 
-				// Go through all tab groups and collect matching tabs
-				for (const tabGroup of vscode.window.tabGroups.all) {
-					for (const tab of tabGroup.tabs) {
-						if (tab.input instanceof vscode.TabInputText) {
-							if (pathsToClose.includes(tab.input.uri.fsPath)) {
-								tabsToClose.push(tab);
+				// Add all tracked additional input file paths
+				if (conversion.additionalInputFilePaths) {
+					pathsToClose.push(...conversion.additionalInputFilePaths);
+				}
+
+				// Add output file path
+				if (conversion.outputFilePath) {
+					pathsToClose.push(conversion.outputFilePath);
+				}
+
+				// Close all tabs for this conversion using Tab Groups API
+				if (pathsToClose.length > 0) {
+					const tabsToClose: vscode.Tab[] = [];
+
+					// Go through all tab groups and collect matching tabs
+					for (const tabGroup of vscode.window.tabGroups.all) {
+						for (const tab of tabGroup.tabs) {
+							if (tab.input instanceof vscode.TabInputText) {
+								if (pathsToClose.includes(tab.input.uri.fsPath)) {
+									tabsToClose.push(tab);
+								}
 							}
 						}
 					}
+
+					// Close all collected tabs at once
+					if (tabsToClose.length > 0) {
+						await vscode.window.tabGroups.close(tabsToClose);
+					}
 				}
 
-				// Close all collected tabs at once
-				if (tabsToClose.length > 0) {
-					await vscode.window.tabGroups.close(tabsToClose);
+				// Delete the conversion directory
+				if (conversion.folderPath) {
+					const folderUri = vscode.Uri.file(conversion.folderPath);
+					await vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: false });
 				}
+
+				// Remove from tree view
+				csvwActionsProvider.removeConversion(conversion.id);
+
+				vscode.window.showInformationMessage(`✅ Deleted conversion: ${conversion.name}`);
+
+			} catch (error) {
+				vscode.window.showErrorMessage(`❌ Failed to delete conversion: ${error}`);
+			}
+		}
+	);
+
+	const openSettings = vscode.commands.registerCommand(
+		'csvwrdfconvertor.convert',
+		async () => {
+			// Check if input fields are open first
+			if (!areInputFieldsOpen()) {
+				vscode.window.showWarningMessage('Please open input fields first by clicking "Show Input Fields"');
+				return;
 			}
 
-			// Delete the conversion directory
-			if (conversion.folderPath) {
-				const folderUri = vscode.Uri.file(conversion.folderPath);
-				await vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: false });
+			// Find the specific editors
+			let descriptorEditor: vscode.TextEditor | undefined;
+			let inputEditor: vscode.TextEditor | undefined;
+			let outputEditor: vscode.TextEditor | undefined;
+
+			for (const editor of vscode.window.visibleTextEditors) {
+				const fileName = editor.document.fileName || editor.document.uri.path;
+				if (fileName.includes('Descriptor')) descriptorEditor = editor;
+				if (fileName.includes('Input')) inputEditor = editor;
+				if (fileName.includes('Output')) outputEditor = editor;
 			}
 
-			// Remove from tree view
-			csvwActionsProvider.removeConversion(conversion.id);
+			if (!descriptorEditor || !inputEditor || !outputEditor) {
+				vscode.window.showErrorMessage('❌ Could not find all required editors');
+				return;
+			}
 
-			vscode.window.showInformationMessage(`✅ Deleted conversion: ${conversion.name}`);
+			// Get content from editors
+			const descriptorContent = descriptorEditor.document.getText();
+			const inputContent = inputEditor.document.getText();
 
-		} catch (error) {
-			vscode.window.showErrorMessage(`❌ Failed to delete conversion: ${error}`);
+			// Find the conversion object using the descriptor editor file path to get actual checkbox values
+			const descriptorFilePath = descriptorEditor.document.fileName || descriptorEditor.document.uri.path;
+			const conversion = findConversionByFilePath(descriptorFilePath);
+			const templateIRIs = conversion?.templateIRIsChecked || false;
+			const minimalMode = conversion?.minimalModeChecked || false;
+
+			// Call the auto-conversion function with actual options from the conversion object
+			const convertedOutput = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode, conversion);
+
+			// Display result in output editor
+			await outputEditor.edit(editBuilder => {
+				const firstLine = outputEditor.document.lineAt(0);
+				const lastLine = outputEditor.document.lineAt(outputEditor.document.lineCount - 1);
+				const fullRange = new vscode.Range(firstLine.range.start, lastLine.range.end);
+				editBuilder.replace(fullRange, convertedOutput);
+			});
+
+			vscode.window.showInformationMessage('✅ Conversion completed!');
 		}
-	}
-);
+	);
 
-const openSettings = vscode.commands.registerCommand(
-	'csvwrdfconvertor.convert',
-	async () => {
-		// Check if input fields are open first
-		if (!areInputFieldsOpen()) {
-			vscode.window.showWarningMessage('Please open input fields first by clicking "Show Input Fields"');
-			return;
+	// Command to clear red underlines
+	const clearRedUnderlinesCommand = vscode.commands.registerCommand(
+		'csvwrdfconvertor.clearRedUnderlines',
+		async () => {
+			// Check if input fields are open first
+			if (!areInputFieldsOpen()) {
+				vscode.window.showWarningMessage('Please open input fields first by clicking "Show Input Fields"');
+				return;
+			}
+
+			const activeEditor = vscode.window.activeTextEditor;
+			if (activeEditor) {
+				clearRedUnderlines(activeEditor);
+				vscode.window.showInformationMessage('🧹 Cleared red underlines');
+			}
 		}
+	);
 
-		// Find the specific editors
-		let descriptorEditor: vscode.TextEditor | undefined;
-		let inputEditor: vscode.TextEditor | undefined;
-		let outputEditor: vscode.TextEditor | undefined;
+	// Command to convert current window content as CSVW descriptor
+	const convertCurrentWindowCommand = vscode.commands.registerCommand(
+		'csvwrdfconvertor.convertCurrentWindow',
+		async () => {
+			const activeEditor = vscode.window.activeTextEditor;
 
-		for (const editor of vscode.window.visibleTextEditors) {
-			const fileName = editor.document.fileName || editor.document.uri.path;
-			if (fileName.includes('Descriptor')) descriptorEditor = editor;
-			if (fileName.includes('Input')) inputEditor = editor;
-			if (fileName.includes('Output')) outputEditor = editor;
-		}
+			if (!activeEditor) {
+				vscode.window.showWarningMessage('⚠️ No active editor found. Please open a file with CSVW descriptor content.');
+				return;
+			}
 
-		if (!descriptorEditor || !inputEditor || !outputEditor) {
-			vscode.window.showErrorMessage('❌ Could not find all required editors');
-			return;
-		}
+			// Get content from the active editor
+			const descriptorContent = activeEditor.document.getText().trim();
 
-		// Get content from editors
-		const descriptorContent = descriptorEditor.document.getText();
-		const inputContent = inputEditor.document.getText();
-
-		// Find the conversion object using the descriptor editor file path to get actual checkbox values
-		const descriptorFilePath = descriptorEditor.document.fileName || descriptorEditor.document.uri.path;
-		const conversion = findConversionByFilePath(descriptorFilePath);
-		const templateIRIs = conversion?.templateIRIsChecked || false;
-		const minimalMode = conversion?.minimalModeChecked || false;
-
-		// Call the auto-conversion function with actual options from the conversion object
-		const convertedOutput = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode);
-
-		// Display result in output editor
-		await outputEditor.edit(editBuilder => {
-			const firstLine = outputEditor.document.lineAt(0);
-			const lastLine = outputEditor.document.lineAt(outputEditor.document.lineCount - 1);
-			const fullRange = new vscode.Range(firstLine.range.start, lastLine.range.end);
-			editBuilder.replace(fullRange, convertedOutput);
-		});
-
-		vscode.window.showInformationMessage('✅ Conversion completed!');
-	}
-);
-
-// Command to clear red underlines
-const clearRedUnderlinesCommand = vscode.commands.registerCommand(
-	'csvwrdfconvertor.clearRedUnderlines',
-	async () => {
-		// Check if input fields are open first
-		if (!areInputFieldsOpen()) {
-			vscode.window.showWarningMessage('Please open input fields first by clicking "Show Input Fields"');
-			return;
-		}
-
-		const activeEditor = vscode.window.activeTextEditor;
-		if (activeEditor) {
-			clearRedUnderlines(activeEditor);
-			vscode.window.showInformationMessage('🧹 Cleared red underlines');
-		}
-	}
-);
-
-// Command to convert current window content as CSVW descriptor
-const convertCurrentWindowCommand = vscode.commands.registerCommand(
-	'csvwrdfconvertor.convertCurrentWindow',
-	async () => {
-		const activeEditor = vscode.window.activeTextEditor;
-
-		if (!activeEditor) {
-			vscode.window.showWarningMessage('⚠️ No active editor found. Please open a file with CSVW descriptor content.');
-			return;
-		}
-
-		// Get content from the active editor
-		const descriptorContent = activeEditor.document.getText().trim();
-
-		if (!descriptorContent) {
-			vscode.window.showWarningMessage('⚠️ Active editor is empty. Please add CSVW descriptor content.');
-			return;
-		}
-
-		try {
-			let convertedOutput: string;
-			const filePath = activeEditor.document.uri.fsPath;
+			if (!descriptorContent) {
+				vscode.window.showWarningMessage('⚠️ Active editor is empty. Please add CSVW descriptor content.');
+				return;
+			}
 
 			try {
-				// Try to parse the content as JSON (CSVW descriptor)
-				JSON.parse(descriptorContent);
+				let convertedOutput: string;
+				const filePath = activeEditor.document.uri.fsPath;
 
-				// Use csvwDescriptorToRdf for CSVW descriptors
-				csvwDescriptorToRdf(descriptorContent, {});
-				convertedOutput = "CSVW descriptor conversion completed - RDF stream generated";
+				try {
+					// Try to parse the content as JSON (CSVW descriptor)
+					JSON.parse(descriptorContent);
 
-			} catch (parseError) {
-				// If JSON parsing fails, treat it as a CSV file and use csvUrlToRdf
+					// Use csvwDescriptorToRdf for CSVW descriptors
+					csvwDescriptorToRdf(descriptorContent, {});
+					convertedOutput = "CSVW descriptor conversion completed - RDF stream generated";
 
-				// Use csvUrlToRdf with the file path
-				csvUrlToRdf(filePath, {});
-				convertedOutput = "CSV file conversion completed - RDF stream generated";
-			}
+				} catch (parseError) {
+					// If JSON parsing fails, treat it as a CSV file and use csvUrlToRdf
 
-			// Create a new conversion for this current window conversion
-			const fileName = activeEditor.document.fileName || activeEditor.document.uri.path;
-			const baseName = fileName.split(/[/\\]/).pop()?.replace(/\.[^/.]+$/, "") || "CurrentWindow";
-			const conversion = csvwActionsProvider.addConversion(`${baseName} Conversion`);
+					// Use csvUrlToRdf with the file path
+					csvUrlToRdf(filePath, {});
+					convertedOutput = "CSV file conversion completed - RDF stream generated";
+				}
 
-			// Open fields for this conversion (this will create the directory structure)
-			await openFieldsForConversion(conversion);
+				// Create a new conversion for this current window conversion
+				const fileName = activeEditor.document.fileName || activeEditor.document.uri.path;
+				const baseName = fileName.split(/[/\\]/).pop()?.replace(/\.[^/.]+$/, "") || "CurrentWindow";
+				const conversion = csvwActionsProvider.addConversion(`${baseName} Conversion`);
 
-			// Update the output file with the converted content
-			if (conversion.outputFilePath) {
-				const encoder = new TextEncoder();
-				const outputContent = `# Converted RDF Output for ${conversion.name}
+				// Open fields for this conversion (this will create the directory structure)
+				await openFieldsForConversion(conversion);
+
+				// Update the output file with the converted content
+				if (conversion.outputFilePath) {
+					const encoder = new TextEncoder();
+					const outputContent = `# Converted RDF Output for ${conversion.name}
 # Original source: ${fileName || 'Untitled'}
 # Conversion timestamp: ${new Date().toISOString()}
 
 ${convertedOutput}`;
-				await vscode.workspace.fs.writeFile(vscode.Uri.file(conversion.outputFilePath), encoder.encode(outputContent));
+					await vscode.workspace.fs.writeFile(vscode.Uri.file(conversion.outputFilePath), encoder.encode(outputContent));
 
-				// Refresh the output editor if it's open
-				if (conversion.outputEditor) {
-					await conversion.outputEditor.document.save();
-					await vscode.commands.executeCommand('workbench.action.files.revert');
+					// Refresh the output editor if it's open
+					if (conversion.outputEditor) {
+						await conversion.outputEditor.document.save();
+						await vscode.commands.executeCommand('workbench.action.files.revert');
+					}
 				}
+
+				vscode.window.showInformationMessage(`✅ Created conversion "${conversion.name}" and converted successfully!`);
+
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : 'Unknown conversion error';
+				vscode.window.showErrorMessage(`❌ Conversion failed: ${errorMessage}`);
+				console.error('CSVW Conversion Error:', error);
+			}
+		}
+	);
+
+	// Command to toggle template IRIs checkbox
+	const toggleTemplateIRIs = vscode.commands.registerCommand(
+		'csvwrdfconvertor.toggleTemplateIRIs',
+		async (conversionId: string) => {
+			const conversion = csvwActionsProvider.getConversion(conversionId);
+			if (!conversion) {
+				vscode.window.showErrorMessage('❌ Conversion not found');
+				return;
 			}
 
-			vscode.window.showInformationMessage(`✅ Created conversion "${conversion.name}" and converted successfully!`);
+			// Toggle the checkbox state
+			conversion.templateIRIsChecked = !conversion.templateIRIsChecked;
 
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown conversion error';
-			vscode.window.showErrorMessage(`❌ Conversion failed: ${errorMessage}`);
-			console.error('CSVW Conversion Error:', error);
+			// Refresh the tree view to update the checkbox display
+			csvwActionsProvider.refresh();
+
 		}
-	}
-);
+	);
 
-// Command to toggle template IRIs checkbox
-const toggleTemplateIRIs = vscode.commands.registerCommand(
-	'csvwrdfconvertor.toggleTemplateIRIs',
-	async (conversionId: string) => {
-		const conversion = csvwActionsProvider.getConversion(conversionId);
-		if (!conversion) {
-			vscode.window.showErrorMessage('❌ Conversion not found');
-			return;
+	// Command to toggle minimal mode checkbox
+	const toggleMinimalMode = vscode.commands.registerCommand(
+		'csvwrdfconvertor.toggleMinimalMode',
+		async (conversionId: string) => {
+			const conversion = csvwActionsProvider.getConversion(conversionId);
+			if (!conversion) {
+				vscode.window.showErrorMessage('❌ Conversion not found');
+				return;
+			}
+
+			// Toggle the checkbox state
+			conversion.minimalModeChecked = !conversion.minimalModeChecked;
+
+			// Refresh the tree view to update the checkbox display
+			csvwActionsProvider.refresh();
+
+			// Show a message with the current state
+			const state = conversion.minimalModeChecked ? 'enabled ⚡' : 'disabled 🛑';
+			const icon = conversion.minimalModeChecked ? '⚡🟢' : '⚡🟡';
 		}
+	);
 
-		// Toggle the checkbox state
-		conversion.templateIRIsChecked = !conversion.templateIRIsChecked;
-
-		// Refresh the tree view to update the checkbox display
-		csvwActionsProvider.refresh();
-
-		// Show a message with the current state
-		const state = conversion.templateIRIsChecked ? 'enabled 🟢' : 'disabled 🔴';
-		const icon = conversion.templateIRIsChecked ? '🔗✅' : '🔗⭕';
-		vscode.window.showInformationMessage(`${icon} Template IRIs for "${conversion.name}" is now ${state}`);
-	}
-);
-
-// Command to toggle minimal mode checkbox
-const toggleMinimalMode = vscode.commands.registerCommand(
-	'csvwrdfconvertor.toggleMinimalMode',
-	async (conversionId: string) => {
-		const conversion = csvwActionsProvider.getConversion(conversionId);
-		if (!conversion) {
-			vscode.window.showErrorMessage('❌ Conversion not found');
-			return;
-		}
-
-		// Toggle the checkbox state
-		conversion.minimalModeChecked = !conversion.minimalModeChecked;
-
-		// Refresh the tree view to update the checkbox display
-		csvwActionsProvider.refresh();
-
-		// Show a message with the current state
-		const state = conversion.minimalModeChecked ? 'enabled ⚡' : 'disabled 🛑';
-		const icon = conversion.minimalModeChecked ? '⚡🟢' : '⚡🟡';
-		vscode.window.showInformationMessage(`${icon} Minimal Mode for "${conversion.name}" is now ${state}`);
-	}
-);
-
-// Register all commands with the extension context
-context.subscriptions.push(
-	addNewConversion,
-	openConversionFields,
-	closeConversionFields,
-	convertSpecific,
-	validateSpecific,
-	addAnotherInput,
-	deleteConversion,
-	toggleTemplateIRIs,
-	toggleMinimalMode,
-	openSettings,
-	clearRedUnderlinesCommand,
-	changeListener,
-	convertCurrentWindowCommand
-);
+	// Register all commands with the extension context
+	context.subscriptions.push(
+		addNewConversion,
+		openConversionFields,
+		closeConversionFields,
+		convertSpecific,
+		validateSpecific,
+		addAnotherInput,
+		deleteConversion,
+		toggleTemplateIRIs,
+		toggleMinimalMode,
+		openSettings,
+		clearRedUnderlinesCommand,
+		changeListener,
+		convertCurrentWindowCommand
+	);
 }
 
 // This method is called when your extension is deactivated
