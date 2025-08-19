@@ -19,6 +19,17 @@
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\packages\\core\\src\\index.ts",
       "outFiles": ["${workspaceFolder}/**/*.js"]
+    },
+    {
+        "args": [
+            "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode"        
+          ],
+        "name": "Launch Extension",
+        "outFiles": [
+            "${workspaceFolder}/out/**/*.js"
+        ],
+        "request": "launch",
+        "type": "extensionHost"
     }
-  ]
+    ]
 }
