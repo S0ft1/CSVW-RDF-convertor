@@ -60,9 +60,19 @@
         "icon": "$(gear)"
       },
       {
-        "command": "csvwrdfconvertor.downloadOutput",
-        "title": "Download Output",
-        "icon": "$(cloud-download)"
+        "command": "csvwrdfconvertor.deleteConversion",
+        "title": "Delete Conversion",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "csvwrdfconvertor.addAnotherInput",
+        "title": "Add another input",
+        "icon": "$(add)"
+      },
+      {
+        "command": "csvwrdfconvertor.convertCurrentWindow",
+        "title": "Convert Current Window",
+        "icon": "$(gear)"
       }
     ],
     "viewsContainers": {
@@ -94,11 +104,20 @@
           "command": "csvwrdfconvertor.convert",
           "when": "view == csvw-rdf-actions",
           "group": "navigation@2"
-        },
+        }
+      ],
+      "editor/title": [
         {
-          "command": "csvwrdfconvertor.downloadOutput",
-          "when": "view == csvw-rdf-actions",
-          "group": "navigation@3"
+          "command": "csvwrdfconvertor.convertCurrentWindow",
+          "when": "resourceExtname == .csv || resourceExtname == .rdf || resourceExtname == .ttl || resourceExtname == .jsonld",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "csvwrdfconvertor.deleteConversion",
+          "when": "view == csvw-rdf-actions && viewItem == conversion",
+          "group": "inline"
         }
       ]
     }
