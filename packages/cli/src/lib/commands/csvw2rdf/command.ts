@@ -11,15 +11,15 @@ export type TurtleOptions = {
   base?: string;
   prefix?: Record<string, string>;
 } & (
-    | {
+  | {
       prefixLookup?: true;
       streaming?: false;
     }
-    | {
+  | {
       prefixLookup?: false;
       streaming?: true;
     }
-  );
+);
 
 export interface C2RArgs extends CommonArgs {
   output?: string;
@@ -74,11 +74,11 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
       coerce: (value: string[]) => {
         if (value.length % 2) {
           throw new Error(
-            `Missing value for path override "${value[value.length - 1]}"`
+            `Missing value for path override "${value[value.length - 1]}"`,
           );
         }
         return Object.fromEntries(
-          pairwise(value).map(([p, v]) => [p.slice(0, -1), v])
+          pairwise(value).map(([p, v]) => [p.slice(0, -1), v]),
         );
       },
     },
@@ -153,7 +153,7 @@ async function interactiveOptions(args: C2RArgs): Promise<void> {
   args.baseIri ??=
     (await input({
       message: `Base IRI for loading resources ${args.input ? '' : '[empty]'}`,
-      default: args.input ?? '',
+      default: '',
     })) || undefined;
   args.minimal ??= await confirm({
     message:
@@ -197,12 +197,11 @@ async function interactiveOptions(args: C2RArgs): Promise<void> {
 }
 function defaultOptions(args: C2RArgs): void {
   args.format = args.format ?? inferFormat(args.output) ?? 'turtle';
-  args.baseIri ??= args.input;
   args.turtle.prefix ??= commonPrefixes;
   if (args.turtle.prefixLookup) {
     if (args.turtle.streaming) {
       throw new Error(
-        'Cannot use --turtle.prefixLookup and --turtle.streaming together'
+        'Cannot use --turtle.prefixLookup and --turtle.streaming together',
       );
     }
     args.turtle.streaming = false;

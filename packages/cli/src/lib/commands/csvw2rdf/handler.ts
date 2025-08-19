@@ -16,7 +16,7 @@ import N3 from 'n3';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { text } from 'node:stream/consumers';
-import { isAbsolute, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import { Quad, Stream } from '@rdfjs/types';
@@ -45,7 +45,10 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
     stream = csvUrlToRdf(args.input, options);
   } else {
     const descriptorText = args.input
-      ? ((await options.resolveJsonldFn?.(args.input, '')) ?? '')
+      ? ((await options.resolveJsonldFn?.(
+          args.input,
+          args.baseIri ?? process.cwd(),
+        )) ?? '')
       : await text(process.stdin);
     const descriptor = JSON.parse(descriptorText);
     if (!args.pathOverrides?.length && args.interactive) {
@@ -87,7 +90,11 @@ function getOptions(args: C2RArgs): Csvw2RdfOptions {
   const getUrl = (path: string, base: string) =>
     URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   return {
-    baseIri: args.baseIri,
+    baseIri:
+      args.baseIri ??
+      (args.input && URL.canParse(args.input)
+        ? args.input
+        : dirname(resolve(process.cwd(), args.input ?? ''))),
     minimal: args.minimal,
     templateIris: args.templateIris,
     pathOverrides: args.pathOverrides ?? [],

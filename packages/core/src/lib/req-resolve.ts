@@ -2,11 +2,11 @@ export type ResolveJsonldFn = (url: string, base: string) => Promise<string>;
 export type ResolveWkfFn = (url: string, base: string) => Promise<string>;
 export type ResolveCsvStreamFn = (
   url: string,
-  base: string
+  base: string,
 ) => Promise<ReadableStream<string>>;
 export type ResolveRdfStreamFn = (
   url: string,
-  base: string
+  base: string,
 ) => Promise<ReadableStream<string>>;
 
 /**
@@ -46,7 +46,7 @@ function parseLinkHeader(header: string, base: string): string[] {
       rest.map((x) => {
         const [key, value] = x.split('=').map((x) => x.trim());
         return [key, value.slice(1, -1)]; // remove " and "
-      })
+      }),
     );
     if (
       attributes['rel'].toLowerCase() === 'describedby' &&
@@ -67,7 +67,7 @@ function parseLinkHeader(header: string, base: string): string[] {
  */
 export async function defaultResolveJsonldFn(
   url: string,
-  base: string
+  base: string,
 ): Promise<string> {
   const resp = await fetch(toAbsolute(url, base), {
     headers: { Accept: 'application/ld+json' },
@@ -90,7 +90,7 @@ export async function defaultResolveJsonldFn(
  */
 export async function defaultResolveStreamFn(
   url: string,
-  base: string
+  base: string,
 ): Promise<ReadableStream<string>> {
   const res = await fetch(toAbsolute(url, base));
   if (!res.ok) throw new Error('Failed to fetch: ' + url);
@@ -99,7 +99,7 @@ export async function defaultResolveStreamFn(
 }
 
 /**
- * Converts a relative URL to an absolute URL using a base URL.
+ * Converts a relative URL to an absolute URL using a base URL. Does not work with filesystem paths.
  *
  * @param url - The relative or absolute URL to resolve.
  * @param base - The base URL to resolve relative URLs.
@@ -122,7 +122,7 @@ export function toAbsolute(url: string, base: string) {
  */
 export async function defaultResolveTextFn(
   url: string,
-  base: string
+  base: string,
 ): Promise<string> {
   const resp = await fetch(toAbsolute(url, base));
   if (!resp.ok) throw new Error('Failed to fetch: ' + url);
