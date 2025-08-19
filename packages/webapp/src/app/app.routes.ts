@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 import { conversionExistsGuard } from './auth/conversion-exists.guard';
 import { C2RService } from './services/c2r.service';
+import { ValidateService } from './services/validate.service';
 
 export const appRoutes: Route[] = [
   {
@@ -58,6 +59,7 @@ export const appRoutes: Route[] = [
       import('./validate-results-page/validate-results-page.component').then(
         (m) => m.ValidateResultsPageComponent,
       ),
+    canMatch: [conversionExistsGuard(ValidateService, '/validate-simple')],
     title: 'Validate CSVW',
   },
 ];

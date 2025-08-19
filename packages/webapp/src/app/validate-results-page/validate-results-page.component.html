@@ -1,1 +1,26 @@
-<p>validate-results-page works!</p>
+@if (service.converting()) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  <header>Validation in progress</header>
+} @else {
+  <header>Validation results</header>
+}
+<main>
+  @for (issue of service.issues(); track issue) {
+    <app-issue-card [issue]="issue"></app-issue-card>
+  } @empty {
+    @if (!service.converting()) {
+      <p>No issues found.</p>
+    }
+  }
+
+  @if (!service.converting()) {
+    <div class="buttons">
+      @if (!simple) {
+        <button matButton="tonal" (click)="downloadConfig()">
+          Export Config File
+        </button>
+      }
+      <a matButton="tonal" [routerLink]="lastUrl">Validate Again</a>
+    </div>
+  }
+</main>

@@ -35,7 +35,6 @@ addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
     }
   } else {
     if (data.files.mainFile.name.endsWith('.csv')) {
-      console.log(`Converting CSV file: ${data.files.mainFile.name}`, options);
       stream = csvUrlToRdf(data.files.mainFile.name, options);
     } else {
       const file = await data.files.mainFile
