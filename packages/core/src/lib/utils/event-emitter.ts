@@ -14,7 +14,7 @@ export async function* eventEmitterToAsyncIterable<T>(
   endEvent = 'end',
   errorEvent = 'error',
 ): AsyncIterable<T> {
-  const dataQueue: T[] = [];
+  const dataQueue: IteratorResult<T>[] = [];
   let isEnded = false;
   let error: Error | null = null;
   let resolveNext: ((value: IteratorResult<T>) => void) | null = null;
@@ -25,7 +25,7 @@ export async function* eventEmitterToAsyncIterable<T>(
       resolveNext({ value: data, done: false });
       resolveNext = null;
     } else {
-      dataQueue.push(data);
+      dataQueue.push({ value: data, done: false });
     }
   };
 
@@ -34,6 +34,8 @@ export async function* eventEmitterToAsyncIterable<T>(
     if (resolveNext) {
       resolveNext({ value: undefined, done: true });
       resolveNext = null;
+    } else {
+      dataQueue.push({ value: undefined, done: true });
     }
   };
 
@@ -42,38 +44,38 @@ export async function* eventEmitterToAsyncIterable<T>(
     if (resolveNext) {
       resolveNext({ value: undefined, done: true });
       resolveNext = null;
+    } else {
+      dataQueue.push({ value: undefined, done: true });
     }
   };
 
   dataEvent = Array.isArray(dataEvent) ? dataEvent : [dataEvent];
+  emitter.on(endEvent, onEnd);
+  emitter.on(errorEvent, onError);
   for (const event of dataEvent) {
     emitter.on(event, onData);
   }
-  emitter.on(endEvent, onEnd);
-  emitter.on(errorEvent, onError);
 
   try {
     while (!isEnded && !error) {
+      let result: IteratorResult<T>;
       if (dataQueue.length > 0) {
-        const data = dataQueue.shift();
-        if (data !== undefined) {
-          yield data;
-        }
+        result = dataQueue.shift() as IteratorResult<T>;
       } else {
-        const result = await new Promise<IteratorResult<T>>((resolve) => {
+        result = await new Promise<IteratorResult<T>>((resolve) => {
           resolveNext = resolve;
         });
-
-        if (error) {
-          throw error;
-        }
-
-        if (result.done) {
-          break;
-        }
-
-        yield result.value;
       }
+
+      if (error) {
+        throw error;
+      }
+
+      if (result.done) {
+        break;
+      }
+
+      yield result.value;
     }
 
     if (error) {

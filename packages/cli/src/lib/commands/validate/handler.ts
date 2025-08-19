@@ -12,7 +12,7 @@ import {
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { text } from 'node:stream/consumers';
-import { isAbsolute, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import { getPathOverrides } from '../interactive/get-path-overrides.js';
@@ -48,12 +48,20 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
     console.log(showFullCommand(args));
   }
 
+  let issuesCount = 0;
   for await (const issue of stream) {
+    issuesCount++;
     if (issue.type === 'error') {
       console.error(issue);
     } else {
       console.warn(issue);
     }
+  }
+
+  if (issuesCount > 0) {
+    console.error(`Validation failed with ${issuesCount} issues found.`);
+  } else {
+    console.log('Validation succeeded with no issues found.');
   }
 }
 
@@ -61,7 +69,11 @@ function getOptions(args: ValidateArgs): Csvw2RdfOptions {
   const getUrl = (path: string, base: string) =>
     URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   return {
-    baseIri: args.baseIri,
+    baseIri:
+      args.baseIri ??
+      (args.input && URL.canParse(args.input)
+        ? args.input
+        : dirname(resolve(process.cwd(), args.input ?? ''))),
     pathOverrides: args.pathOverrides ?? [],
     logLevel:
       args.logLevel === 'debug'
