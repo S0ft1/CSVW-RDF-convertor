@@ -1236,7 +1236,7 @@ export class Csvw2RdfConvertor {
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
       resolveWkfFn: options.resolveWkfFn ?? defaultResolveTextFn,
       baseIri: options.baseIri ?? '',
-      templateIris: options.templateIris ?? false,
+      templateIris: options.templateIris ?? true,
       minimal: options.minimal ?? false,
       logLevel: options.logLevel ?? LogLevel.Warn,
     };

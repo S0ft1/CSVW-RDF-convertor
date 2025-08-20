@@ -54,6 +54,7 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
     templateIris: {
       describe: 'Use template IRIs instead of URIs',
       type: 'boolean',
+      default: true,
     },
     interactive: {
       describe: 'Interactive mode',

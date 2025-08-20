@@ -191,7 +191,7 @@ function showFullCommand(args: ArgsWithDefaults): string {
       ? `--baseIri ${args.baseIri}`
       : '',
     args.minimal ? '--minimal' : '',
-    args.templateIris ? '--templateIris' : '',
+    args.templateIris ? '' : '--templateIris false',
     args.pathOverrides?.length
       ? `--pathOverrides ${args.pathOverrides
           .flatMap(([o, p]) => [

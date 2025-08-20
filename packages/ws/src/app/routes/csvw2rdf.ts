@@ -59,7 +59,7 @@ export default async function (fastify: FastifyInstance) {
                 templateIris: {
                   type: 'boolean',
                   description:
-                    'Use template IRIs instead of URIs. Defaults to false.',
+                    'Use template IRIs instead of URIs. Defaults to true.',
                 },
                 baseIri: {
                   type: 'string',
@@ -130,7 +130,7 @@ export default async function (fastify: FastifyInstance) {
           {
             prefixes,
             format: n3Formats[format],
-          }
+          },
         );
         if (includeWarnings) {
           stream.on('warning', (warning) => {
@@ -166,7 +166,7 @@ export default async function (fastify: FastifyInstance) {
       });
       res.type(n3Formats[format]);
       return res.send(outStream);
-    }
+    },
   );
 }
 
@@ -196,8 +196,8 @@ function outputWarning(message: Issue, writer: N3.Writer) {
     quad(
       writer.blank(props),
       namedNode(commonPrefixes.rdf + 'type'),
-      namedNode(customPrefix + 'Warning')
-    )
+      namedNode(customPrefix + 'Warning'),
+    ),
   );
 }
 
@@ -221,7 +221,7 @@ function getOptions(req: FastifyRequest): Csvw2RdfOptions {
       return res;
     }),
     minimal: options.minimal ?? false,
-    templateIris: options.templateIris ?? false,
+    templateIris: options.templateIris ?? true,
     resolveCsvStreamFn: async (url, base) => {
       url = getUrl(url, base);
       const file = getFileFromBody(url);

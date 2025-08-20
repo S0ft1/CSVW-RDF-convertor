@@ -76,7 +76,7 @@ export class C2rSimpleFormPageComponent {
       },
       options: {
         pathOverrides: [],
-        templateIris: false,
+        templateIris: true,
         minimal: true,
       },
       format: {

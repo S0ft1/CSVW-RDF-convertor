@@ -44,7 +44,7 @@ export class C2rFormPageComponent {
     options: new FormGroup({
       baseIri: new FormControl<string>(''),
       pathOverrides: new FormArray<FormControl<[string | RegExp, string]>>([]),
-      templateIris: new FormControl<boolean>(false, { nonNullable: true }),
+      templateIris: new FormControl<boolean>(true, { nonNullable: true }),
       minimal: new FormControl<boolean>(true, { nonNullable: true }),
     }),
     format: new FormGroup({

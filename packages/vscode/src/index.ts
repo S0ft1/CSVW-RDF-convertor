@@ -157,7 +157,7 @@ class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 				break;
 			case 'Template IRIs':
 				const conversion = this.getConversion(conversionId);
-				const templateIRIsChecked = conversion?.templateIRIsChecked || false;
+				const templateIRIsChecked = conversion?.templateIRIsChecked ?? false;
 				item.command = { command: 'csvwrdfconvertor.toggleTemplateIRIs', title: 'Toggle Template IRIs', arguments: [conversionId] };
 				item.iconPath = new vscode.ThemeIcon(
 					templateIRIsChecked ? 'pass-filled' : 'circle-large-outline',
@@ -168,7 +168,7 @@ class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 				break;
 			case 'Minimal Mode':
 				const conv = this.getConversion(conversionId);
-				const minimalModeChecked = conv?.minimalModeChecked || false;
+				const minimalModeChecked = conv?.minimalModeChecked ?? false;
 				item.command = { command: 'csvwrdfconvertor.toggleMinimalMode', title: 'Toggle Minimal Mode', arguments: [conversionId] };
 				item.iconPath = new vscode.ThemeIcon(
 					minimalModeChecked ? 'pass-filled' : 'circle-large-outline',
