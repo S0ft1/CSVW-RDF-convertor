@@ -1,4 +1,4 @@
-import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
+import { CsvwTableGroupDescription } from '../../types/descriptor/table-group.js';
 import { TableSchema } from './table-schema.js';
 
 export class TableGroupSchema implements CsvwTableGroupDescription {

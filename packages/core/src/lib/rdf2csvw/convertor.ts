@@ -1,23 +1,23 @@
-import { LogLevel, Rdf2CsvOptions } from './conversion-options.js';
-import { DescriptorWrapper, normalizeDescriptor } from './descriptor.js';
+import { LogLevel, Rdf2CsvOptions } from '../conversion-options.js';
+import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
 import {
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
-} from './req-resolve.js';
-import { ColumnSchema } from './column-schema.js';
-import { TableGroupSchema } from './table-group-schema.js';
+} from '../req-resolve.js';
+import { ColumnSchema } from './schema/column-schema.js';
+import { TableGroupSchema } from './schema/table-group-schema.js';
 import { transformStream } from './transformation-stream.js';
 
-import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
+import { AnyCsvwDescriptor } from '../types/descriptor/descriptor.js';
 import {
   CsvwTableDescription,
   CsvwTableDescriptionWithRequiredColumns,
-} from './types/descriptor/table.js';
+} from '../types/descriptor/table.js';
 
-import { CsvLocationTracker } from './utils/code-location.js';
-import { coerceArray } from './utils/coerce.js';
-import { commonPrefixes } from './utils/prefix.js';
-import { IssueTracker } from './utils/issue-tracker.js';
+import { CsvLocationTracker } from '../utils/code-location.js';
+import { coerceArray } from '../utils/coerce.js';
+import { commonPrefixes } from '../utils/prefix.js';
+import { IssueTracker } from '../utils/issue-tracker.js';
 
 import { MemoryLevel } from 'memory-level';
 import { DataFactory, Quad, StreamParser } from 'n3';
@@ -30,16 +30,19 @@ import { parseTemplate } from 'url-template';
 
 // TODO: Can these types be improved for better readability and ease of use?
 export type CsvwColumn = { name: string; title: string; queryVariable: string };
-export type CsvwTablesStream = {
+export type CsvwTableStreams = {
   [tableName: string]: [
     columns: CsvwColumn[],
     // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
-    rowsStream: ResultStream<Bindings>
+    rowsStream: ResultStream<Bindings>,
   ];
 };
 
+type OptionsWithDefaults = Required<Omit<Rdf2CsvOptions, 'descriptor'>> &
+  Pick<Rdf2CsvOptions, 'descriptor'>;
+
 export class Rdf2CsvwConvertor {
-  private options: Required<Rdf2CsvOptions>;
+  private options: OptionsWithDefaults;
   private location = new CsvLocationTracker();
   public issueTracker = new IssueTracker(this.location, {
     collectIssues: false,
@@ -53,7 +56,7 @@ export class Rdf2CsvwConvertor {
     return this.wrapper;
   }
 
-  public constructor(options?: Rdf2CsvOptions) {
+  constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
   }
 
@@ -65,21 +68,21 @@ export class Rdf2CsvwConvertor {
    */
   public async convert(
     url: string,
-    descriptor?: string | AnyCsvwDescriptor
-  ): Promise<CsvwTablesStream> {
+    descriptor?: string | AnyCsvwDescriptor,
+  ): Promise<CsvwTableStreams> {
     // TODO: What if we do not have enough memory to hold all the quads in the store?
     const readableStream = await this.options.resolveRdfStreamFn(
       url,
-      this.options.baseIri
+      this.options.baseIri,
     );
-    let parser;
+    let parser: StreamParser | JsonLdParser | RdfXmlParser;
     if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
       parser = new RdfXmlParser();
     } else if (url.match(/\.jsonld([?#].*)?$/)) {
       parser = new JsonLdParser();
     } else {
       // TODO: By default, N3.Parser parses a permissive superset of Turtle, TriG, N-Triples, and N-Quads. For strict compatibility with any of those languages, pass a format argument upon creation.
-      parser = new StreamParser();
+      parser = new StreamParser<Quad>();
     }
     const useNamedGraphs = url.match(/\.(nq|trig)([?#].*)?$/) !== null;
 
@@ -97,7 +100,7 @@ export class Rdf2CsvwConvertor {
       this.wrapper = await normalizeDescriptor(
         descriptor,
         this.options,
-        this.issueTracker
+        this.issueTracker,
       );
       await this.store.putStream(parser);
     }
@@ -106,20 +109,22 @@ export class Rdf2CsvwConvertor {
     const tables = this.wrapper.isTableGroup
       ? this.wrapper.getTables()
       : ([this.wrapper.descriptor] as CsvwTableDescription[]);
-    const streams = {} as CsvwTablesStream;
+    const streams = {} as CsvwTableStreams;
     let openedStreamsCount = 0;
 
     for (const table of tables) {
       // TODO: use IssueTracker
       if (!table.tableSchema?.columns) {
         if (this.options.logLevel >= LogLevel.Warn)
-          console.warn(`Skipping table ${table.url.replace(/[?#].*$/, '')}: no columns found`);
+          console.warn(
+            `Skipping table ${table.url.replace(/[?#].*$/, '')}: no columns found`,
+          );
         continue;
       }
       if (table.suppressOutput === true) {
         if (this.options.logLevel >= LogLevel.Warn)
           console.warn(
-            `Skipping table ${table.url.replace(/[?#].*$/, '')}: suppressOutput set to true`
+            `Skipping table ${table.url.replace(/[?#].*$/, '')}: suppressOutput set to true`,
           );
         continue;
       }
@@ -151,7 +156,7 @@ export class Rdf2CsvwConvertor {
               // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
               if (defaultLang in col.titles) {
                 name = encodeURIComponent(
-                  coerceArray(col.titles[defaultLang])[0]
+                  coerceArray(col.titles[defaultLang])[0],
                 );
               }
             }
@@ -181,7 +186,7 @@ export class Rdf2CsvwConvertor {
       const query = this.createQuery(
         tableWithRequiredColumns,
         columns,
-        useNamedGraphs
+        useNamedGraphs,
       );
       if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
@@ -190,12 +195,12 @@ export class Rdf2CsvwConvertor {
         await this.engine.queryBindings(query, { baseIRI: '.' }),
         tableWithRequiredColumns,
         columns,
-        this.issueTracker
+        this.issueTracker,
       );
       openedStreamsCount++;
       streams[tableWithRequiredColumns.url.replace(/[?#].*$/, '')] = [
         columns.filter(
-          (col, i) => !tableWithRequiredColumns.tableSchema.columns[i].virtual
+          (col, i) => !tableWithRequiredColumns.tableSchema.columns[i].virtual,
         ),
         stream,
       ];
@@ -218,7 +223,7 @@ export class Rdf2CsvwConvertor {
   private createQuery(
     table: CsvwTableDescriptionWithRequiredColumns,
     columns: CsvwColumn[],
-    useNamedGraphs: boolean
+    useNamedGraphs: boolean,
   ) {
     const lines: string[] = [];
     let allOptional = true;
@@ -242,7 +247,7 @@ export class Rdf2CsvwConvertor {
           table,
           columns,
           index,
-          '?_subject'
+          '?_subject',
         );
         // Required columns are prepended, because OPTIONAL pattern should not be at the beginning.
         // For more information, see createSelectOfOptionalSubjects function bellow.
@@ -258,7 +263,7 @@ export class Rdf2CsvwConvertor {
 
     if (allOptional) {
       lines.unshift(
-        this.createSelectOfOptionalSubjects(table, columns, topLevel)
+        this.createSelectOfOptionalSubjects(table, columns, topLevel),
       );
     }
 
@@ -296,7 +301,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
   private createSelectOfOptionalSubjects(
     table: CsvwTableDescriptionWithRequiredColumns,
     columns: CsvwColumn[],
-    topLevel: number[]
+    topLevel: number[],
   ) {
     return `  {
     SELECT DISTINCT ?_subject WHERE {
@@ -315,7 +320,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
                   _column: index + 1,
                   _sourceColumn: index + 1,
                   _name: columns[index].name,
-                })
+                }),
               )}>`
             : `<${table.url}#${columns[index].name}>`;
           let object = '?_object';
@@ -343,7 +348,9 @@ ${lines.map((line) => `    ${line}`).join('\n')}
           const lang = column.lang;
           if (lang) {
             // TODO: Should we lower our expectations if the matching language is not found?
-            lines.push(`          FILTER LANGMATCHES (LANG(${object}), "${lang}")`);
+            lines.push(
+              `          FILTER LANGMATCHES (LANG(${object}), "${lang}")`,
+            );
           }
 
           if (aboutUrl)
@@ -352,14 +359,14 @@ ${lines.map((line) => `    ${line}`).join('\n')}
                 parseTemplate(
                   aboutUrl.replaceAll(
                     /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-                    '.*'
-                  )
+                    '.*',
+                  ),
                 ).expand({
                   _column: index + 1,
                   _sourceColumn: index + 1,
                   _name: columns[index].name,
-                })
-              )}$")`
+                }),
+              )}$")`,
             );
 
           if (object.startsWith('?') && valueUrl)
@@ -368,14 +375,14 @@ ${lines.map((line) => `    ${line}`).join('\n')}
                 parseTemplate(
                   valueUrl.replaceAll(
                     /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-                    '.*'
-                  )
+                    '.*',
+                  ),
                 ).expand({
                   _column: index + 1,
                   _sourceColumn: index + 1,
                   _name: columns[index].name,
-                })
-              )}$")`
+                }),
+              )}$")`,
             );
 
           return `{
@@ -400,7 +407,7 @@ ${lines.join('\n')}
     table: CsvwTableDescriptionWithRequiredColumns,
     columns: CsvwColumn[],
     index: number,
-    subject: string
+    subject: string,
   ): string {
     const column = table.tableSchema.columns[index];
 
@@ -414,7 +421,7 @@ ${lines.join('\n')}
             _column: index + 1,
             _sourceColumn: index + 1,
             _name: columns[index].name,
-          })
+          }),
         )}>`
       : `<${table.url}#${columns[index].name}>`;
 
@@ -454,14 +461,14 @@ ${lines.join('\n')}
           parseTemplate(
             aboutUrl.replaceAll(
               /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-              '.*'
-            )
+              '.*',
+            ),
           ).expand({
             _column: index + 1,
             _sourceColumn: index + 1,
             _name: columns[index].name,
-          })
-        )}$")`
+          }),
+        )}$")`,
       );
     }
 
@@ -471,21 +478,18 @@ ${lines.join('\n')}
           parseTemplate(
             valueUrl.replaceAll(
               /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-              '.*'
-            )
+              '.*',
+            ),
           ).expand({
             _column: index + 1,
             _sourceColumn: index + 1,
             _name: columns[index].name,
-          })
-        )}$")`
+          }),
+        )}$")`,
       );
 
       table.tableSchema.columns.forEach((col, i) => {
-        if (
-          col !== column &&
-          col.aboutUrl === valueUrl
-        ) {
+        if (col !== column && col.aboutUrl === valueUrl) {
           const patterns = this.createTriplePatterns(table, columns, i, object);
           lines.push(...patterns.split('\n'));
         }
@@ -524,7 +528,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
    * @returns
    */
   private async createDescriptor(
-    parser: JsonLdParser | RdfXmlParser | StreamParser<Quad>
+    parser: JsonLdParser | RdfXmlParser | StreamParser<Quad>,
   ): Promise<DescriptorWrapper> {
     const tableGroup = new TableGroupSchema();
 
@@ -568,7 +572,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
         let hasType = false;
         const stream = await this.engine.queryBindings(
           `SELECT ?_type WHERE { <${subject.value}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?_type }`,
-          { baseIRI: '.' }
+          { baseIRI: '.' },
         );
 
         for await (const bindings of stream as any) {
@@ -589,7 +593,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
                 subject.termType !== 'BlankNode'
                   ? this.getCommonUrlTemplate(
                       (table.getColumn('_id') as ColumnSchema).aboutUrl,
-                      subject.value
+                      subject.value,
                     )
                   : undefined;
               column.propertyUrl = predicate.value;
@@ -654,7 +658,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
 
   private getCommonUrlTemplate(
     first: string | undefined,
-    second: string | undefined
+    second: string | undefined,
   ): string | undefined {
     // _row, _sourceRow and columns references are the only URI template properties that does not depend on the column
     // TODO: is this implementation sufficient, or should I add common column references to url template (_sourceRow is not needed here)?
@@ -676,7 +680,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
    * Sets the default options for the options not provided.
    * @param options
    */
-  private setDefaults(options?: Rdf2CsvOptions): Required<Rdf2CsvOptions> {
+  private setDefaults(options?: Rdf2CsvOptions): OptionsWithDefaults {
     options ??= {};
     return {
       pathOverrides: options.pathOverrides ?? [],
@@ -684,7 +688,6 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       logLevel: options.logLevel ?? LogLevel.Warn,
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       resolveRdfStreamFn: options.resolveRdfStreamFn ?? defaultResolveStreamFn,
-      descriptorNotProvided: options.descriptorNotProvided ?? false,
     };
   }
 

@@ -1,6 +1,6 @@
-import { CsvwTableDescription } from './types/descriptor/table.js';
-import { CsvwForeignKeyDefinition } from './types/descriptor/schema-description.js';
-import { ColumnSchema } from './column-schema.js';
+import { CsvwTableDescription } from '../../types/descriptor/table.js';
+import { CsvwForeignKeyDefinition } from '../../types/descriptor/schema-description.js';
+import { ColumnSchema } from '../../rdf2csvw/schema/column-schema.js';
 
 export class TableSchema implements CsvwTableDescription {
   public url: string;
@@ -45,7 +45,7 @@ export class TableSchema implements CsvwTableDescription {
     }
 
     this.tableSchema.columns = this.tableSchema.columns.filter(
-      (column) => column.name !== name
+      (column) => column.name !== name,
     );
   }
 
@@ -56,7 +56,7 @@ export class TableSchema implements CsvwTableDescription {
     }
 
     const column = this.tableSchema.columns.find(
-      (column) => column.name === oldName
+      (column) => column.name === oldName,
     );
     if (column === undefined) {
       throw new Error('Column not found');
@@ -94,7 +94,7 @@ export class TableSchema implements CsvwTableDescription {
       throw new Error('Column is not part of the primary key');
 
     this.tableSchema.primaryKey = this.tableSchema.primaryKey.filter(
-      (key) => key !== columnName
+      (key) => key !== columnName,
     );
   }
 }

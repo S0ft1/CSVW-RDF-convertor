@@ -1,7 +1,7 @@
 import { SimpleTest, SimpleTestType } from './types/manifest.js';
 import {
   CsvwColumn,
-  CsvwTablesStream,
+  CsvwTableStreams,
   defaultResolveJsonldFn,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
@@ -82,7 +82,7 @@ describe('RDF -> CSVW with descriptor', () => {
 });
 
 async function toReceivedObject(
-  result: CsvwTablesStream,
+  result: CsvwTableStreams,
 ): Promise<SimpleTestTables> {
   const tables = {} as SimpleTestTables;
 
@@ -127,8 +127,7 @@ async function loadExpectedObject(
       const row = {} as SimpleTestRow;
 
       for (const columnTitle of Object.keys(line)) {
-        if (line[columnTitle] !== '')
-          row[columnTitle] = line[columnTitle];
+        if (line[columnTitle] !== '') row[columnTitle] = line[columnTitle];
       }
 
       table.push(row);
