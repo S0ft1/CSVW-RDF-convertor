@@ -225,7 +225,7 @@
   },
   {
     "id": "040",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid null",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "040/input.ttl",
@@ -236,7 +236,7 @@
   },
   {
     "id": "041",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid lang",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "041/input.ttl",
@@ -247,7 +247,7 @@
   },
   {
     "id": "042",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid textDirection",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "042/input.ttl",
@@ -258,7 +258,7 @@
   },
   {
     "id": "043",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid separator",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "043/input.ttl",
@@ -269,7 +269,7 @@
   },
   {
     "id": "044",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid ordered",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "044/input.ttl",
@@ -280,7 +280,7 @@
   },
   {
     "id": "045",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid default",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "045/input.ttl",
@@ -291,7 +291,7 @@
   },
   {
     "id": "046",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid dataype",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "046/input.ttl",
@@ -302,7 +302,7 @@
   },
   {
     "id": "047",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid aboutUrl",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "047/input.ttl",
@@ -313,7 +313,7 @@
   },
   {
     "id": "048",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid propertyUrl",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "048/input.ttl",
@@ -324,7 +324,7 @@
   },
   {
     "id": "049",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid valueUrl",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "049/input.ttl",
@@ -335,7 +335,7 @@
   },
   {
     "id": "059",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid commentPrefix",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "059/input.ttl",
@@ -346,7 +346,7 @@
   },
   {
     "id": "060",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid delimiter",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "060/input.ttl",
@@ -357,7 +357,7 @@
   },
   {
     "id": "061",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid doubleQuote",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "061/input.ttl",
@@ -368,7 +368,7 @@
   },
   {
     "id": "062",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid encoding",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "062/input.ttl",
@@ -379,7 +379,7 @@
   },
   {
     "id": "063",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid header",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "063/input.ttl",
@@ -390,7 +390,7 @@
   },
   {
     "id": "065",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid headerRowCount",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "065/input.ttl",
@@ -401,7 +401,7 @@
   },
   {
     "id": "066",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid lineTerminators",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "066/input.ttl",
@@ -412,7 +412,7 @@
   },
   {
     "id": "067",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid quoteChar",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "067/input.ttl",
@@ -423,7 +423,7 @@
   },
   {
     "id": "068",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid skipBlankRows",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "068/input.ttl",
@@ -434,7 +434,7 @@
   },
   {
     "id": "069",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid skipColumns",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "069/input.ttl",
@@ -445,7 +445,7 @@
   },
   {
     "id": "070",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid skipInitialSpace",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "070/input.ttl",
@@ -456,7 +456,7 @@
   },
   {
     "id": "071",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid skipRows",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "071/input.ttl",
@@ -467,7 +467,7 @@
   },
   {
     "id": "072",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dialect: invalid trim",
     "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
     "action": "072/input.ttl",
@@ -478,7 +478,7 @@
   },
   {
     "id": "073",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid @language",
     "comment": "The value of `@language` MUST be a valid `BCP47` language code",
     "action": "073/input.ttl",
@@ -489,7 +489,7 @@
   },
   {
     "id": "075",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid tableGroup tableDirection",
     "comment": "An atomic property that MUST have a single string value that is one of \"rtl\", \"ltr\" or \"auto\".",
     "action": "075/input.ttl",
@@ -500,7 +500,7 @@
   },
   {
     "id": "076",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid table tableDirection",
     "comment": "An atomic property that MUST have a single string value that is one of \"rtl\", \"ltr\" or \"auto\".",
     "action": "076/input.ttl",
@@ -511,7 +511,7 @@
   },
   {
     "id": "093",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "undefined properties",
     "comment": "Compliant applications MUST ignore properties (aside from _common properties_) which are not defined in this specification and MUST generate a warning when they are encoutered",
     "action": "093/input.ttl",
@@ -522,7 +522,7 @@
   },
   {
     "id": "095",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "inconsistent array values: transformations",
     "comment": "Any items within an array that are not valid objects of the type expected are ignored",
     "action": "095/input.ttl",
@@ -533,7 +533,7 @@
   },
   {
     "id": "097",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "inconsistent array values: foreignKeys",
     "comment": "Any items within an array that are not valid objects of the type expected are ignored",
     "action": "097/input.ttl",
@@ -545,7 +545,7 @@
   },
   {
     "id": "099",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "inconsistent array values: transformations",
     "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
     "action": "099/input.ttl",
@@ -556,7 +556,7 @@
   },
   {
     "id": "100",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "inconsistent array values: columns",
     "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
     "action": "100/input.ttl",
@@ -567,7 +567,7 @@
   },
   {
     "id": "101",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "inconsistent array values: foreignKeys",
     "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
     "action": "101/input.ttl",
@@ -579,7 +579,7 @@
   },
   {
     "id": "102",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "inconsistent link values: @id",
     "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
     "action": "102/input.ttl",
@@ -590,7 +590,7 @@
   },
   {
     "id": "105",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid primaryKey",
     "comment": "The referenced description object MUST have a name property",
     "action": "105/input.ttl",
@@ -601,7 +601,7 @@
   },
   {
     "id": "106",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid dialect",
     "comment": "If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.",
     "action": "106/input.ttl",
@@ -612,7 +612,7 @@
   },
   {
     "id": "107",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid tableSchema",
     "comment": "If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.",
     "action": "107/input.ttl",
@@ -623,7 +623,7 @@
   },
   {
     "id": "109",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "titles with invalid language",
     "comment": "Natural Language properties may be objects whose properties MUST be language codes as defined by [BCP47] and whose values are either strings or arrays, providing natural language strings in that language. Validation fails because without a title, the metadata is incompatible with the CSV, which isn't a problem when not validating.",
     "action": "109/input.ttl",
@@ -634,7 +634,7 @@
   },
   {
     "id": "110",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "titles with non-string values",
     "comment": "Natural Language properties may be objects whose properties MUST be language codes as defined by [BCP47] and whose values are either strings or arrays, providing natural language strings in that language",
     "action": "110/input.ttl",
@@ -645,7 +645,7 @@
   },
   {
     "id": "111",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "titles with invalid value",
     "comment": "If the supplied value of a natural language property is not a string, array or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an empty array. Validation fails because without a title, the metadata is incompatible with the CSV, which isn't a problem when not validating.",
     "action": "111/input.ttl",
@@ -656,7 +656,7 @@
   },
   {
     "id": "112",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "titles with non-string array values",
     "comment": "If the supplied value is an array, any items in that array that are not strings MUST be ignored",
     "action": "112/input.ttl",
@@ -667,7 +667,7 @@
   },
   {
     "id": "113",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid suppressOutput",
     "comment": "Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type",
     "action": "113/input.ttl",
@@ -678,7 +678,7 @@
   },
   {
     "id": "114",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid name",
     "comment": "Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type",
     "action": "114/input.ttl",
@@ -689,7 +689,7 @@
   },
   {
     "id": "115",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid virtual",
     "comment": "Atomic properties: Processors MUST issue a warning if a property is set to an invalid value type",
     "action": "115/input.ttl",
@@ -710,17 +710,6 @@
     ]
   },
   {
-    "id": "117",
-    "type": "ToCsvwTest",
-    "name": "file-metadata not referencing file",
-    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
-    "action": "117/input.ttl",
-    "metadata": "117/csv-metadata.json",
-    "result": [
-      "117/test117.csv"
-    ]
-  },
-  {
     "id": "118",
     "type": "ToCsvwTest",
     "name": "directory-metadata with query component",
@@ -729,28 +718,6 @@
     "metadata": "118/csv-metadata.json",
     "result": [
       "118/action.csv"
-    ]
-  },
-  {
-    "id": "119",
-    "type": "ToCsvwTest",
-    "name": "directory-metadata not referencing file",
-    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
-    "action": "119/input.ttl",
-    "metadata": "119/csv-metadata.json",
-    "result": [
-      "119/action.csv"
-    ]
-  },
-  {
-    "id": "120",
-    "type": "ToCsvwTest",
-    "name": "link-metadata not referencing file",
-    "comment": "If the metadata file found at this location does not explicitly include a reference to the requested tabular data file then it MUST be ignored.",
-    "action": "120/input.ttl",
-    "metadata": "120/csv-metadata.json",
-    "result": [
-      "120/test120.csv"
     ]
   },
   {
@@ -821,7 +788,7 @@
   },
   {
     "id": "127",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "incompatible table",
     "comment": "if TM is not compatible with EM validators MUST raise an error, other processors MUST generate a warning and continue processing",
     "action": "127/input.ttl",
@@ -832,7 +799,7 @@
   },
   {
     "id": "129",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "columnn name as integer",
     "comment": "This (name) MUST be a string and this property has no default value, which means it MUST be ignored if the supplied value is not a string.",
     "action": "129/input.ttl",
@@ -843,7 +810,7 @@
   },
   {
     "id": "130",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid column name",
     "comment": "column names are restricted as defined in Variables in [URI-TEMPLATE] ",
     "action": "130/input.ttl",
@@ -854,7 +821,7 @@
   },
   {
     "id": "131",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid column name",
     "comment": "column names are restricted ... names beginning with '_' are reserved by this specification and MUST NOT be used within metadata documents.",
     "action": "131/input.ttl",
@@ -909,7 +876,7 @@
   },
   {
     "id": "150",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "non-builtin datatype (datatype value)",
     "comment": "If the value of this property is a string, it MUST be one of the built-in datatypes defined in section 5.11.1 Built-in Datatypes or an absolute URL",
     "action": "150/input.ttl",
@@ -920,7 +887,7 @@
   },
   {
     "id": "151",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "non-builtin datatype (base value)",
     "comment": "If the value of this property is a string, it MUST be one of the built-in datatypes",
     "action": "151/input.ttl",
@@ -942,7 +909,7 @@
   },
   {
     "id": "153",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "string format (bad format string)",
     "comment": "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values",
     "action": "153/input.ttl",
@@ -953,7 +920,7 @@
   },
   {
     "id": "154",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "string format (value not matching format)",
     "comment": "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values",
     "action": "154/input.ttl",
@@ -975,7 +942,7 @@
   },
   {
     "id": "156",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "number format (bad format string)",
     "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
     "action": "156/input.ttl",
@@ -986,7 +953,7 @@
   },
   {
     "id": "157",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "number format (value not matching format)",
     "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
     "action": "157/input.ttl",
@@ -1008,7 +975,7 @@
   },
   {
     "id": "159",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "number format (bad pattern format string)",
     "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
     "action": "159/input.ttl",
@@ -1019,7 +986,7 @@
   },
   {
     "id": "160",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "number format (not matching values with pattern)",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
     "action": "160/input.ttl",
@@ -1030,7 +997,7 @@
   },
   {
     "id": "161",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "number format (not matching values without pattern)",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
     "action": "161/input.ttl",
@@ -1041,7 +1008,7 @@
   },
   {
     "id": "162",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "numeric format (consecutive groupChar)",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains two consecutive groupChar strings",
     "action": "162/input.ttl",
@@ -1052,7 +1019,7 @@
   },
   {
     "id": "163",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "integer datatype with decimalChar",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains the decimalChar, if the datatype base is integer or one of its sub-values",
     "action": "163/input.ttl",
@@ -1063,7 +1030,7 @@
   },
   {
     "id": "164",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "decimal datatype with exponent",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, if the datatype base is decimal or one of its sub-values",
     "action": "164/input.ttl",
@@ -1074,7 +1041,7 @@
   },
   {
     "id": "165",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "decimal type with NaN",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
     "action": "165/input.ttl",
@@ -1085,7 +1052,7 @@
   },
   {
     "id": "166",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "decimal type with INF",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
     "action": "166/input.ttl",
@@ -1096,7 +1063,7 @@
   },
   {
     "id": "167",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "decimal type with -INF",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
     "action": "167/input.ttl",
@@ -1118,7 +1085,7 @@
   },
   {
     "id": "169",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid decimal",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "169/input.ttl",
@@ -1151,7 +1118,7 @@
   },
   {
     "id": "172",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid byte",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "172/input.ttl",
@@ -1162,8 +1129,8 @@
   },
   {
     "id": "173",
-    "type": "ToCsvwTest",
-    "name": "invald unsignedLong",
+    "type": "ToCsvwTestWithWarnings",
+    "name": "invalid unsignedLong",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "173/input.ttl",
     "metadata": "173/csv-metadata.json",
@@ -1173,7 +1140,7 @@
   },
   {
     "id": "174",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid unsignedShort",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "174/input.ttl",
@@ -1184,7 +1151,7 @@
   },
   {
     "id": "175",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid unsignedByte",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "175/input.ttl",
@@ -1195,7 +1162,7 @@
   },
   {
     "id": "176",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid positiveInteger",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "176/input.ttl",
@@ -1206,7 +1173,7 @@
   },
   {
     "id": "177",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid negativeInteger",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "177/input.ttl",
@@ -1217,7 +1184,7 @@
   },
   {
     "id": "178",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid nonPositiveInteger",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "178/input.ttl",
@@ -1228,7 +1195,7 @@
   },
   {
     "id": "179",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid nonNegativeInteger",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "179/input.ttl",
@@ -1239,7 +1206,7 @@
   },
   {
     "id": "180",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid double",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "180/input.ttl",
@@ -1250,7 +1217,7 @@
   },
   {
     "id": "181",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid number",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "181/input.ttl",
@@ -1261,7 +1228,7 @@
   },
   {
     "id": "182",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid float",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
     "action": "182/input.ttl",
@@ -1283,7 +1250,7 @@
   },
   {
     "id": "184",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "boolean format (bad format string)",
     "comment": "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.",
     "action": "184/input.ttl",
@@ -1294,7 +1261,7 @@
   },
   {
     "id": "185",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "boolean format (value not matching format)",
     "comment": "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.",
     "action": "185/input.ttl",
@@ -1305,7 +1272,7 @@
   },
   {
     "id": "186",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "boolean format (not matching datatype)",
     "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
     "action": "186/input.ttl",
@@ -1360,7 +1327,7 @@
   },
   {
     "id": "191",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date format (bad format string)",
     "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
     "action": "191/input.ttl",
@@ -1371,7 +1338,7 @@
   },
   {
     "id": "192",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date format (value not matching format)",
     "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
     "action": "192/input.ttl",
@@ -1393,7 +1360,7 @@
   },
   {
     "id": "194",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "duration format (value not matching format)",
     "comment": "If the datatype base is a duration type, the datatype format annotation provides a regular expression for the string values",
     "action": "194/input.ttl",
@@ -1415,7 +1382,7 @@
   },
   {
     "id": "196",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "values with wrong length",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "196/input.ttl",
@@ -1426,7 +1393,7 @@
   },
   {
     "id": "197",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "values with wrong maxLength",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "197/input.ttl",
@@ -1437,7 +1404,7 @@
   },
   {
     "id": "198",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "values with wrong minLength",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "198/input.ttl",
@@ -1459,7 +1426,7 @@
   },
   {
     "id": "203",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "float value constraint not matching minimum",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "203/input.ttl",
@@ -1470,7 +1437,7 @@
   },
   {
     "id": "204",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "float value constraint not matching maximum",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "204/input.ttl",
@@ -1481,7 +1448,7 @@
   },
   {
     "id": "205",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "float value constraint not matching minInclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "205/input.ttl",
@@ -1492,7 +1459,7 @@
   },
   {
     "id": "206",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "float value constraint not matching minExclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "206/input.ttl",
@@ -1503,7 +1470,7 @@
   },
   {
     "id": "207",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "float value constraint not matching maxInclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "207/input.ttl",
@@ -1514,7 +1481,7 @@
   },
   {
     "id": "208",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "float value constraint not matching maxExclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "208/input.ttl",
@@ -1536,7 +1503,7 @@
   },
   {
     "id": "210",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date value constraint not matching minimum",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "210/input.ttl",
@@ -1547,7 +1514,7 @@
   },
   {
     "id": "211",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date value constraint not matching maximum",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "211/input.ttl",
@@ -1558,7 +1525,7 @@
   },
   {
     "id": "212",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date value constraint not matching minInclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "212/input.ttl",
@@ -1569,7 +1536,7 @@
   },
   {
     "id": "213",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date value constraint not matching minExclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "213/input.ttl",
@@ -1580,7 +1547,7 @@
   },
   {
     "id": "214",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date value constraint not matching maxInclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "214/input.ttl",
@@ -1591,7 +1558,7 @@
   },
   {
     "id": "215",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date value constraint not matching maxExclusive",
     "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
     "action": "215/input.ttl",
@@ -1624,7 +1591,7 @@
   },
   {
     "id": "230",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "failing minLength with separator",
     "comment": "If the value is a list, the constraint applies to each element of the list.",
     "action": "230/input.ttl",
@@ -1715,7 +1682,7 @@
   },
   {
     "id": "238",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "datatype value an absolute URL",
     "comment": "it must be the name of one of the built-in datatypes defined in section 5.11.1 Built-in Datatypes",
     "action": "238/input.ttl",
@@ -1759,7 +1726,7 @@
   },
   {
     "id": "247",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "date format (extra milliseconds)",
     "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
     "action": "247/input.ttl",
@@ -1825,7 +1792,7 @@
   },
   {
     "id": "266",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "`null` contains an array of (valid) string & (invalid) numeric values",
     "comment": "Processors MUST issue a warning if a property is set to an invalid value type",
     "action": "266/input.ttl",
@@ -1847,7 +1814,7 @@
   },
   {
     "id": "269",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "`format` for a boolean datatype is a string but in the wrong form (eg YN)",
     "comment": "If the datatype base for a cell is `boolean`, the datatype format annotation provides the true value followed by the false value, separated by `|`. If the format does not follow this syntax, implementations MUST issue a warning and proceed as if no format had been provided.",
     "action": "269/input.ttl",
@@ -1858,7 +1825,7 @@
   },
   {
     "id": "270",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "transformation includes an invalid property (eg foo)",
     "comment": "All terms used within a metadata document MUST be defined in [csvw-context] defined for this specification",
     "action": "270/input.ttl",
@@ -1880,7 +1847,7 @@
   },
   {
     "id": "275",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "property acceptable on column appears on table group",
     "comment": "Table Group may only use defined properties.",
     "action": "275/input.ttl",
@@ -1891,7 +1858,7 @@
   },
   {
     "id": "276",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "property acceptable on column appears on table",
     "comment": "Table may only use defined properties.",
     "action": "276/input.ttl",
@@ -1902,7 +1869,7 @@
   },
   {
     "id": "277",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "property acceptable on table appears on column",
     "comment": "Column may only use defined properties.",
     "action": "277/input.ttl",
@@ -1913,7 +1880,7 @@
   },
   {
     "id": "278",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "CSV has more headers than there are columns in the metadata",
     "comment": "Two schemas are compatible if they have the same number of non-virtual column descriptions, and the non-virtual column descriptions at the same index within each are compatible with each other.",
     "action": "278/input.ttl",
@@ -1924,7 +1891,7 @@
   },
   {
     "id": "279",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "duration not matching xsd pattern",
     "comment": "Value MUST be a valid xsd:duration.",
     "action": "279/input.ttl",
@@ -1935,7 +1902,7 @@
   },
   {
     "id": "280",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "dayTimeDuration not matching xsd pattern",
     "comment": "Value MUST be a valid xsd:dayTimeDuration.",
     "action": "280/input.ttl",
@@ -1946,7 +1913,7 @@
   },
   {
     "id": "281",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "yearMonthDuration not matching xsd pattern",
     "comment": "Value MUST be a valid xsd:yearMonthDuration.",
     "action": "281/input.ttl",
@@ -2001,7 +1968,7 @@
   },
   {
     "id": "286",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid ##0 1,234",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "286/input.ttl",
@@ -2012,7 +1979,7 @@
   },
   {
     "id": "287",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid ##0 123.4",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "287/input.ttl",
@@ -2023,7 +1990,7 @@
   },
   {
     "id": "288",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,#00 1",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "288/input.ttl",
@@ -2034,7 +2001,7 @@
   },
   {
     "id": "289",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,#00 1234",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "289/input.ttl",
@@ -2045,7 +2012,7 @@
   },
   {
     "id": "290",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,#00 12,34",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "290/input.ttl",
@@ -2056,7 +2023,7 @@
   },
   {
     "id": "291",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,#00 12,34,567",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "291/input.ttl",
@@ -2067,7 +2034,7 @@
   },
   {
     "id": "292",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,##,#00 1",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "292/input.ttl",
@@ -2078,7 +2045,7 @@
   },
   {
     "id": "293",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,##,#00 1234",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "293/input.ttl",
@@ -2089,7 +2056,7 @@
   },
   {
     "id": "294",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,##,#00 12,34",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "294/input.ttl",
@@ -2100,7 +2067,7 @@
   },
   {
     "id": "295",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #,##,#00 1,234,567",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "295/input.ttl",
@@ -2111,7 +2078,7 @@
   },
   {
     "id": "296",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.# 12.34",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "296/input.ttl",
@@ -2122,7 +2089,7 @@
   },
   {
     "id": "297",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.# 1,234.5",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "297/input.ttl",
@@ -2133,7 +2100,7 @@
   },
   {
     "id": "298",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.0 1",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "298/input.ttl",
@@ -2144,7 +2111,7 @@
   },
   {
     "id": "299",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.0 12.34",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "299/input.ttl",
@@ -2155,7 +2122,7 @@
   },
   {
     "id": "300",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.0# 1",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "300/input.ttl",
@@ -2166,7 +2133,7 @@
   },
   {
     "id": "301",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.0# 12.345",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "301/input.ttl",
@@ -2177,7 +2144,7 @@
   },
   {
     "id": "302",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.0#,# 1",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "302/input.ttl",
@@ -2188,7 +2155,7 @@
   },
   {
     "id": "303",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.0#,# 12.345",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "303/input.ttl",
@@ -2199,7 +2166,7 @@
   },
   {
     "id": "304",
-    "type": "ToCsvwTest",
+    "type": "ToCsvwTestWithWarnings",
     "name": "invalid #0.0#,# 12.34,567",
     "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
     "action": "304/input.ttl",

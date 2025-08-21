@@ -4,6 +4,7 @@ import {
   CompactedExpandedCsvwDescriptor,
 } from './types/descriptor/descriptor.js';
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
+import { CsvwTableDescription } from './types/descriptor/table.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { csvwNs } from './types/descriptor/namespace.js';
 import { ConversionOptions } from './conversion-options.js';
@@ -13,6 +14,8 @@ import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { Quad } from '@rdfjs/types';
+import { validateTable } from './validation/table.js';
+import { validateTableGroup } from './validation/table-group.js';
 
 const { quad, fromQuad } = DataFactory;
 
@@ -76,7 +79,7 @@ export async function normalizeDescriptor(
   const [internal, idMap]: [CompactedCsvwDescriptor, Map<string, Quad[]>] =
     await splitExternalProps(compactedExpanded, issueTracker);
 
-  return new DescriptorWrapper(
+  const wrapper = new DescriptorWrapper(
     (await compactCsvwNs(
       internal,
       docLoader,
@@ -84,6 +87,20 @@ export async function normalizeDescriptor(
     )) as unknown as CompactedCsvwDescriptor,
     idMap
   );
+
+  if (wrapper.isTableGroup) {
+    validateTableGroup(wrapper.descriptor as CsvwTableGroupDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  } else {
+    validateTable(wrapper.descriptor as CsvwTableDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  }
+
+  return inheritProperties(wrapper);
 }
 
 /**
@@ -221,6 +238,50 @@ async function loadReferencedSubdescriptors(
       }
     }
   }
+}
+
+/**
+ * Propagates inherited properties.
+ * @param wrapper descriptor wrapper
+ * @returns descriptor wrapper with propagated inherited properties
+ */
+function inheritProperties(wrapper: DescriptorWrapper) {
+  const tables = wrapper.isTableGroup
+    ? wrapper.getTables()
+    : ([wrapper.descriptor] as CsvwTableDescription[]);
+
+  const inheritedProperties = [
+    'aboutUrl',
+    'datatype',
+    'default',
+    'lang',
+    'null',
+    'ordered',
+    'propertyUrl',
+    'required',
+    'separator',
+    'textDirection',
+    'valueUrl',
+  ] as const;
+
+  for (const table of tables) {
+    for (const prop of inheritedProperties) {
+      if (table[prop] === undefined)
+        table[prop] = wrapper.descriptor[prop] as any;
+
+      if (table.tableSchema) {
+        if (table.tableSchema[prop] === undefined)
+          table.tableSchema[prop] = table[prop] as any;
+
+        for (const column of table.tableSchema?.columns ?? []) {
+          if (column[prop] === undefined)
+            column[prop] = table.tableSchema[prop] as any;
+        }
+      }
+    }
+  }
+
+  return wrapper;
 }
 
 /**

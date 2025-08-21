@@ -52,6 +52,7 @@ describe('CSVW -> RDF Official tests', () => {
         ],
         resolveJsonldFn: loadJsonLd,
         resolveCsvStreamFn: loadStringStream,
+        templateIris: false,
       };
 
       switch (entry.type) {
