@@ -7,15 +7,9 @@ export * from './lib/rdf2csvw/public-api.js';
 export * from './lib/rdf2csvw/schema/column-schema.js';
 export * from './lib/rdf2csvw/schema/table-schema.js';
 export * from './lib/rdf2csvw/schema/table-group-schema.js';
-export {
-  commonPrefixes,
-  lookupPrefixes,
-  getPrefixCandidates,
-  customPrefix,
-} from './lib/utils/prefix.js';
-export * from './lib/utils/rdf-stream-to-array.js';
+export { commonPrefixes, customPrefix } from './lib/utils/prefix.js';
+export * from './lib/utils/stream-to-array.js';
 export * from './lib/utils/all-uris.js';
-export * from './lib/utils/rdf-serialization.js';
 export * from './lib/utils/issue-tracker.js';
 export * from './lib/utils/code-location.js';
 export * from './lib/utils/event-emitter.js';

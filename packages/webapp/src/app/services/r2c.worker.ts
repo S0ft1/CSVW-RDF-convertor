@@ -3,11 +3,10 @@ import {
   csvwDescriptorToRdf,
   csvUrlToRdf,
   Rdf2CsvOptions,
-  defaultResolveStreamFn,
   defaultResolveJsonldFn,
   rdfToTableSchema,
 } from '@csvw-rdf-convertor/core';
-import { ErrorMessage, InitR2CParams, WorkerRequest } from './r2c.service';
+import { InitR2CParams, WorkerRequest } from './r2c.service';
 import { Quad, Stream } from '@rdfjs/types';
 
 addEventListener('message', async ({ data }: { data: WorkerRequest }) => {
@@ -42,12 +41,6 @@ function getOptions(params: InitR2CParams): Rdf2CsvOptions {
   return {
     ...params.options,
     baseIri,
-    resolveRdfStreamFn: async (url, base) => {
-      url = getUrl(url, base);
-      const file = getUploadedFile(url);
-      if (file) return file.stream().pipeThrough(new TextDecoderStream());
-      return defaultResolveStreamFn(url, base);
-    },
     resolveJsonldFn: (url, base) => {
       url = getUrl(url, base);
       const file = getUploadedFile(url);

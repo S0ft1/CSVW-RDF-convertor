@@ -15,7 +15,7 @@ import { IssueCardComponent } from './issue-card/issue-card.component';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
-import { fileExtensions, mimeTypes } from '@csvw-rdf-convertor/core';
+import { fileExtensions, mimeTypes } from '@csvw-rdf-convertor/loaders';
 
 @Component({
   selector: 'app-c2r-results-page',

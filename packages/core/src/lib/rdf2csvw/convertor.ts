@@ -69,25 +69,7 @@ export class Rdf2CsvwConvertor {
     descriptor?: string | AnyCsvwDescriptor,
   ): Promise<CsvwTableStreams> {
     // TODO: What if we do not have enough memory to hold all the quads in the store?
-    const readableStream = await this.options.resolveRdfStreamFn(
-      url,
-      this.options.baseIri,
-    );
-    let parser: StreamParser | JsonLdParser | RdfXmlParser;
-    if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
-      parser = new RdfXmlParser();
-    } else if (url.match(/\.jsonld([?#].*)?$/)) {
-      parser = new JsonLdParser();
-    } else {
-      // TODO: By default, N3.Parser parses a permissive superset of Turtle, TriG, N-Triples, and N-Quads. For strict compatibility with any of those languages, pass a format argument upon creation.
-      parser = new StreamParser<Quad>();
-    }
-    const useNamedGraphs = url.match(/\.(nq|trig)([?#].*)?$/) !== null;
-
-    for await (const chunk of readableStream) {
-      parser.write(chunk);
-    }
-    parser.end();
+    const parser: StreamParser | JsonLdParser | RdfXmlParser = null as any;
 
     await this.openStore();
 
@@ -102,6 +84,7 @@ export class Rdf2CsvwConvertor {
       );
       await this.store.putStream(parser);
     }
+    const useNamedGraphs = false;
 
     // Now we have a descriptor either from user or from rdf data.
     const tables = this.wrapper.isTableGroup

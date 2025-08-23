@@ -29,7 +29,7 @@ export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
   options: Required<ConversionOptions>,
   issueTracker: IssueTracker,
-  url?: string
+  url?: string,
 ): Promise<DescriptorWrapper> {
   const docLoader = async (url: string) => {
     url = replaceUrl(url, options.pathOverrides);
@@ -51,7 +51,7 @@ export async function normalizeDescriptor(
     url
   ) {
     issueTracker.addWarning(
-      `Invalid @id: ${JSON.stringify(parsedDescriptor['@id'])}`
+      `Invalid @id: ${JSON.stringify(parsedDescriptor['@id'])}`,
     );
     parsedDescriptor['@id'] = url;
   }
@@ -61,20 +61,20 @@ export async function normalizeDescriptor(
 
   const expanded = await jsonld.expand(
     parsedDescriptor as jsonld.JsonLdDocument,
-    { documentLoader: docLoader }
+    { documentLoader: docLoader },
   );
   await loadReferencedSubdescriptors(
     expanded,
     docLoader,
     options,
     originalCtx,
-    issueTracker
+    issueTracker,
   );
 
   const compactedExpanded = (await jsonld.compact(
     expanded,
     {},
-    { documentLoader: docLoader }
+    { documentLoader: docLoader },
   )) as CompactedExpandedCsvwDescriptor;
   const [internal, idMap]: [CompactedCsvwDescriptor, Map<string, Quad[]>] =
     await splitExternalProps(compactedExpanded, issueTracker);
@@ -83,9 +83,9 @@ export async function normalizeDescriptor(
     (await compactCsvwNs(
       internal,
       docLoader,
-      parsedDescriptor['@context'] || csvwNs
+      parsedDescriptor['@context'] || csvwNs,
     )) as unknown as CompactedCsvwDescriptor,
-    idMap
+    idMap,
   );
 
   if (wrapper.isTableGroup) {
@@ -111,7 +111,7 @@ export async function normalizeDescriptor(
  */
 function validateIdsTypesLangmaps(
   obj: Record<string, any>,
-  issueTracker: IssueTracker
+  issueTracker: IssueTracker,
 ) {
   for (const key in obj) {
     if (key === '@id') {
@@ -147,7 +147,7 @@ function validateIdsTypesLangmaps(
               titles[key].some((t: any) => typeof t !== 'string'))
           ) {
             issueTracker.addWarning(
-              `Invalid title: ${JSON.stringify(titles[key])}`
+              `Invalid title: ${JSON.stringify(titles[key])}`,
             );
             delete titles[key];
           }
@@ -156,7 +156,7 @@ function validateIdsTypesLangmaps(
     } else if (key === '@language') {
       if (!('@value' in obj)) {
         issueTracker.addError(
-          `A @language property must not be used on an object unless it also has a @value property.`
+          `A @language property must not be used on an object unless it also has a @value property.`,
         );
       }
     } else if (
@@ -201,7 +201,7 @@ async function loadReferencedSubdescriptors(
   }>,
   options: Required<ConversionOptions>,
   originalCtx: AnyCsvwDescriptor['@context'],
-  issueTracker: IssueTracker
+  issueTracker: IssueTracker,
 ) {
   const root = descriptor[0];
   const objects = [root];
@@ -219,9 +219,9 @@ async function loadReferencedSubdescriptors(
           const doc = await options.resolveJsonldFn(
             replaceUrl(
               (base + refContainer['@id']) as string,
-              options.pathOverrides
+              options.pathOverrides,
             ),
-            options.baseIri
+            options.baseIri,
           );
           const parsed = JSON.parse(doc);
           if (parsed['@id'] && typeof parsed['@id'] !== 'string') {
@@ -231,7 +231,7 @@ async function loadReferencedSubdescriptors(
           validateLanguage(parsed as NodeObject, issueTracker);
           const subdescriptor = await jsonld.expand(
             { '@context': originalCtx as any, [csvwNs + key]: parsed },
-            { documentLoader: docLoader }
+            { documentLoader: docLoader },
           );
           object[csvwNs + key] = subdescriptor[0][csvwNs + key];
         }
@@ -292,7 +292,7 @@ function inheritProperties(wrapper: DescriptorWrapper) {
 async function compactCsvwNs(
   descriptor: any,
   docLoader: (url: string) => Promise<RemoteDocument>,
-  ctx: AnyCsvwDescriptor['@context']
+  ctx: AnyCsvwDescriptor['@context'],
 ) {
   const compacted = await jsonld.compact(descriptor, csvwNs as any, {
     documentLoader: docLoader,
@@ -334,7 +334,7 @@ let externalSubjCounter = 0;
 async function splitExternalProps(
   object: any,
   issueTracker: IssueTracker,
-  quadMap: Map<string, Quad[]> = new Map()
+  quadMap: Map<string, Quad[]> = new Map(),
 ): Promise<[any, Map<string, Quad[]>]> {
   if (typeof object !== 'object' || object === null) {
     return [object, quadMap];
@@ -408,11 +408,11 @@ export class DescriptorWrapper {
   constructor(
     public descriptor: CompactedCsvwDescriptor,
     /** extra non-csvw properties from the original descriptor */
-    private externalProps: Map<string, Quad[]>
+    private externalProps: Map<string, Quad[]>,
   ) {}
 
   private _isTableGroup(
-    x: CompactedCsvwDescriptor
+    x: CompactedCsvwDescriptor,
   ): x is CsvwTableGroupDescription {
     return 'tables' in x;
   }

@@ -14,10 +14,6 @@ export async function rdfToCsvw(
   return null as any;
 }
 
-export function loadRdf(url: string, options?: Rdf2CsvOptions): Stream<Quad> {
-  return null as any;
-}
-
 export function rdfToTableSchema(
   rdf: Stream<Quad>,
   options?: Rdf2CsvOptions,

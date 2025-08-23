@@ -4,10 +4,6 @@ export type ResolveCsvStreamFn = (
   url: string,
   base: string,
 ) => Promise<ReadableStream<string>>;
-export type ResolveRdfStreamFn = (
-  url: string,
-  base: string,
-) => Promise<ReadableStream<string>>;
 
 /**
  * Retrieves the linked context from the response's `Link` header if available.
