@@ -1,0 +1,63 @@
+<form [formGroup]="form()">
+  <section>
+    <header>Path overrides</header>
+    <p>
+      When the convertor tries to load a resource which matches one of the
+      overridden paths, it will first replace the matching part of the path with
+      the specified replacement.
+    </p>
+    @for (po of overrideFA().controls; track po) {
+      <div class="override-container">
+        <app-path-override
+          [descriptor]="descriptor()"
+          [formControl]="po"
+        ></app-path-override>
+        <button
+          type="button"
+          matIconButton
+          (click)="removePathOverride($index)"
+          aria-label="Remove path override"
+        >
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </div>
+    }
+    <button
+      type="button"
+      class="add-override"
+      matButton
+      (click)="addPathOverride()"
+    >
+      <mat-icon>add</mat-icon> Add path override
+    </button>
+  </section>
+  <section>
+    <header>General options</header>
+    <mat-form-field>
+      <mat-label>Base IRI</mat-label>
+      <input matInput type="text" formControlName="baseIri" />
+      <mat-hint>Used for resource requests</mat-hint>
+    </mat-form-field>
+    <p>
+      <mat-slide-toggle formControlName="interactiveSchema"
+        ><strong>Interactive schema.</strong>
+        <div class="explanation">
+          The convertor will infer the relational schema from the data and
+          present it for review. This allows you to make adjustments before the
+          conversion. Not available when a CSVW descriptor is provided.
+        </div></mat-slide-toggle
+      >
+    </p>
+    <p>
+      <mat-slide-toggle formControlName="useVocabMetadata"
+        ><strong>Use vocabulary metadata.</strong>
+        <div class="explanation">
+          The convertor will use metadata from the vocabulary to enrich the
+          conversion process. For example,
+          <code>rdf:label</code>s of RDF properties can be used to provide more
+          meaningful names for the generated columns.
+        </div></mat-slide-toggle
+      >
+    </p>
+  </section>
+</form>

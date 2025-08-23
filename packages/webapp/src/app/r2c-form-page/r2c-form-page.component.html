@@ -1,0 +1,21 @@
+<header>Convert RDF to CSVW</header>
+<mat-stepper linear>
+  <mat-step label="Upload files" [stepControl]="filesFG">
+    <app-r2c-files-form [form]="filesFG"></app-r2c-files-form>
+    <section class="buttons">
+      <button matButton matStepperNext [disabled]="!filesFG.valid">Next</button>
+    </section>
+  </mat-step>
+  <mat-step label="Configure" [stepControl]="optionsFG">
+    <app-r2c-options-form
+      [form]="optionsFG"
+      [descriptor]="descriptor()"
+    ></app-r2c-options-form>
+    <section class="buttons">
+      <button matButton matStepperPrevious>Previous</button>
+      <button matButton="filled" [disabled]="!form.valid" (click)="submit()">
+        Convert!
+      </button>
+    </section>
+  </mat-step>
+</mat-stepper>

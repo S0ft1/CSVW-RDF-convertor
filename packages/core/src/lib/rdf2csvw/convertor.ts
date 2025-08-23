@@ -1,9 +1,6 @@
 import { LogLevel, Rdf2CsvOptions } from '../conversion-options.js';
 import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
-import {
-  defaultResolveJsonldFn,
-  defaultResolveStreamFn,
-} from '../req-resolve.js';
+import { defaultResolveJsonldFn } from '../req-resolve.js';
 import { ColumnSchema } from './schema/column-schema.js';
 import { TableGroupSchema } from './schema/table-group-schema.js';
 import { transformStream } from './transformation-stream.js';
@@ -38,8 +35,9 @@ export type CsvwTableStreams = {
   ];
 };
 
-type OptionsWithDefaults = Required<Omit<Rdf2CsvOptions, 'descriptor'>> &
-  Pick<Rdf2CsvOptions, 'descriptor'>;
+type NullableOptions = 'descriptor' | 'windowSize';
+type OptionsWithDefaults = Required<Omit<Rdf2CsvOptions, NullableOptions>> &
+  Pick<Rdf2CsvOptions, NullableOptions>;
 
 export class Rdf2CsvwConvertor {
   private options: OptionsWithDefaults;
@@ -687,7 +685,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       baseIri: options.baseIri ?? '',
       logLevel: options.logLevel ?? LogLevel.Warn,
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
-      resolveRdfStreamFn: options.resolveRdfStreamFn ?? defaultResolveStreamFn,
+      useVocabMetadata: true,
     };
   }
 
