@@ -19,7 +19,7 @@
       "path": "./packages/vscode"
     },
     {
-      "path": "./packages/rdf"
+      "path": "./packages/loaders"
     }
   ]
 }
