@@ -1,6 +1,8 @@
 import { Route } from '@angular/router';
 import { conversionExistsGuard } from './auth/conversion-exists.guard';
 import { C2RService } from './services/c2r.service';
+import { ValidateService } from './services/validate.service';
+import { R2CService } from './services/r2c.service';
 
 export const appRoutes: Route[] = [
   {
@@ -58,6 +60,32 @@ export const appRoutes: Route[] = [
       import('./validate-results-page/validate-results-page.component').then(
         (m) => m.ValidateResultsPageComponent,
       ),
+    canMatch: [conversionExistsGuard(ValidateService, '/validate-simple')],
     title: 'Validate CSVW',
+  },
+  {
+    path: 'r2c',
+    loadComponent: () =>
+      import('./r2c-form-page/r2c-form-page.component').then(
+        (m) => m.R2cFormPageComponent,
+      ),
+    title: 'RDF → CSVW',
+  },
+  {
+    path: 'r2c-simple',
+    loadComponent: () =>
+      import('./r2c-simple-form-page/r2c-simple-form-page.component').then(
+        (m) => m.R2cSimpleFormPageComponent,
+      ),
+    title: 'RDF → CSVW',
+  },
+  {
+    path: 'r2c/results',
+    loadComponent: () =>
+      import('./r2c-results-page/r2c-results-page.component').then(
+        (m) => m.R2cResultsPageComponent,
+      ),
+    canMatch: [conversionExistsGuard(R2CService, '/r2c-simple')],
+    title: 'RDF → CSVW',
   },
 ];

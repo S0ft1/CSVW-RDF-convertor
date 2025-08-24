@@ -20,8 +20,6 @@ import {
   CsvwNumberFormat,
 } from '../types/descriptor/datatype.js';
 import { CsvwDialectDescription } from '../types/descriptor/dialect-description.js';
-import { CsvwInheritedProperties } from '../types/descriptor/inherited-properties.js';
-import { CsvwTableGroupDescription } from '../types/descriptor/table-group.js';
 import { CsvwTableDescription } from '../types/descriptor/table.js';
 import { tz } from '@date-fns/tz';
 import { Quad, Stream } from '@rdfjs/types';
@@ -36,8 +34,6 @@ import { IssueTracker } from '../utils/issue-tracker.js';
 import { parseDate } from '../utils/parse-date.js';
 import { NumberParser } from '../utils/parse-number.js';
 import { replaceUrl } from '../utils/replace-url.js';
-import { validateTableGroup } from '../validation/table-group.js';
-import { validateTable } from '../validation/table.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -72,7 +68,6 @@ export class Csvw2RdfConvertor {
   private numberParser = new NumberParser(this.issueTracker);
   private used = false;
   private input: DescriptorWrapper;
-  private tg: CsvwTableGroupDescription | undefined;
 
   private static defaultWKs = [
     parseTemplate('{+url}-metadata.json'),
@@ -175,20 +170,6 @@ export class Csvw2RdfConvertor {
   private convertInner(): Promise<void> {
     if (!this.options.baseIri) {
       this.options.baseIri = this.input.descriptor['@id'] ?? '';
-    }
-
-    if (this.input.isTableGroup) {
-      validateTableGroup(this.input.descriptor as CsvwTableGroupDescription, {
-        input: this.input,
-        issueTracker: this.issueTracker,
-      });
-      this.tg = this.input.descriptor as CsvwTableGroupDescription;
-    } else {
-      this.tg = undefined;
-      validateTable(this.input.descriptor as CsvwTableDescription, {
-        input: this.input,
-        issueTracker: this.issueTracker,
-      });
     }
 
     // 1
@@ -408,7 +389,7 @@ export class Csvw2RdfConvertor {
       if (col.suppressOutput) continue;
       ctx.col = col;
       for (const type of types) {
-        const template = this.inherit(`${type}Url`, col, ctx);
+        const template = ctx.col[`${type}Url`];
         if (template === undefined) continue;
         templates[type][col.name as string] = parseTemplate(template);
       }
@@ -428,7 +409,7 @@ export class Csvw2RdfConvertor {
     ctx: TableContext,
   ): Promise<string[] | undefined> {
     const defaultLang =
-      this.inherit('lang', ctx.table, ctx) ??
+      ctx.table.lang ??
       (this.input.descriptor['@context']?.[1] as any)?.['@language'] ??
       '@none';
     if (ctx.table.tableSchema === undefined) ctx.table.tableSchema = {};
@@ -672,7 +653,7 @@ export class Csvw2RdfConvertor {
 
       for (const title of titles) {
         ctx.col = ctx.columns[titlemap[title]];
-        const lang = this.inherit('lang', ctx.col, ctx);
+        const lang = ctx.col?.lang;
         const val = ctx.rowRecord[title];
         if (!val) continue;
         this.emitTriple(
@@ -784,12 +765,12 @@ export class Csvw2RdfConvertor {
             ctx.table.url,
             ctx,
           );
-    const lang = this.inherit('lang', ctx.col, ctx);
+    const lang = ctx.col.lang;
 
     if (ctx.templates.value[ctx.col.name as string] === undefined) {
       const val = ctx.rowRecord[ctx.col.name as string] as string | string[];
       if (Array.isArray(val)) {
-        if (this.inherit('ordered', ctx.col, ctx)) {
+        if (ctx.col.ordered) {
           const head = this.createRDFList(
             val.map((v) => this.datatypeToLiteral(v, dtUri as string, lang)),
           );
@@ -827,7 +808,7 @@ export class Csvw2RdfConvertor {
    * @returns [datatype URI, datatype description]
    */
   private normalizeDatatype(ctx: TableContext): [string, CsvwDatatype] {
-    const dtOrBuiltin = this.inherit('datatype', ctx.col, ctx) ?? 'string';
+    const dtOrBuiltin = ctx.col.datatype ?? 'string';
     const dt =
       typeof dtOrBuiltin === 'string' ? { base: dtOrBuiltin } : dtOrBuiltin;
     let dtUri = dt['@id'];
@@ -1158,7 +1139,7 @@ export class Csvw2RdfConvertor {
    * @returns true if the value is null, false otherwise
    */
   private isValueNull(value: string, ctx: TableContext): boolean {
-    const nullVal = this.inherit('null', ctx.col, ctx);
+    const nullVal = ctx.col.null;
     if (nullVal === undefined) return value === '';
     if (nullVal === value) return true;
     if (Array.isArray(nullVal)) {
@@ -1184,7 +1165,7 @@ export class Csvw2RdfConvertor {
       value = value.replace(/\t\r\n/g, ' ');
     }
     if (value === '') value = ctx.col.default ?? '';
-    const sep = this.inherit('separator', ctx.col, ctx);
+    const sep = ctx.col.separator;
     if (sep !== undefined) {
       if (value === '') return [];
       if (this.isValueNull(value, ctx)) return null;
@@ -1195,32 +1176,6 @@ export class Csvw2RdfConvertor {
       return parts;
     }
     return value;
-  }
-
-  /**
-   * get value of inherited property
-   * @param mostSpecific - most specific object to consider
-   */
-  private inherit<K extends keyof CsvwInheritedProperties>(
-    prop: K,
-    mostSpecific: CsvwInheritedProperties,
-    ctx: TableContext,
-  ): CsvwInheritedProperties[K] {
-    const levels: (CsvwInheritedProperties | undefined)[] = [
-      ctx.col,
-      ctx.table.tableSchema,
-      ctx.table,
-      this.tg,
-    ];
-    let found = false;
-    for (const level of levels) {
-      if (level === mostSpecific) found = true;
-      else if (!found) continue;
-      if (level?.[prop] !== undefined) {
-        return level[prop];
-      }
-    }
-    return undefined;
   }
 
   /**
@@ -1236,7 +1191,7 @@ export class Csvw2RdfConvertor {
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
       resolveWkfFn: options.resolveWkfFn ?? defaultResolveTextFn,
       baseIri: options.baseIri ?? '',
-      templateIris: options.templateIris ?? false,
+      templateIris: options.templateIris ?? true,
       minimal: options.minimal ?? false,
       logLevel: options.logLevel ?? LogLevel.Warn,
     };

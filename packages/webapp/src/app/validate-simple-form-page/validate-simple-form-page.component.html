@@ -1,1 +1,31 @@
-<p>validate-simple-form-page works!</p>
+<header>Validate CSVW</header>
+<form [formGroup]="form">
+  <section class="main-input" formGroupName="files">
+    <header>Main file input</header>
+    <mat-tab-group
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="center"
+      (selectedTabChange)="onMFTabChange($event)"
+      dynamicHeight
+    >
+      <mat-tab label="Local file">
+        <app-file-upload
+          formControlName="mainFile"
+          label="Descriptor or CSV file"
+          accept=".csv,.json"
+        />
+      </mat-tab>
+      <mat-tab label="URL">
+        <mat-form-field>
+          <mat-label>Descriptor or CSV url</mat-label>
+          <input matInput type="url" formControlName="mainFileUrl" />
+        </mat-form-field>
+      </mat-tab>
+    </mat-tab-group>
+  </section>
+  <section class="buttons">
+    <button matButton="filled" [disabled]="!form.valid" (click)="submit()">
+      Validate!
+    </button>
+  </section>
+</form>

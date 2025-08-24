@@ -1,9 +1,10 @@
+import { TableGroupSchema } from './rdf2csvw/schema/table-group-schema.js';
 import {
   ResolveJsonldFn,
   ResolveCsvStreamFn,
-  ResolveRdfStreamFn,
   ResolveWkfFn,
 } from './req-resolve.js';
+import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 
 export interface ConversionOptions {
   /**
@@ -40,7 +41,12 @@ export interface Csvw2RdfOptions extends ConversionOptions {
 }
 
 export interface Rdf2CsvOptions extends ConversionOptions {
-  descriptorNotProvided?: boolean;
-  /** Function which loads rdf files. */
-  resolveRdfStreamFn?: ResolveRdfStreamFn;
+  /** Descriptor for the conversion. May be either parsed or unparsed JSON-LD, or a Table Group Schema. */
+  descriptor?: string | AnyCsvwDescriptor | TableGroupSchema;
+  /** If true (default is false), vocabularies may be fetched and used to enrich the conversion, for example
+   * by using rdf:label of properties to name the resulting table columns.
+   */
+  useVocabMetadata?: boolean;
+  /** When processing streams, this controls the number of quads to process at once. */
+  windowSize?: number;
 }

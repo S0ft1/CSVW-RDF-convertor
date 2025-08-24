@@ -4,6 +4,7 @@ import {
   CompactedExpandedCsvwDescriptor,
 } from './types/descriptor/descriptor.js';
 import { CsvwTableGroupDescription } from './types/descriptor/table-group.js';
+import { CsvwTableDescription } from './types/descriptor/table.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 import { csvwNs } from './types/descriptor/namespace.js';
 import { ConversionOptions } from './conversion-options.js';
@@ -13,6 +14,8 @@ import { JsonLdArray, RemoteDocument } from 'jsonld/jsonld-spec.js';
 import { validate as bcp47Validate } from 'bcp47-validate';
 import { IssueTracker } from './utils/issue-tracker.js';
 import { Quad } from '@rdfjs/types';
+import { validateTable } from './validation/table.js';
+import { validateTableGroup } from './validation/table-group.js';
 
 const { quad, fromQuad } = DataFactory;
 
@@ -26,7 +29,7 @@ export async function normalizeDescriptor(
   descriptor: string | AnyCsvwDescriptor,
   options: Required<ConversionOptions>,
   issueTracker: IssueTracker,
-  url?: string
+  url?: string,
 ): Promise<DescriptorWrapper> {
   const docLoader = async (url: string) => {
     url = replaceUrl(url, options.pathOverrides);
@@ -48,7 +51,7 @@ export async function normalizeDescriptor(
     url
   ) {
     issueTracker.addWarning(
-      `Invalid @id: ${JSON.stringify(parsedDescriptor['@id'])}`
+      `Invalid @id: ${JSON.stringify(parsedDescriptor['@id'])}`,
     );
     parsedDescriptor['@id'] = url;
   }
@@ -58,32 +61,46 @@ export async function normalizeDescriptor(
 
   const expanded = await jsonld.expand(
     parsedDescriptor as jsonld.JsonLdDocument,
-    { documentLoader: docLoader }
+    { documentLoader: docLoader },
   );
   await loadReferencedSubdescriptors(
     expanded,
     docLoader,
     options,
     originalCtx,
-    issueTracker
+    issueTracker,
   );
 
   const compactedExpanded = (await jsonld.compact(
     expanded,
     {},
-    { documentLoader: docLoader }
+    { documentLoader: docLoader },
   )) as CompactedExpandedCsvwDescriptor;
   const [internal, idMap]: [CompactedCsvwDescriptor, Map<string, Quad[]>] =
     await splitExternalProps(compactedExpanded, issueTracker);
 
-  return new DescriptorWrapper(
+  const wrapper = new DescriptorWrapper(
     (await compactCsvwNs(
       internal,
       docLoader,
-      parsedDescriptor['@context'] || csvwNs
+      parsedDescriptor['@context'] || csvwNs,
     )) as unknown as CompactedCsvwDescriptor,
-    idMap
+    idMap,
   );
+
+  if (wrapper.isTableGroup) {
+    validateTableGroup(wrapper.descriptor as CsvwTableGroupDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  } else {
+    validateTable(wrapper.descriptor as CsvwTableDescription, {
+      input: wrapper,
+      issueTracker: issueTracker,
+    });
+  }
+
+  return inheritProperties(wrapper);
 }
 
 /**
@@ -94,7 +111,7 @@ export async function normalizeDescriptor(
  */
 function validateIdsTypesLangmaps(
   obj: Record<string, any>,
-  issueTracker: IssueTracker
+  issueTracker: IssueTracker,
 ) {
   for (const key in obj) {
     if (key === '@id') {
@@ -130,7 +147,7 @@ function validateIdsTypesLangmaps(
               titles[key].some((t: any) => typeof t !== 'string'))
           ) {
             issueTracker.addWarning(
-              `Invalid title: ${JSON.stringify(titles[key])}`
+              `Invalid title: ${JSON.stringify(titles[key])}`,
             );
             delete titles[key];
           }
@@ -139,7 +156,7 @@ function validateIdsTypesLangmaps(
     } else if (key === '@language') {
       if (!('@value' in obj)) {
         issueTracker.addError(
-          `A @language property must not be used on an object unless it also has a @value property.`
+          `A @language property must not be used on an object unless it also has a @value property.`,
         );
       }
     } else if (
@@ -184,7 +201,7 @@ async function loadReferencedSubdescriptors(
   }>,
   options: Required<ConversionOptions>,
   originalCtx: AnyCsvwDescriptor['@context'],
-  issueTracker: IssueTracker
+  issueTracker: IssueTracker,
 ) {
   const root = descriptor[0];
   const objects = [root];
@@ -202,9 +219,9 @@ async function loadReferencedSubdescriptors(
           const doc = await options.resolveJsonldFn(
             replaceUrl(
               (base + refContainer['@id']) as string,
-              options.pathOverrides
+              options.pathOverrides,
             ),
-            options.baseIri
+            options.baseIri,
           );
           const parsed = JSON.parse(doc);
           if (parsed['@id'] && typeof parsed['@id'] !== 'string') {
@@ -214,13 +231,57 @@ async function loadReferencedSubdescriptors(
           validateLanguage(parsed as NodeObject, issueTracker);
           const subdescriptor = await jsonld.expand(
             { '@context': originalCtx as any, [csvwNs + key]: parsed },
-            { documentLoader: docLoader }
+            { documentLoader: docLoader },
           );
           object[csvwNs + key] = subdescriptor[0][csvwNs + key];
         }
       }
     }
   }
+}
+
+/**
+ * Propagates inherited properties.
+ * @param wrapper descriptor wrapper
+ * @returns descriptor wrapper with propagated inherited properties
+ */
+function inheritProperties(wrapper: DescriptorWrapper) {
+  const tables = wrapper.isTableGroup
+    ? wrapper.getTables()
+    : ([wrapper.descriptor] as CsvwTableDescription[]);
+
+  const inheritedProperties = [
+    'aboutUrl',
+    'datatype',
+    'default',
+    'lang',
+    'null',
+    'ordered',
+    'propertyUrl',
+    'required',
+    'separator',
+    'textDirection',
+    'valueUrl',
+  ] as const;
+
+  for (const table of tables) {
+    for (const prop of inheritedProperties) {
+      if (table[prop] === undefined)
+        table[prop] = wrapper.descriptor[prop] as any;
+
+      if (table.tableSchema) {
+        if (table.tableSchema[prop] === undefined)
+          table.tableSchema[prop] = table[prop] as any;
+
+        for (const column of table.tableSchema?.columns ?? []) {
+          if (column[prop] === undefined)
+            column[prop] = table.tableSchema[prop] as any;
+        }
+      }
+    }
+  }
+
+  return wrapper;
 }
 
 /**
@@ -231,7 +292,7 @@ async function loadReferencedSubdescriptors(
 async function compactCsvwNs(
   descriptor: any,
   docLoader: (url: string) => Promise<RemoteDocument>,
-  ctx: AnyCsvwDescriptor['@context']
+  ctx: AnyCsvwDescriptor['@context'],
 ) {
   const compacted = await jsonld.compact(descriptor, csvwNs as any, {
     documentLoader: docLoader,
@@ -273,7 +334,7 @@ let externalSubjCounter = 0;
 async function splitExternalProps(
   object: any,
   issueTracker: IssueTracker,
-  quadMap: Map<string, Quad[]> = new Map()
+  quadMap: Map<string, Quad[]> = new Map(),
 ): Promise<[any, Map<string, Quad[]>]> {
   if (typeof object !== 'object' || object === null) {
     return [object, quadMap];
@@ -347,11 +408,11 @@ export class DescriptorWrapper {
   constructor(
     public descriptor: CompactedCsvwDescriptor,
     /** extra non-csvw properties from the original descriptor */
-    private externalProps: Map<string, Quad[]>
+    private externalProps: Map<string, Quad[]>,
   ) {}
 
   private _isTableGroup(
-    x: CompactedCsvwDescriptor
+    x: CompactedCsvwDescriptor,
   ): x is CsvwTableGroupDescription {
     return 'tables' in x;
   }

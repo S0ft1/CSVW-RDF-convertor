@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Issue, RDFSerialization } from '@csvw-rdf-convertor/core';
+import { Issue } from '@csvw-rdf-convertor/core';
 import { ConversionService } from './conversion.service';
+import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
 
 export interface InitC2RParams {
   files: {
@@ -85,15 +86,15 @@ export class C2RService extends ConversionService<InitC2RParams> {
     return {
       options: {
         baseIri: config.options.baseIri,
-        pathOverrides: config.options.pathOverrides || [],
-        templateIris: config.options.templateIris || false,
-        minimal: config.options.minimal || false,
+        pathOverrides: config.options.pathOverrides ?? [],
+        templateIris: config.options.templateIris ?? true,
+        minimal: config.options.minimal ?? false,
       },
       format: {
         format: config.format.format as RDFSerialization,
         ttl: {
-          prefixes: config.format.ttl.prefixes || {},
-          lookupPrefixes: config.format.ttl.lookupPrefixes || false,
+          prefixes: config.format.ttl.prefixes ?? {},
+          lookupPrefixes: config.format.ttl.lookupPrefixes ?? false,
           baseIri: config.format.ttl.baseIri,
         },
       },

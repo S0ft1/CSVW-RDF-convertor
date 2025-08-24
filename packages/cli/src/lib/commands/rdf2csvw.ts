@@ -4,7 +4,7 @@ import { getSchema } from './interactive/get-schema.js';
 import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
-  CsvwTablesStream,
+  CsvwTableStreams,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
   LogLevel,
@@ -105,19 +105,19 @@ export const rdf2csvw: CommandModule<
         ) {
           if (url.startsWith('file:')) {
             return Promise.resolve(
-              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
             );
           }
           return defaultResolveStreamFn(url, base);
         }
         return Promise.resolve(
-          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
+          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
         );
       },
     };
     const convertor = new Rdf2CsvwConvertor(options);
 
-    let streams: CsvwTablesStream;
+    let streams: CsvwTableStreams;
     let descriptor = '';
     if (args.descriptor) {
       descriptor = (await options.resolveJsonldFn?.(args.descriptor, '')) ?? '';
@@ -135,28 +135,32 @@ export const rdf2csvw: CommandModule<
         ? fs.createWriteStream(resolve(args.outDir, tableName))
         : process.stdout;
 
-
       const descriptorObj = convertor.getDescriptor();
       const normalizedDescriptor = descriptorObj?.descriptor ?? {};
-      const dialect = normalizedDescriptor.dialect ?? {}; 
+      const dialect = normalizedDescriptor.dialect ?? {};
       const descriptorOptions = {
         header: dialect.header ?? true,
         columns: columns.map((column) => ({
           key: column.queryVariable,
           header: column.title,
         })),
-        ...(dialect.delimiter !== undefined && { delimiter: dialect.delimiter }),
-        ...(dialect.doubleQuote !== undefined && { escape: dialect.doubleQuote ? '"' : '\\' }),
-        ...((dialect.quoteChar !== undefined && dialect.quoteChar !== null) && { quote: dialect.quoteChar }),
-       
+        ...(dialect.delimiter !== undefined && {
+          delimiter: dialect.delimiter,
+        }),
+        ...(dialect.doubleQuote !== undefined && {
+          escape: dialect.doubleQuote ? '"' : '\\',
+        }),
+        ...(dialect.quoteChar !== undefined &&
+          dialect.quoteChar !== null && { quote: dialect.quoteChar }),
       };
       const stringifier = csv.stringify(descriptorOptions);
       stringifier.pipe(outputStream);
       // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
       // but it would improve performance when saving into multiple files.
       // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
+      if (!args.outDir) console.log();
 
-      for await (const bindings of stream) {
+      for await (const bindings of stream as any) {
         const row = {} as { [key: string]: string };
         for (const [key, value] of bindings) {
           row[key.value] = value.value;
@@ -166,4 +170,3 @@ export const rdf2csvw: CommandModule<
     }
   },
 };
-

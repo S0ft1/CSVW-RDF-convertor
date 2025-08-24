@@ -5,12 +5,10 @@ import {
   Csvw2RdfOptions,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
-  lookupPrefixes,
   rdfStreamToArray,
   commonPrefixes,
   defaultResolveTextFn,
   LogLevel,
-  n3Formats,
 } from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
@@ -27,6 +25,7 @@ import {
   getPrefixes,
 } from '../interactive/get-path-overrides.js';
 import { MMRegExp } from 'minimatch';
+import { lookupPrefixes, serializeRdf } from '@csvw-rdf-convertor/loaders';
 
 const { namedNode } = N3.DataFactory;
 
@@ -77,11 +76,7 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
       console.log('Final command:');
       console.log(showFullCommand(args));
     }
-    const writer = new N3.StreamWriter({
-      prefixes: args.turtle.prefix,
-      format: n3Formats[args.format],
-    });
-    writer.import(stream);
+    const writer = await serializeRdf(stream, args);
     writer.pipe(outputStream);
   }
 }
@@ -191,7 +186,7 @@ function showFullCommand(args: ArgsWithDefaults): string {
       ? `--baseIri ${args.baseIri}`
       : '',
     args.minimal ? '--minimal' : '',
-    args.templateIris ? '--templateIris' : '',
+    args.templateIris ? '' : '--templateIris false',
     args.pathOverrides?.length
       ? `--pathOverrides ${args.pathOverrides
           .flatMap(([o, p]) => [

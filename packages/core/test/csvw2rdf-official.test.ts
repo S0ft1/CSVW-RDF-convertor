@@ -16,7 +16,7 @@ const { literal, quad, namedNode } = DataFactory;
 // these need to be here for vscode to find the types
 import fetchMock from 'jest-fetch-mock';
 import 'jest-rdf';
-import { rdfStreamToArray } from '../src/lib/utils/rdf-stream-to-array.js';
+import { rdfStreamToArray } from '../src/lib/utils/stream-to-array.js';
 
 const testDir = resolve(
   fileURLToPath(import.meta.url),
@@ -52,6 +52,7 @@ describe('CSVW -> RDF Official tests', () => {
         ],
         resolveJsonldFn: loadJsonLd,
         resolveCsvStreamFn: loadStringStream,
+        templateIris: false,
       };
 
       switch (entry.type) {

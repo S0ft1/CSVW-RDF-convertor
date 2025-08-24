@@ -25,7 +25,7 @@ describe('OptionsFormComponent', () => {
     form = new FormGroup({
       baseIri: new FormControl(''),
       pathOverrides: new FormControl([]),
-      templateIris: new FormControl(false),
+      templateIris: new FormControl(true),
       minimal: new FormControl(false),
     });
     fixture.componentRef.setInput('form', form);

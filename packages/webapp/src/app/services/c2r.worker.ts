@@ -7,16 +7,10 @@ import {
   defaultResolveJsonldFn,
   defaultResolveTextFn,
   rdfStreamToArray,
-  lookupPrefixes,
-  n3Formats,
 } from '@csvw-rdf-convertor/core';
-import { DataMessage, ErrorMessage, InitC2RParams } from './c2r.service';
+import { ErrorMessage, InitC2RParams } from './c2r.service';
 import { Quad, Stream } from '@rdfjs/types';
-import TurtleSerializer from '@rdfjs/serializer-turtle';
-import PrefixMap from '@rdfjs/prefix-map/PrefixMap.js';
-import N3 from 'n3';
-
-const { namedNode } = N3.DataFactory;
+import { serializeRdf } from '@csvw-rdf-convertor/loaders';
 
 addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
   let stream: Stream<Quad>;
@@ -35,7 +29,6 @@ addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
     }
   } else {
     if (data.files.mainFile.name.endsWith('.csv')) {
-      console.log(`Converting CSV file: ${data.files.mainFile.name}`, options);
       stream = csvUrlToRdf(data.files.mainFile.name, options);
     } else {
       const file = await data.files.mainFile
@@ -58,11 +51,17 @@ addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
     postMessage({ type: 'warning', data: warning } satisfies ErrorMessage);
   });
 
-  if (data.format.format === 'turtle' || data.format.format === 'trig') {
-    outputFormattedTurtle(stream, data);
-  } else {
-    outputN3(stream, data);
-  }
+  const outStream = await serializeRdf(stream, {
+    format: data.format.format,
+    turtle: {
+      prefix: data.format.ttl.prefixes,
+      base: data.format.ttl.baseIri,
+      prefixLookup: data.format.ttl.lookupPrefixes,
+      streaming: false,
+    },
+  });
+  const chunks = await rdfStreamToArray(outStream);
+  postMessage({ type: 'result', data: chunks.join('') });
 });
 
 function getOptions(params: InitC2RParams): Csvw2RdfOptions {
@@ -105,50 +104,4 @@ function getOptions(params: InitC2RParams): Csvw2RdfOptions {
       return defaultResolveTextFn(url, base);
     },
   };
-}
-
-function outputN3(stream: Stream<Quad>, params: InitC2RParams): void {
-  const writer = new N3.StreamWriter({
-    prefixes: params.format.ttl.prefixes,
-    format: n3Formats[params.format.format],
-  });
-  writer.import(stream);
-  // create a blob to send back
-  const output: string[] = [];
-  writer.on('data', (data) => output.push(data));
-  writer.on('error', (error) => {
-    throw error;
-  });
-  writer.on('end', () => {
-    postMessage({
-      type: 'result',
-      data: output.join(''),
-    } satisfies DataMessage);
-  });
-}
-
-async function outputFormattedTurtle(
-  stream: Stream<Quad>,
-  params: InitC2RParams,
-) {
-  const quads = await rdfStreamToArray(stream);
-  const prefixes = params.format.ttl.lookupPrefixes
-    ? await lookupPrefixes(quads, params.format.ttl.prefixes)
-    : new PrefixMap(
-        Object.entries(params.format.ttl.prefixes).map(([k, v]) => [
-          k,
-          namedNode(v),
-        ]),
-        { factory: N3.DataFactory },
-      );
-
-  const writer = new TurtleSerializer({
-    baseIRI: params.format.ttl.baseIri,
-    prefixes,
-  });
-  const output = writer.transform(quads);
-  postMessage({
-    type: 'result',
-    data: output,
-  } satisfies DataMessage);
 }

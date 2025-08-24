@@ -7,5 +7,13 @@
     "moduleResolution": "bundler",
     "module": "ES2022"
   },
-  "exclude": ["src/test-setup.ts", "src/**/*.test.ts", "src/**/*.spec.ts"]
+  "exclude": ["src/test-setup.ts", "src/**/*.test.ts", "src/**/*.spec.ts"],
+  "references": [
+    {
+      "path": "../core/tsconfig.lib.json"
+    },
+    {
+      "path": "../loaders/tsconfig.lib.json"
+    }
+  ]
 }

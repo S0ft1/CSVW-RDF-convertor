@@ -1,0 +1,24 @@
+header {
+  font-size: 1.6em;
+  text-align: center;
+  margin: 20px 0;
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+p {
+  text-align: center;
+  margin: 40px 0;
+}

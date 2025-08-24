@@ -1,11 +1,12 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../../common.js';
 import { pairwise } from '../../utils/pairwise.js';
-import { commonPrefixes, RDFSerialization } from '@csvw-rdf-convertor/core';
+import { commonPrefixes } from '@csvw-rdf-convertor/core';
 import { ArgsWithDefaults, handler } from './handler.js';
 import { dotProps } from '../../utils/dot-props.js';
 import { confirm, input, select } from '@inquirer/prompts';
 import { getPrefixes } from '../interactive/get-path-overrides.js';
+import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
 
 export type TurtleOptions = {
   base?: string;
@@ -37,7 +38,7 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
   builder: {
     format: {
       describe: 'Output RDF serialization',
-      choices: ['nquads', 'ntriples', 'turtle', 'trig'],
+      choices: ['nquads', 'ntriples', 'turtle', 'trig', 'jsonld'],
       defaultDescription:
         'Tries to infer the format from the output file extension, otherwise defaults to turtle',
     },
@@ -54,6 +55,7 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
     templateIris: {
       describe: 'Use template IRIs instead of URIs',
       type: 'boolean',
+      default: true,
     },
     interactive: {
       describe: 'Interactive mode',
@@ -117,12 +119,14 @@ export function inferFormat(output?: string): RDFSerialization | undefined {
   const ext = output.split('.').pop();
   switch (ext) {
     case 'json':
+    case 'jsonld':
       return 'jsonld';
     case 'nq':
       return 'nquads';
     case 'nt':
       return 'ntriples';
     case 'xml':
+    case 'rdf':
       return 'rdfxml';
     case 'trig':
       return 'trig';

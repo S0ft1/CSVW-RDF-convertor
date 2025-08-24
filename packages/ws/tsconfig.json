@@ -7,6 +7,9 @@
       "path": "../core"
     },
     {
+      "path": "../loaders"
+    },
+    {
       "path": "./tsconfig.app.json"
     },
     {

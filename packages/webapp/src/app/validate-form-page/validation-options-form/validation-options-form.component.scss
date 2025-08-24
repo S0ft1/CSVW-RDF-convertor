@@ -1,0 +1,37 @@
+:host {
+  display: block;
+}
+
+header {
+  font-size: 1.3em;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.override-container {
+  display: flex;
+  margin-bottom: 30px;
+  width: fit-content;
+  max-width: 100%;
+  margin: auto;
+
+  app-path-override {
+    min-width: 0;
+  }
+
+  button {
+    margin-top: 9px;
+  }
+}
+
+.add-override {
+  display: block;
+  margin: 0 auto;
+}
+
+mat-form-field {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin: auto;
+}

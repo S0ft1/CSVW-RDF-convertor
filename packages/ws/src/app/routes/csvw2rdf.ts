@@ -9,8 +9,6 @@ import {
   defaultResolveStreamFn,
   defaultResolveTextFn,
   Issue,
-  n3Formats,
-  RDFSerialization,
   ValidationError,
 } from '@csvw-rdf-convertor/core';
 import { makeRe, MMRegExp } from 'minimatch';
@@ -23,8 +21,14 @@ import { Quad, Stream } from '@rdfjs/types';
 import { file as tmpFile } from 'tmp-promise';
 import N3, { DataFactory } from 'n3';
 import { once } from 'node:events';
+import {
+  mimeTypes,
+  RDFSerialization,
+  serializeRdf,
+} from '@csvw-rdf-convertor/loaders';
 
-const { quad, namedNode, literal } = DataFactory;
+const { quad, namedNode, literal, blankNode } = DataFactory;
+// const { blank } = new N3.Writer();
 
 export default async function (fastify: FastifyInstance) {
   fastify.post(
@@ -59,7 +63,7 @@ export default async function (fastify: FastifyInstance) {
                 templateIris: {
                   type: 'boolean',
                   description:
-                    'Use template IRIs instead of URIs. Defaults to false.',
+                    'Use template IRIs instead of URIs. Defaults to true.',
                 },
                 baseIri: {
                   type: 'string',
@@ -69,7 +73,7 @@ export default async function (fastify: FastifyInstance) {
                 format: {
                   type: 'string',
                   description: 'Output RDF serialization. Defaults to turtle.',
-                  enum: ['nquads', 'ntriples', 'turtle', 'trig'],
+                  enum: ['nquads', 'ntriples', 'turtle', 'trig', 'jsonld'],
                 },
                 includeWarnings: {
                   type: 'boolean',
@@ -120,31 +124,26 @@ export default async function (fastify: FastifyInstance) {
         (req.body as any).options.format ?? 'turtle';
       const prefixes =
         (req.body as any).options.turtle?.prefix ?? commonPrefixes;
-      res.type(n3Formats[format]);
       const includeWarnings: boolean =
         (req.body as any).options.includeWarnings ?? false;
 
       try {
-        const writer = new N3.Writer(
+        const writer = await serializeRdf(stream, {
+          turtle: { streaming: true, prefix: prefixes },
+          format: format,
+        });
+        writer.pipe(
           createWriteStream(tmp.path, { fd: tmp.fd, encoding: 'utf-8' }),
-          {
-            prefixes,
-            format: n3Formats[format],
-          }
         );
         if (includeWarnings) {
           stream.on('warning', (warning) => {
-            outputWarning(warning, writer);
+            outputWarning(warning, stream);
           });
         }
         stream.on('error', (error) => {
           throw error;
         });
-        stream.on('data', (data) => {
-          writer.addQuad(data);
-        });
         await once(stream, 'end');
-        writer.end();
       } catch (error) {
         if (error instanceof ValidationError) {
           res.status(422).send(error);
@@ -164,13 +163,13 @@ export default async function (fastify: FastifyInstance) {
       outStream.on('close', () => {
         tmp.cleanup();
       });
-      res.type(n3Formats[format]);
+      res.type(mimeTypes[format]);
       return res.send(outStream);
-    }
+    },
   );
 }
 
-function outputWarning(message: Issue, writer: N3.Writer) {
+function outputWarning(message: Issue, stream: Stream<Quad>) {
   const props = [
     {
       predicate: namedNode(commonPrefixes.dcterms + 'description'),
@@ -192,13 +191,21 @@ function outputWarning(message: Issue, writer: N3.Writer) {
     }
   }
 
-  writer.addQuad(
-    quad(
-      writer.blank(props),
-      namedNode(commonPrefixes.rdf + 'type'),
-      namedNode(customPrefix + 'Warning')
-    )
-  );
+  if (stream instanceof N3.Writer) {
+    stream.emit(
+      'data',
+      quad(
+        stream.blank(props),
+        namedNode(commonPrefixes.rdf + 'type'),
+        namedNode(customPrefix + 'Warning'),
+      ),
+    );
+  } else {
+    const bnode = blankNode();
+    for (const p of props) {
+      stream.emit('data', quad(bnode, p.predicate, p.object));
+    }
+  }
 }
 
 function getOptions(req: FastifyRequest): Csvw2RdfOptions {
@@ -221,7 +228,7 @@ function getOptions(req: FastifyRequest): Csvw2RdfOptions {
       return res;
     }),
     minimal: options.minimal ?? false,
-    templateIris: options.templateIris ?? false,
+    templateIris: options.templateIris ?? true,
     resolveCsvStreamFn: async (url, base) => {
       url = getUrl(url, base);
       const file = getFileFromBody(url);

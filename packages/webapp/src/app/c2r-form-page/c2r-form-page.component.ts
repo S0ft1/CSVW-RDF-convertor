@@ -8,13 +8,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButton } from '@angular/material/button';
 import { FilesFormComponent } from './files-form/files-form.component';
 import { FormatFormComponent } from './format-form/format-form.component';
 import { OptionsFormComponent } from './options-form/options-form.component';
-import { RDFSerialization } from '@csvw-rdf-convertor/core';
+import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { startWith, filter, switchMap } from 'rxjs/operators';
 import { C2RService, InitC2RParams } from '../services/c2r.service';
@@ -26,8 +24,6 @@ import { Router } from '@angular/router';
     CommonModule,
     MatStepperModule,
     ReactiveFormsModule,
-    MatInputModule,
-    MatFormFieldModule,
     MatButton,
     FilesFormComponent,
     FormatFormComponent,
@@ -48,7 +44,7 @@ export class C2rFormPageComponent {
     options: new FormGroup({
       baseIri: new FormControl<string>(''),
       pathOverrides: new FormArray<FormControl<[string | RegExp, string]>>([]),
-      templateIris: new FormControl<boolean>(false, { nonNullable: true }),
+      templateIris: new FormControl<boolean>(true, { nonNullable: true }),
       minimal: new FormControl<boolean>(true, { nonNullable: true }),
     }),
     format: new FormGroup({
@@ -59,7 +55,7 @@ export class C2rFormPageComponent {
       ttl: new FormGroup({
         prefixes: new FormControl<Record<string, string>>(
           {},
-          { nonNullable: true, validators: Validators.required }
+          { nonNullable: true, validators: Validators.required },
         ),
         lookupPrefixes: new FormControl<boolean>(false, { nonNullable: true }),
         baseIri: new FormControl<string>(''),
@@ -77,8 +73,8 @@ export class C2rFormPageComponent {
     this.filesFG.get('mainFile').valueChanges.pipe(
       startWith(this.filesFG.get('mainFile').value),
       filter((file) => file instanceof File && file.name.endsWith('.json')),
-      switchMap((file: File) => file.text().then((x) => JSON.parse(x)))
-    )
+      switchMap((file: File) => file.text().then((x) => JSON.parse(x))),
+    ),
   );
 
   constructor() {
@@ -87,7 +83,7 @@ export class C2rFormPageComponent {
       .get('configFile')
       .valueChanges.pipe(
         filter((x) => !!x),
-        takeUntilDestroyed()
+        takeUntilDestroyed(),
       )
       .subscribe(async (file: File) => {
         const content = await file.text().then((x) => JSON.parse(x));

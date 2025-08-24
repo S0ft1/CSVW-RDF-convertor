@@ -1,0 +1,66 @@
+:host {
+  display: block;
+}
+
+header {
+  font-size: 1.3em;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.override-container {
+  display: flex;
+  margin-bottom: 30px;
+  width: fit-content;
+  max-width: 100%;
+  margin: auto;
+
+  app-path-override {
+    min-width: 0;
+  }
+
+  button {
+    margin-top: 9px;
+  }
+}
+
+.add-override {
+  display: block;
+  margin: 0 auto;
+}
+
+mat-form-field {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin: auto;
+}
+
+mat-slide-toggle {
+  width: 100%;
+
+  & ::ng-deep .mat-internal-form-field {
+    width: 100%;
+
+    label {
+      flex-grow: 1;
+    }
+  }
+}
+
+.examples {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  flex-wrap: wrap;
+
+  .example header {
+    font-size: 1.2em;
+    margin: 0 0;
+  }
+}
+
+p {
+  font-size: var(--mat-sys-body-medium-size);
+}

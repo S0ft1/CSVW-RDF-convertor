@@ -6,30 +6,41 @@ export function trimUrl(
   columnName: string,
   issueTracker: IssueTracker
 ): string {
-  const matches = [...templateUrl.matchAll(/{(.*?)}/g)].map(
-    (match) => match[1]
+  const operators = ['+', '#', '.', '/', ';', '?', '&'];
+
+  let foundColumn = false;
+  const regexPattern = templateUrl.replaceAll(
+    /\{([^{}]+)\}|([^{}]+)/g,
+    (_, template: string, literal: string) => {
+      // Convert template into a regex with named capturing groups
+      if (template) {
+        if (operators.indexOf(template.charAt(0)) !== -1) {
+          template = template.substring(1);
+        }
+        foundColumn = foundColumn || template === columnName;
+        return `[${operators.join()}]?(?<${template}>.*?)`;
+      }
+      // escape special chars
+      else {
+        return literal.replaceAll(
+          /[.*+?^${}()|[\]\\]/g,
+          (char: string) => `\\${char}`,
+        );
+      }
+    },
   );
-  const foundIndex = matches.indexOf(columnName);
-  if (foundIndex == -1) {
+
+  if (!foundColumn) {
     issueTracker.addWarning(
       `The column "${columnName}" is not found in the template URL "${templateUrl}".`
     );
     return value;
   }
-  const foundTemplateValue = '{' + matches[foundIndex] + '}';
-  value = value.split('<').join('');
-  value = value.split('>').join('');
-  const templateName = foundTemplateValue.slice(1, -1);
-
-  // Convert template into a regex with capture groups
-  // Replace {param} with (.+?), but mark the one we want with a named capture
-  const regexPattern = templateUrl.replace(/\{([^}]+)\}/g, (_, name) =>
-    name === templateName ? `(?<${name}>[^/]+)` : `[^/]+`
-  );
 
   const regex = new RegExp(`^${regexPattern}$`);
   const match = value.match(regex);
-  const result = match?.groups?.[templateName] ?? null;
+  const result = match?.groups?.[columnName] ?? null;
+
   if (result) {
     return result;
   } else {
