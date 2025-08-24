@@ -1503,9 +1503,6 @@ ${convertedOutput}`;
 			// Refresh the tree view to update the checkbox display
 			csvwActionsProvider.refresh();
 
-			// Show a message with the current state
-			const state = conversion.minimalModeChecked ? 'enabled ⚡' : 'disabled 🛑';
-			const icon = conversion.minimalModeChecked ? '⚡🟢' : '⚡🟡';
 		}
 	);
 
