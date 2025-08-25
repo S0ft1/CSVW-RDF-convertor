@@ -104,7 +104,8 @@ async function toReceivedObject(
       table.push(row);
     }
 
-    tables[tableName] = table;
+    // row order is arbitrary
+    tables[tableName] = table.sort(simpleTestRowCompareFn);
   }
 
   return tables;
@@ -133,10 +134,25 @@ async function loadExpectedObject(
       table.push(row);
     }
 
-    tables[tableName.substring(4)] = table;
+    // row order is arbitrary
+    tables[tableName.substring(4)] = table.sort(simpleTestRowCompareFn);
   }
 
   return tables;
+}
+
+function simpleTestRowCompareFn(a: SimpleTestRow, b: SimpleTestRow): number {
+  const keys: Set<string> = new Set();
+  for (const key of Object.keys(a)) keys.add(key);
+  for (const key of Object.keys(b)) keys.add(key);
+
+  for (const key of [...keys].sort()) {
+    const first = a[key] ?? '';
+    const second = b[key] ?? '';
+    if (first < second) return -1;
+    else if (first > second) return 1;
+  }
+  return 0;
 }
 
 async function loadJsonLd(path: string, base: string): Promise<string> {
