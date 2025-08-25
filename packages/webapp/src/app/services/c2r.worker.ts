@@ -7,10 +7,10 @@ import {
   defaultResolveJsonldFn,
   defaultResolveTextFn,
   rdfStreamToArray,
+  serializeRdf,
 } from '@csvw-rdf-convertor/core';
 import { ErrorMessage, InitC2RParams } from './c2r.service';
 import { Quad, Stream } from '@rdfjs/types';
-import { serializeRdf } from '@csvw-rdf-convertor/loaders';
 
 addEventListener('message', async ({ data }: { data: InitC2RParams }) => {
   let stream: Stream<Quad>;

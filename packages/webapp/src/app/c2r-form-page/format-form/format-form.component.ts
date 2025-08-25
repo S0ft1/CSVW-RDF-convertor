@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
+import { RDFSerialization } from '@csvw-rdf-convertor/core';
 import { TtlFormComponent } from './ttl-form/ttl-form.component';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatFormField, MatLabel } from '@angular/material/input';

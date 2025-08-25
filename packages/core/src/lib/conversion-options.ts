@@ -3,6 +3,7 @@ import {
   ResolveJsonldFn,
   ResolveCsvStreamFn,
   ResolveWkfFn,
+  ResolveRdfFn,
 } from './req-resolve.js';
 import { AnyCsvwDescriptor } from './types/descriptor/descriptor.js';
 
@@ -49,4 +50,6 @@ export interface Rdf2CsvOptions extends ConversionOptions {
   useVocabMetadata?: boolean;
   /** When processing streams, this controls the number of quads to process at once. */
   windowSize?: number;
+  /** Used for loading remote RDF data when {@link useVocabMetadata} is true. */
+  resolveRdfFn?: ResolveRdfFn;
 }

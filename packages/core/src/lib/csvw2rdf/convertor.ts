@@ -913,8 +913,6 @@ export class Csvw2RdfConvertor {
 
   /**
    * Convert string value to RDF literal based on the datatype URI.
-   * Quadstore cannot store NaN as a literal, so we use a temporary prefix for numeric types.
-   * This is later replaced in the {@link Csvw2RdfConvertor#replacerStream} method.
    * @param value - string value to be converted
    * @param dtUri - datatype URI
    * @param lang - language tag
@@ -954,14 +952,14 @@ export class Csvw2RdfConvertor {
     if (value === '') value = ctx.col.default ?? '';
     if (this.isValueNull(value, ctx)) return null;
 
-    if (numericTypes.has(dtUri)) {
+    if (numericTypes.includes(dtUri)) {
       value = this.numberParser.parse(
         value,
         dt.format as CsvwNumberFormat,
         dtUri,
         dt,
       );
-    } else if (dateTypes.has(dtUri)) {
+    } else if (dateTypes.includes(dtUri)) {
       value = this.reformatDate(value, dtUri, dt);
     } else if (dtUri === xsd + 'boolean') {
       value = this.reformatBoolean(value, dt);

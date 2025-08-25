@@ -6,7 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
+import { RDFSerialization } from '@csvw-rdf-convertor/core';
 import { C2RService } from '../services/c2r.service';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';

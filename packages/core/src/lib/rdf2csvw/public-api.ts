@@ -1,7 +1,7 @@
 import { Quad, Stream } from '@rdfjs/types';
 import { Rdf2CsvOptions } from '../conversion-options.js';
 import { TableGroupSchema } from './schema/table-group-schema.js';
-import { CsvwTableStreams } from './convertor.js';
+import { CsvwTableStreams, Rdf2CsvwConvertor } from './convertor.js';
 
 export async function rdfToCsvw(
   rdf: Stream<Quad>,
@@ -18,5 +18,6 @@ export function rdfToTableSchema(
   rdf: Stream<Quad>,
   options?: Rdf2CsvOptions,
 ): Promise<TableGroupSchema> {
-  return null as any;
+  const convertor = new Rdf2CsvwConvertor(options);
+  return convertor.inferSchema(rdf);
 }

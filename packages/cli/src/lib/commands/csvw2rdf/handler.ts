@@ -9,6 +9,8 @@ import {
   commonPrefixes,
   defaultResolveTextFn,
   LogLevel,
+  lookupPrefixes,
+  serializeRdf,
 } from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
@@ -25,7 +27,6 @@ import {
   getPrefixes,
 } from '../interactive/get-path-overrides.js';
 import { MMRegExp } from 'minimatch';
-import { lookupPrefixes, serializeRdf } from '@csvw-rdf-convertor/loaders';
 
 const { namedNode } = N3.DataFactory;
 
@@ -141,7 +142,7 @@ async function outputFormattedTurtle(
   input: Stream<Quad>,
   outputStream: NodeJS.WritableStream,
 ) {
-  const quads = await rdfStreamToArray(input);
+  const quads = await rdfStreamToArray<Quad>(input);
   if (
     args.interactive &&
     (!args.turtle.prefix || !Object.keys(args.turtle.prefix).length)

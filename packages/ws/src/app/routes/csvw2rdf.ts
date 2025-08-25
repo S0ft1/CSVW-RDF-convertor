@@ -10,6 +10,9 @@ import {
   defaultResolveTextFn,
   Issue,
   ValidationError,
+  mimeTypes,
+  RDFSerialization,
+  serializeRdf,
 } from '@csvw-rdf-convertor/core';
 import { makeRe, MMRegExp } from 'minimatch';
 import { resolve } from 'node:path';
@@ -21,11 +24,6 @@ import { Quad, Stream } from '@rdfjs/types';
 import { file as tmpFile } from 'tmp-promise';
 import N3, { DataFactory } from 'n3';
 import { once } from 'node:events';
-import {
-  mimeTypes,
-  RDFSerialization,
-  serializeRdf,
-} from '@csvw-rdf-convertor/loaders';
 
 const { quad, namedNode, literal, blankNode } = DataFactory;
 // const { blank } = new N3.Writer();

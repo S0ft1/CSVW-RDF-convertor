@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Issue } from '@csvw-rdf-convertor/core';
 import { ConversionService } from './conversion.service';
-import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
+import { RDFSerialization } from '@csvw-rdf-convertor/core';
 
 export interface InitC2RParams {
   files: {

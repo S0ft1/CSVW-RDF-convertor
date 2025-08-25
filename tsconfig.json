@@ -17,9 +17,6 @@
     },
     {
       "path": "./packages/vscode"
-    },
-    {
-      "path": "./packages/loaders"
     }
   ]
 }

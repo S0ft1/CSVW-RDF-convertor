@@ -1,10 +1,10 @@
 /// <reference lib="webworker" />
 import {
-  csvwDescriptorToRdf,
-  csvUrlToRdf,
   Rdf2CsvOptions,
   defaultResolveJsonldFn,
   rdfToTableSchema,
+  parseRdf,
+  defaultResolveStreamFn,
 } from '@csvw-rdf-convertor/core';
 import { InitR2CParams, WorkerRequest } from './r2c.service';
 import { Quad, Stream } from '@rdfjs/types';
@@ -15,6 +15,7 @@ addEventListener('message', async ({ data }: { data: WorkerRequest }) => {
 
   if (data.type === 'schema') {
     const schema = await rdfToTableSchema(stream, options);
+    console.log(schema);
     postMessage({ type: 'schema', schema });
     return;
   }
@@ -40,12 +41,19 @@ function getOptions(params: InitR2CParams): Rdf2CsvOptions {
   };
   return {
     ...params.options,
+    windowSize: 5,
     baseIri,
     resolveJsonldFn: (url, base) => {
       url = getUrl(url, base);
       const file = getUploadedFile(url);
       if (file) return file.text();
       return defaultResolveJsonldFn(url, base);
+    },
+    resolveRdfFn: async (url, base) => {
+      url = getUrl(url, base);
+      const file = getUploadedFile(url);
+      if (file) return file.stream().pipeThrough(new TextDecoderStream());
+      return defaultResolveStreamFn(url, base);
     },
   };
 }
@@ -56,26 +64,15 @@ async function createRdfStream(
 ): Promise<Stream<Quad>> {
   let stream: Stream<Quad>;
   if (params.files.mainFileUrl) {
-    if (params.files.mainFileUrl.match(/\.csv([?#].*)?$/)) {
-      stream = csvUrlToRdf(params.files.mainFileUrl, options);
-    } else {
-      const file = await fetch(params.files.mainFileUrl).then((res) =>
-        res.json(),
-      );
-      stream = csvwDescriptorToRdf(file, {
-        ...options,
-        originalUrl: params.files.mainFileUrl,
-      });
-    }
+    return parseRdf(params.files.mainFileUrl, {
+      baseIri: options.baseIri,
+      resolveStreamFn: options.resolveRdfFn,
+    });
   } else {
-    if (params.files.mainFile.name.endsWith('.csv')) {
-      stream = csvUrlToRdf(params.files.mainFile.name, options);
-    } else {
-      const file = await params.files.mainFile
-        .text()
-        .then((text) => JSON.parse(text));
-      stream = csvwDescriptorToRdf(file, options);
-    }
+    return parseRdf(params.files.mainFile.name, {
+      baseIri: options.baseIri,
+      resolveStreamFn: options.resolveRdfFn,
+    });
   }
   return stream;
 }

@@ -1,6 +1,9 @@
 import { LogLevel, Rdf2CsvOptions } from '../conversion-options.js';
 import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
-import { defaultResolveJsonldFn } from '../req-resolve.js';
+import {
+  defaultResolveJsonldFn,
+  defaultResolveStreamFn,
+} from '../req-resolve.js';
 import { ColumnSchema } from './schema/column-schema.js';
 import { TableGroupSchema } from './schema/table-group-schema.js';
 import { transformStream } from './transformation-stream.js';
@@ -17,13 +20,15 @@ import { commonPrefixes } from '../utils/prefix.js';
 import { IssueTracker } from '../utils/issue-tracker.js';
 
 import { MemoryLevel } from 'memory-level';
-import { DataFactory, Quad, StreamParser } from 'n3';
+import { DataFactory, StreamParser } from 'n3';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
 import { JsonLdParser } from 'jsonld-streaming-parser';
-import { Bindings, ResultStream } from '@rdfjs/types';
+import { Bindings, ResultStream, Stream, Quad } from '@rdfjs/types';
 import { RdfXmlParser } from 'rdfxml-streaming-parser';
 import { parseTemplate } from 'url-template';
+import { WindowStore } from './window-store.js';
+import { SchemaInferrer } from './schema-inferrer.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
 export type CsvwColumn = { name: string; title: string; queryVariable: string };
@@ -36,7 +41,9 @@ export type CsvwTableStreams = {
 };
 
 type NullableOptions = 'descriptor' | 'windowSize';
-type OptionsWithDefaults = Required<Omit<Rdf2CsvOptions, NullableOptions>> &
+export type OptionsWithDefaults = Required<
+  Omit<Rdf2CsvOptions, NullableOptions>
+> &
   Pick<Rdf2CsvOptions, NullableOptions>;
 
 export class Rdf2CsvwConvertor {
@@ -45,10 +52,12 @@ export class Rdf2CsvwConvertor {
   public issueTracker = new IssueTracker(this.location, {
     collectIssues: false,
   });
-  private store: Quadstore;
+  private store: WindowStore;
   private engine: Engine;
   /** Wrapper of the descriptor used in the last conversion */
   private wrapper: DescriptorWrapper;
+
+  private schemaInferrer: SchemaInferrer;
 
   public getDescriptor(): DescriptorWrapper {
     return this.wrapper;
@@ -65,13 +74,13 @@ export class Rdf2CsvwConvertor {
    * @returns A stream of csvw data.
    */
   public async convert(
-    url: string,
+    stream: Stream<Quad>,
     descriptor?: string | AnyCsvwDescriptor,
   ): Promise<CsvwTableStreams> {
     // TODO: What if we do not have enough memory to hold all the quads in the store?
     const parser: StreamParser | JsonLdParser | RdfXmlParser = null as any;
 
-    await this.openStore();
+    await this.openStore(stream);
 
     if (descriptor === undefined) {
       // TODO: return created descriptor to the user, so it can be saved, modified and used later
@@ -82,7 +91,7 @@ export class Rdf2CsvwConvertor {
         this.options,
         this.issueTracker,
       );
-      await this.store.putStream(parser);
+      await this.store.store.putStream(parser);
     }
     const useNamedGraphs = false;
 
@@ -188,10 +197,18 @@ export class Rdf2CsvwConvertor {
     }
     for (const [, [, stream]] of Object.entries(streams)) {
       stream.once('end', () => {
-        if (--openedStreamsCount === 0) this.store.close();
+        if (--openedStreamsCount === 0) this.store.store.close();
       });
     }
     return streams;
+  }
+
+  public async inferSchema(rdf: Stream<Quad>) {
+    await this.openStore(rdf);
+    this.schemaInferrer = new SchemaInferrer(this.store, this.options);
+    await this.schemaInferrer.inferSchema();
+    await this.store.store.close();
+    return this.schemaInferrer.schema;
   }
 
   /**
@@ -505,17 +522,15 @@ ${lines.map((line) => `  ${line}`).join('\n')}
 
   /**
    * Creates a new descriptor from the rdf data, used only if no descriptor is provided.
-   * @param parser
-   * @returns
    */
   private async createDescriptor(
-    parser: JsonLdParser | RdfXmlParser | StreamParser<Quad>,
+    parser: JsonLdParser | RdfXmlParser | StreamParser<any>,
   ): Promise<DescriptorWrapper> {
     const tableGroup = new TableGroupSchema();
 
     let quad: Quad;
     for await (quad of parser) {
-      this.store.put(quad);
+      this.store.store.put(quad);
 
       const subject = quad.subject;
       const predicate = quad.predicate;
@@ -669,17 +684,22 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       logLevel: options.logLevel ?? LogLevel.Warn,
       resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
       useVocabMetadata: true,
+      resolveRdfFn: options.resolveRdfFn ?? defaultResolveStreamFn,
+      descriptor: options.descriptor,
+      windowSize: options.windowSize,
     };
   }
 
-  private async openStore() {
+  private async openStore(stream: Stream<Quad>) {
     const backend = new MemoryLevel() as any;
     // different versions of RDF.js types in quadstore and n3
-    this.store = new Quadstore({
+    const qstore = new Quadstore({
       backend,
       dataFactory: DataFactory as unknown as StoreOpts['dataFactory'],
     });
-    this.engine = new Engine(this.store);
-    await this.store.open();
+    this.engine = new Engine(qstore);
+    await qstore.open();
+    this.store = new WindowStore(qstore, stream, this.options?.windowSize);
+    await this.store.initStream();
   }
 }
