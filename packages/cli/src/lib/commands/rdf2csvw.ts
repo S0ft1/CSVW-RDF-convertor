@@ -93,27 +93,7 @@ export const rdf2csvw: CommandModule<
         }
 
         return await readFile(url, 'utf-8');
-      },
-      resolveRdfStreamFn: (path, base) => {
-        const url =
-          URL.parse(path, base)?.href ??
-          URL.parse(path)?.href ??
-          resolve(base, path);
-        if (
-          !isAbsolute(url) &&
-          (URL.canParse(url) || URL.canParse(url, base))
-        ) {
-          if (url.startsWith('file:')) {
-            return Promise.resolve(
-              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
-            );
-          }
-          return defaultResolveStreamFn(url, base);
-        }
-        return Promise.resolve(
-          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
-        );
-      },
+      }
     };
     const convertor = new Rdf2CsvwConvertor(options);
 
