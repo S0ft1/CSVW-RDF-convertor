@@ -6,7 +6,6 @@ import { readFileOrUrl } from '../utils/read-file-or-url.js';
 import {
   CsvwTableStreams,
   defaultResolveJsonldFn,
-  defaultResolveStreamFn,
   LogLevel,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
@@ -16,7 +15,6 @@ import * as csv from 'csv';
 import fs from 'node:fs';
 import { mkdir, readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
-import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { CommandModule } from 'yargs';
 
