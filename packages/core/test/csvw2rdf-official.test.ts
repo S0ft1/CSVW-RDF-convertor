@@ -144,7 +144,7 @@ async function loadRDF(rdfFilePath: string) {
   const reader = createReadStream(rdfFilePath);
   const parser = new StreamParser({ format: 'text/turtle' });
   const stringConstants = new Set(['NaN', 'INF', '-INF']);
-  const rdfArray = await rdfStreamToArray(reader.pipe(parser));
+  const rdfArray = await rdfStreamToArray<Quad>(reader.pipe(parser));
   return rdfArray.map((q) => {
     // normalize relative IRIs
     const newPred = namedNode(
@@ -154,7 +154,7 @@ async function loadRDF(rdfFilePath: string) {
     // normalize numeric literals
     if (
       q.object.termType === 'Literal' &&
-      numericTypes.has(q.object.datatype.value) &&
+      numericTypes.includes(q.object.datatype.value) &&
       !stringConstants.has(q.object.value)
     ) {
       const numeric = +q.object.value;
