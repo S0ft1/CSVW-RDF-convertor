@@ -16,70 +16,81 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 type SimpleTestRow = Record<string, string>;
 type SimpleTestTables = Record<string, SimpleTestRow[]>;
 
-const testDir = resolve(fileURLToPath(import.meta.url), '../rdf2csvwtests');
 const csvwDir = resolve(fileURLToPath(import.meta.url), '../../../../csvw');
-const TEST_HTTP_BASE = 'http://example.com/';
-
-const tests = JSON.parse(
-  readFileSync(resolve(testDir, 'manifest.json'), 'utf-8'),
-) as SimpleTest[];
 
 describe('RDF -> CSVW with descriptor', () => {
-  for (const entry of tests) {
-    test(`#${entry.id}: ${entry.name}`, async () => {
-      const options: Rdf2CsvOptions = {
-        baseIri: resolve(testDir, entry.action, '..'),
-        pathOverrides: [
-          [
-            'http://www.w3.org/ns/csvw',
-            pathToFileURL(resolve(csvwDir, 'ns/csvw.jsonld')).href,
-          ],
-        ],
-        resolveJsonldFn: loadJsonLd,
-        resolveRdfStreamFn: loadStringStream,
-      };
-      const convertor = new Rdf2CsvwConvertor(options);
-      convertor.issueTracker.options.collectIssues = true;
+  const testDir = resolve(fileURLToPath(import.meta.url), '../rdf2csvwtests');
+  const tests = JSON.parse(
+    readFileSync(resolve(testDir, 'manifest.json'), 'utf-8'),
+  ) as SimpleTest[];
 
-      switch (entry.type) {
-        case SimpleTestType.Test:
-        case SimpleTestType.TestWithWarnings: {
-          const result = await convertor.convert(
+  for (const entry of tests) {
+    runTest(testDir, entry);
+  }
+});
+
+describe('NKOD: RDF -> CSVW with descriptor', () => {
+  const testDir = resolve(fileURLToPath(import.meta.url), '../nkod');
+  const tests = JSON.parse(
+    readFileSync(resolve(testDir, 'manifest-nkod.json'), 'utf-8'),
+  ) as SimpleTest[];
+
+  for (const entry of tests) {
+    runTest(testDir, entry);
+  }
+});
+
+function runTest(testDir: string, entry: SimpleTest) {
+  test(`#${entry.id}: ${entry.name}`, async () => {
+    const options: Rdf2CsvOptions = {
+      baseIri: resolve(testDir, entry.action, '..'),
+      pathOverrides: [
+        [
+          'http://www.w3.org/ns/csvw',
+          pathToFileURL(resolve(csvwDir, 'ns/csvw.jsonld')).href,
+        ],
+      ],
+      resolveJsonldFn: loadJsonLd,
+      resolveRdfStreamFn: loadStringStream,
+    };
+    const convertor = new Rdf2CsvwConvertor(options);
+    convertor.issueTracker.options.collectIssues = true;
+
+    switch (entry.type) {
+      case SimpleTestType.Test:
+      case SimpleTestType.TestWithWarnings: {
+        const result = await convertor.convert(
+          resolve(testDir, entry.action),
+          await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
+        );
+
+        const received = await toReceivedObject(result);
+        const expected = await loadExpectedObject(testDir, entry.result);
+
+        expect(received).toEqual(expected);
+        if (entry.type === SimpleTestType.TestWithWarnings) {
+          expect(convertor.issueTracker.getWarnings()).not.toHaveLength(0);
+        } else {
+          expect(convertor.issueTracker.getWarnings()).toEqual([]);
+        }
+        break;
+      }
+
+      case SimpleTestType.NegativeTest: {
+        await expect(async () => {
+          await convertor.convert(
             resolve(testDir, entry.action),
             await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
           );
-
-          const received = await toReceivedObject(result);
-          const expected = await loadExpectedObject(entry.result);
-
-          expect(received).toEqual(expected);
-          if (entry.type === SimpleTestType.TestWithWarnings) {
-            expect(convertor.issueTracker.getWarnings()).not.toHaveLength(0);
-          } else {
-            expect(convertor.issueTracker.getWarnings()).toEqual([]);
-          }
-          break;
-        }
-
-        case SimpleTestType.NegativeTest: {
-          await expect(async () => {
-            await convertor.convert(
-              resolve(testDir, entry.action),
-              await readFile(
-                resolve(testDir, entry.metadata as string),
-                'utf-8',
-              ),
-            );
-          }).rejects.toThrow();
-          break;
-        }
-
-        default:
-          throw new Error('Unknown entry type.');
+        }).rejects.toThrow();
+        break;
       }
-    });
-  }
-});
+
+      default:
+        throw new Error('Unknown entry type.');
+    }
+  });
+}
 
 async function toReceivedObject(
   result: CsvwTableStreams,
@@ -112,6 +123,7 @@ async function toReceivedObject(
 }
 
 async function loadExpectedObject(
+  testDir: string,
   expectedTables: string[],
 ): Promise<SimpleTestTables> {
   const tables = {} as SimpleTestTables;
@@ -135,7 +147,10 @@ async function loadExpectedObject(
     }
 
     // row order is arbitrary
-    tables[tableName.substring(4)] = table.sort(simpleTestRowCompareFn);
+    // trim the test id from path
+    tables[tableName.split('/', 2).pop() as string] = table.sort(
+      simpleTestRowCompareFn,
+    );
   }
 
   return tables;
@@ -172,10 +187,7 @@ function loadStringStream(
   path: string,
   base: string,
 ): Promise<ReadableStream<string>> {
-  let url = URL.parse(path, base)?.href ?? resolve(base, path);
-  if (url.startsWith(TEST_HTTP_BASE)) {
-    url = url.replace(TEST_HTTP_BASE, testDir + '/');
-  }
+  let url = resolve(base, path);
   url = url.replace(/[?#].*/g, '');
   return Promise.resolve(
     Readable.toWeb(createReadStream(url, 'utf-8')) as ReadableStream<string>,

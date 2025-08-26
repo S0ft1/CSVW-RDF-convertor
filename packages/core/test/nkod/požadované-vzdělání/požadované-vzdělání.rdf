@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+	xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
+	<skos:prefLabel xml:lang="cs">Číselník požadovaných vzdělání Univerzity Karlovy</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/BC">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Ukončené vysokoškolské vzdělání nebo srovnatelné vzdělání v zahraničí</skos:prefLabel>
+	<skos:notation>BC</skos:notation>
+	<skos:prefLabel xml:lang="en">University degree or comparable education abroad</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání">
+	<skos:prefLabel xml:lang="en">Codelist of required education by Charles University</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/DOC">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Úspěšné ukončení habilitačního řízení nebo dosažení srovnatelného postavení v zahraničí</skos:prefLabel>
+	<skos:notation>DOC</skos:notation>
+	<skos:prefLabel xml:lang="en">Successful completion of the habilitation procedure or attainment of comparable status abroad</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/DR">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Titul Ph.D., CSc, Th.D. nebo srovnatelné vzdělání v zahraničí</skos:prefLabel>
+	<skos:notation>DR</skos:notation>
+	<skos:prefLabel xml:lang="en">Ph.D., CSc, Th.D. or comparable education abroad</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/MGR">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Ukončené magisterské vzdělání nebo srovnatelné vzdělání v zahraničí</skos:prefLabel>
+	<skos:notation>MGR</skos:notation>
+	<skos:prefLabel xml:lang="en">Master's degree or equivalent education abroad</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/PROF">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Úspěšné ukončení řízení ke jmenování profesorem nebo dosažení srovnatelného postavení v zahraničí</skos:prefLabel>
+	<skos:notation>PROF</skos:notation>
+	<skos:prefLabel xml:lang="en">Successful completion of the procedure for appointment as a professor or attainment of comparable status abroad</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/VOS">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Vyšší odborné</skos:prefLabel>
+	<skos:notation>VOS</skos:notation>
+	<skos:prefLabel xml:lang="en">Higher professional school</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/VYUCBEZM">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Odborné vyučení bez maturity</skos:prefLabel>
+	<skos:notation>VYUCBEZM</skos:notation>
+	<skos:prefLabel xml:lang="en">Vocational school</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/VYUCSM">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Středoškolské nebo odborné vyučení s maturitou</skos:prefLabel>
+	<skos:notation>VYUCSM</skos:notation>
+	<skos:prefLabel xml:lang="en">Secondary/High School</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/ZAK">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání"/>
+	<skos:prefLabel xml:lang="cs">Základní</skos:prefLabel>
+	<skos:notation>ZAK</skos:notation>
+	<skos:prefLabel xml:lang="en">Elementary school</skos:prefLabel>
+</rdf:Description>
+
+</rdf:RDF>

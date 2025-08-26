@@ -1,0 +1,135 @@
+[
+  {
+    "id": "001",
+    "type": "ToCsvwTest",
+    "name": "Organizační struktura MFF UK - Turtle",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2Fcebf155a0b6cc8d439c960145f1601a6",
+    "action": "organizační-struktura/organizační-struktura.ttl",
+    "metadata": "organizační-struktura/organizační-struktura.csv-metadata.json",
+    "result": [
+      "organizační-struktura/organizační-struktura.csv"
+    ]
+  },
+  {
+    "id": "002",
+    "type": "ToCsvwTest",
+    "name": "Organizační struktura MFF UK - N-Triples",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2Fcebf155a0b6cc8d439c960145f1601a6",
+    "action": "organizační-struktura/organizační-struktura.nt",
+    "metadata": "organizační-struktura/organizační-struktura.csv-metadata.json",
+    "result": [
+      "organizační-struktura/organizační-struktura.csv"
+    ]
+  },
+  {
+    "id": "003",
+    "type": "ToCsvwTest",
+    "name": "Organizační struktura MFF UK - N-Quads",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2Fcebf155a0b6cc8d439c960145f1601a6",
+    "action": "organizační-struktura/organizační-struktura.nq",
+    "metadata": "organizační-struktura/organizační-struktura.csv-metadata.json",
+    "result": [
+      "organizační-struktura/organizační-struktura.csv"
+    ]
+  },
+  {
+    "id": "004",
+    "type": "ToCsvwTest",
+    "name": "Organizační struktura MFF UK - JSON-LD",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2Fcebf155a0b6cc8d439c960145f1601a6",
+    "action": "organizační-struktura/organizační-struktura.jsonld",
+    "metadata": "organizační-struktura/organizační-struktura.csv-metadata.json",
+    "result": [
+      "organizační-struktura/organizační-struktura.csv"
+    ]
+  },
+  {
+    "id": "005",
+    "type": "ToCsvwTest",
+    "name": "Organizační struktura MFF UK - TriG",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2Fcebf155a0b6cc8d439c960145f1601a6",
+    "action": "organizační-struktura/organizační-struktura.trig",
+    "metadata": "organizační-struktura/organizační-struktura.csv-metadata.json",
+    "result": [
+      "organizační-struktura/organizační-struktura.csv"
+    ]
+  },
+  {
+    "id": "006",
+    "type": "ToCsvwTest",
+    "name": "Organizační struktura MFF UK - RDF/XML",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2Fcebf155a0b6cc8d439c960145f1601a6",
+    "action": "organizační-struktura/organizační-struktura.rdf",
+    "metadata": "organizační-struktura/organizační-struktura.csv-metadata.json",
+    "result": [
+      "organizační-struktura/organizační-struktura.csv"
+    ]
+  },
+
+  {
+    "id": "011",
+    "type": "ToCsvwTest",
+    "name": "Číselník požadovaných vzdělání Univerzity Karlovy - Turtle",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2F75e9396aa5d831d03705eb72d51b49b0",
+    "action": "požadované-vzdělání/požadované-vzdělání.ttl",
+    "metadata": "požadované-vzdělání/požadované-vzdělání.csv-metadata.json",
+    "result": [
+      "požadované-vzdělání/požadované-vzdělání.csv"
+    ]
+  },
+  {
+    "id": "012",
+    "type": "ToCsvwTest",
+    "name": "Číselník požadovaných vzdělání Univerzity Karlovy - N-Triples",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2F75e9396aa5d831d03705eb72d51b49b0",
+    "action": "požadované-vzdělání/požadované-vzdělání.nt",
+    "metadata": "požadované-vzdělání/požadované-vzdělání.csv-metadata.json",
+    "result": [
+      "požadované-vzdělání/požadované-vzdělání.csv"
+    ]
+  },
+  {
+    "id": "013",
+    "type": "ToCsvwTest",
+    "name": "Číselník požadovaných vzdělání Univerzity Karlovy - N-Quads",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2F75e9396aa5d831d03705eb72d51b49b0",
+    "action": "požadované-vzdělání/požadované-vzdělání.nq",
+    "metadata": "požadované-vzdělání/požadované-vzdělání.csv-metadata.json",
+    "result": [
+      "požadované-vzdělání/požadované-vzdělání.csv"
+    ]
+  },
+  {
+    "id": "014",
+    "type": "ToCsvwTest",
+    "name": "Číselník požadovaných vzdělání Univerzity Karlovy - JSON-LD",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2F75e9396aa5d831d03705eb72d51b49b0",
+    "action": "požadované-vzdělání/požadované-vzdělání.jsonld",
+    "metadata": "požadované-vzdělání/požadované-vzdělání.csv-metadata.json",
+    "result": [
+      "požadované-vzdělání/požadované-vzdělání.csv"
+    ]
+  },
+  {
+    "id": "015",
+    "type": "ToCsvwTest",
+    "name": "Číselník požadovaných vzdělání Univerzity Karlovy - TriG",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2F75e9396aa5d831d03705eb72d51b49b0",
+    "action": "požadované-vzdělání/požadované-vzdělání.trig",
+    "metadata": "požadované-vzdělání/požadované-vzdělání.csv-metadata.json",
+    "result": [
+      "požadované-vzdělání/požadované-vzdělání.csv"
+    ]
+  },
+  {
+    "id": "016",
+    "type": "ToCsvwTest",
+    "name": "Číselník požadovaných vzdělání Univerzity Karlovy - RDF/XML",
+    "comment": "https://data.gov.cz/datov%C3%A1-sada?iri=https%3A%2F%2Fdata.gov.cz%2Fzdroj%2Fdatov%C3%A9-sady%2F00216208%2F75e9396aa5d831d03705eb72d51b49b0",
+    "action": "požadované-vzdělání/požadované-vzdělání.rdf",
+    "metadata": "požadované-vzdělání/požadované-vzdělání.csv-metadata.json",
+    "result": [
+      "požadované-vzdělání/požadované-vzdělání.csv"
+    ]
+  }
+]
