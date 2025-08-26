@@ -1,0 +1,686 @@
+
+{
+  "@context": [
+      "https://ofn.gov.cz/číselníky/2022-02-08/kontexty/číselník.jsonld",
+      {
+            "skos": "http://www.w3.org/2004/02/skos/core#",
+            "Kolekce": {
+                  "@id": "skos:Collection"
+            },
+            "kolekce": {
+                  "@reverse": "skos:member"
+            }
+      }
+  ],
+  "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura",
+  "typ": "Číselník",
+  "název": {
+      "cs":  "Organizační struktura MFF UK",
+      "en":  "Organizational structure of FMP CUNI"
+  },
+  "položky": [
+{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116",
+      "kód": "116",
+      "kolekce": {
+            "typ": "Kolekce",
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/fakulty"
+      },
+      "název": {
+          "cs":  "Matematicko-fyzikální fakulta",
+          "en":  "Faculty of Mathematics and Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0",
+      "kód": "0",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"
+      },
+      "název": {
+          "cs":  "Orgány fakulty",
+          "en":  "Authorities of the Faculty"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170",
+      "kód": "1170",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"
+      },
+      "kolekce": {
+            "typ": "Kolekce",
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/sekce"
+      },
+      "název": {
+          "cs":  "Fyzikální sekce",
+          "en":  "School of Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171",
+      "kód": "1171",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"
+      },
+      "kolekce": {
+            "typ": "Kolekce",
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/sekce"
+      },
+      "název": {
+          "cs":  "Informatická sekce",
+          "en":  "School of Computer Science"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172",
+      "kód": "1172",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"
+      },
+      "kolekce": {
+            "typ": "Kolekce",
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/sekce"
+      },
+      "název": {
+          "cs":  "Matematická sekce",
+          "en":  "School of Mathematics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175",
+      "kód": "1175",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"
+      },
+      "název": {
+          "cs":  "Jiná pracoviště",
+          "en":  "Other Departments"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1173",
+      "kód": "1173",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"
+      },
+      "název": {
+          "cs":  "Účelová zařízení",
+          "en":  "Technical Support"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174",
+      "kód": "1174",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"
+      },
+      "název": {
+          "cs":  "Děkanát",
+          "en":  "Dean's Office"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/5",
+      "kód": "5",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"
+      },
+      "název": {
+          "cs":  "Poradní orgány vedení fakulty",
+          "en":  "The Advisory Body of the Faculty Management"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/4",
+      "kód": "4",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"
+      },
+      "název": {
+          "cs":  "Disciplinární komise",
+          "en":  "Disciplinary Board"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/3",
+      "kód": "3",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"
+      },
+      "název": {
+          "cs":  "Vědecká rada",
+          "en":  "Scientific Council"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/2",
+      "kód": "2",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"
+      },
+      "název": {
+          "cs":  "Vedení fakulty",
+          "en":  "Management of the Faculty"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1",
+      "kód": "1",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"
+      },
+      "název": {
+          "cs":  "Akademický senát",
+          "en":  "Academic Senate"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1190",
+      "kód": "1190",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Astronomický ústav UK",
+          "en":  "Astronomical Institute of Charles University"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1191",
+      "kód": "1191",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Fyzikální ústav UK",
+          "en":  "Institute of Physics of Charles University"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1214",
+      "kód": "1214",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Kabinet výuky obecné fyziky",
+          "en":  "Laboratory of General Physics Education"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1215",
+      "kód": "1215",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra didaktiky fyziky",
+          "en":  "Department of Physics Education"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1220",
+      "kód": "1220",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra fyziky povrchů a plazmatu",
+          "en":  "Department of Surface and Plasma Science"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1231",
+      "kód": "1231",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra fyziky materiálů",
+          "en":  "Department of Physics of Materials"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1251",
+      "kód": "1251",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra fyziky nízkých teplot",
+          "en":  "Department of Low Temperature Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1262",
+      "kód": "1262",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra fyziky kondenzovaných látek",
+          "en":  "Department of Condensed Matter Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1271",
+      "kód": "1271",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra makromolekulární fyziky",
+          "en":  "Department of Macromolecular Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1276",
+      "kód": "1276",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra geofyziky",
+          "en":  "Department of Geophysics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1277",
+      "kód": "1277",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra chemické fyziky a optiky",
+          "en":  "Department of Chemical Physics and Optics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1284",
+      "kód": "1284",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Ústav částicové a jaderné fyziky",
+          "en":  "Institute of Particle and Nuclear Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1290",
+      "kód": "1290",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Katedra fyziky atmosféry",
+          "en":  "Department of Atmospheric Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1291",
+      "kód": "1291",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Ústav teoretické fyziky",
+          "en":  "Institute of Theoretical Physics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/100026003452",
+      "kód": "100026003452",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"
+      },
+      "název": {
+          "cs":  "Počítačová síť Troja",
+          "en":  "Computer network Troja"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1292",
+      "kód": "1292",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Katedra softwaru a výuky informatiky",
+          "en":  "Department of Software and Computer Science Education"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1293",
+      "kód": "1293",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Katedra aplikované matematiky",
+          "en":  "Department of Applied Mathematics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1850",
+      "kód": "1850",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Katedra distribuovaných a spolehlivých systémů",
+          "en":  "Department of Distributed and Dependable Systems"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1294",
+      "kód": "1294",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Katedra softwarového inženýrství",
+          "en":  "Department of Software Engineering"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1295",
+      "kód": "1295",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Katedra teoretické informatiky a matematické logiky",
+          "en":  "Department of Theoretical Computer Science and Mathematical Logic"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1296",
+      "kód": "1296",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Středisko informatické sítě a laboratoří",
+          "en":  "Network and Labs Management Center"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1297",
+      "kód": "1297",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Ústav formální a aplikované lingvistiky",
+          "en":  "Institute of Formal and Applied Linguistics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/2110",
+      "kód": "2110",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"
+      },
+      "název": {
+          "cs":  "Informatický ústav Univerzity Karlovy",
+          "en":  "Computer Science Institute of Charles University"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1309",
+      "kód": "1309",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"
+      },
+      "název": {
+          "cs":  "Katedra algebry",
+          "en":  "Department of Algebra"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1310",
+      "kód": "1310",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"
+      },
+      "název": {
+          "cs":  "Katedra didaktiky matematiky",
+          "en":  "Department of Mathematics Education"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1311",
+      "kód": "1311",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"
+      },
+      "název": {
+          "cs":  "Katedra matematické analýzy",
+          "en":  "Department of Mathematical Analysis"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1313",
+      "kód": "1313",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"
+      },
+      "název": {
+          "cs":  "Katedra numerické matematiky",
+          "en":  "Department of Numerical Mathematics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1314",
+      "kód": "1314",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"
+      },
+      "název": {
+          "cs":  "Katedra pravděpodobnosti a matematické statistiky",
+          "en":  "Department of Probability and Mathematical Statistics"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1315",
+      "kód": "1315",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"
+      },
+      "název": {
+          "cs":  "Matematický ústav UK",
+          "en":  "Mathematical Institute of Charles University"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1204",
+      "kód": "1204",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175"
+      },
+      "název": {
+          "cs":  "Knihovna fakulty",
+          "en":  "Library"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1205",
+      "kód": "1205",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175"
+      },
+      "název": {
+          "cs":  "Katedra jazykové přípravy",
+          "en":  "Department of Language Education"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1206",
+      "kód": "1206",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175"
+      },
+      "název": {
+          "cs":  "Katedra tělesné výchovy",
+          "en":  "Department of Physical Education"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1239",
+      "kód": "1239",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1173"
+      },
+      "název": {
+          "cs":  "Reprografické středisko fakulty",
+          "en":  "Reprographic Centre"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1240",
+      "kód": "1240",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1173"
+      },
+      "název": {
+          "cs":  "Konferenční a společenské centrum \"Profesní dům\"",
+          "en":  "Conference and Social Center \"House for Professed\""
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1241",
+      "kód": "1241",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Sekretariát",
+          "en":  "Secretary Office"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1242",
+      "kód": "1242",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Hospodářské oddělení",
+          "en":  "Financial Department"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1244",
+      "kód": "1244",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Oddělení pro vědu a zahraniční styky",
+          "en":  "Research and International Affairs Department"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1243",
+      "kód": "1243",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Studijní oddělení",
+          "en":  "Student Affairs Department"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1246",
+      "kód": "1246",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Zaměstnanecké oddělení",
+          "en":  "Department of Human Resources"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1248",
+      "kód": "1248",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Správa počítačové sítě Karlov a centrálního informačního uzlu",
+          "en":  "IS/IT Division"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/2320",
+      "kód": "2320",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Oddělení propagace a mediální komunikace",
+          "en":  "Media Communications and PR Office"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1249",
+      "kód": "1249",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Správa budov",
+          "en":  "Department of Building Maintenance"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1250",
+      "kód": "1250",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Referát energetika",
+          "en":  "Power Management Office"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1254",
+      "kód": "1254",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Referát požárního a bezpečnostního technika",
+          "en":  "Fire and Security Division"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1255",
+      "kód": "1255",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Referát interního auditu a právních služeb",
+          "en":  "Department of Internal Audit and Legal Services"
+      }
+    },{
+      "typ": "Položka",
+      "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/100028726779",
+      "kód": "100028726779",
+      "skos:broader": {
+            "iri": "https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"
+      },
+      "název": {
+          "cs":  "Oddělení firemní spolupráce a kariérního poradenství",
+          "en":  "Department for Business Cooperation and Career Counselling"
+      }
+    }
+  ]
+}

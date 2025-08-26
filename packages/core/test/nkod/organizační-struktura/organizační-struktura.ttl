@@ -1,0 +1,370 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix číselník: <https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura> .
+@prefix skupiny: <https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/> .
+@prefix fakulty: <https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/> .
+@prefix oddělení: <https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/> .
+@prefix kolekce: <https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/> .
+
+číselník: a skos:ConceptScheme;
+  skos:hasTopConcept fakulty:116 ;
+  skos:prefLabel "Organizational structure of FMP CUNI"@en, "Organizační struktura MFF UK"@cs .
+
+kolekce:sekce a skos:Collection ;
+  skos:member skupiny:1170, skupiny:1171, skupiny:1172.
+  
+kolekce:fakulty a skos:Collection ;
+  skos:member fakulty:116.
+
+fakulty:116 a skos:Concept;
+  skos:prefLabel "Faculty of Mathematics and Physics"@en, "Matematicko-fyzikální fakulta"@cs;
+  skos:inScheme číselník:;
+  skos:notation "116" .
+
+skupiny:0 a skos:Concept;
+  skos:prefLabel "Authorities of the Faculty"@en, "Orgány fakulty"@cs;
+  skos:inScheme číselník:;
+  skos:notation "0" ;
+  skos:broader fakulty:116 .
+
+skupiny:1170 a skos:Concept;
+  skos:prefLabel "Fyzikální sekce"@cs, "School of Physics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1170" ;
+  skos:broader fakulty:116 .
+
+skupiny:1171 a skos:Concept;
+  skos:prefLabel "Informatická sekce"@cs, "School of Computer Science"@en;
+  skos:inScheme číselník:;
+  skos:notation "1171" ;
+  skos:broader fakulty:116 .
+
+skupiny:1172 a skos:Concept;
+  skos:prefLabel "Matematická sekce"@cs, "School of Mathematics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1172" ;
+  skos:broader fakulty:116 .
+
+skupiny:1175 a skos:Concept;
+  skos:prefLabel "Jiná pracoviště"@cs, "Other Departments"@en;
+  skos:inScheme číselník:;
+  skos:notation "1175" ;
+  skos:broader fakulty:116 .
+
+skupiny:1173 a skos:Concept;
+  skos:prefLabel "Technical Support"@en, "Účelová zařízení"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1173" ;
+  skos:broader fakulty:116 .
+
+skupiny:1174 a skos:Concept;
+  skos:prefLabel "Dean's Office"@en, "Děkanát"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1174" ;
+  skos:broader fakulty:116 .
+
+oddělení:5 a skos:Concept;
+  skos:prefLabel "Poradní orgány vedení fakulty"@cs, "The Advisory Body of the Faculty Management"@en;
+  skos:inScheme číselník:;
+  skos:notation "5";
+  skos:broader skupiny:0 .
+
+oddělení:4 a skos:Concept;
+  skos:prefLabel "Disciplinary Board"@en, "Disciplinární komise"@cs;
+  skos:inScheme číselník:;
+  skos:notation "4";
+  skos:broader skupiny:0 .
+
+oddělení:3 a skos:Concept;
+  skos:prefLabel "Scientific Council"@en, "Vědecká rada"@cs;
+  skos:inScheme číselník:;
+  skos:notation "3";
+  skos:broader skupiny:0 .
+
+oddělení:2 a skos:Concept;
+  skos:prefLabel "Management of the Faculty"@en, "Vedení fakulty"@cs;
+  skos:inScheme číselník:;
+  skos:notation "2";
+  skos:broader skupiny:0 .
+
+oddělení:1 a skos:Concept;
+  skos:prefLabel "Academic Senate"@en, "Akademický senát"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1";
+  skos:broader skupiny:0 .
+
+oddělení:1190 a skos:Concept;
+  skos:prefLabel "Astronomical Institute of Charles University"@en, "Astronomický ústav UK"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1190";
+  skos:broader skupiny:1170 .
+
+oddělení:1191 a skos:Concept;
+  skos:prefLabel "Fyzikální ústav UK"@cs, "Institute of Physics of Charles University"@en;
+  skos:inScheme číselník:;
+  skos:notation "1191";
+  skos:broader skupiny:1170 .
+
+oddělení:1214 a skos:Concept;
+  skos:prefLabel "Kabinet výuky obecné fyziky"@cs, "Laboratory of General Physics Education"@en;
+  skos:inScheme číselník:;
+  skos:notation "1214";
+  skos:broader skupiny:1170 .
+
+oddělení:1215 a skos:Concept;
+  skos:prefLabel "Department of Physics Education"@en, "Katedra didaktiky fyziky"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1215";
+  skos:broader skupiny:1170 .
+
+oddělení:1220 a skos:Concept;
+  skos:prefLabel "Department of Surface and Plasma Science"@en, "Katedra fyziky povrchů a plazmatu"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1220";
+  skos:broader skupiny:1170 .
+
+oddělení:1231 a skos:Concept;
+  skos:prefLabel "Department of Physics of Materials"@en, "Katedra fyziky materiálů"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1231";
+  skos:broader skupiny:1170 .
+
+oddělení:1251 a skos:Concept;
+  skos:prefLabel "Department of Low Temperature Physics"@en, "Katedra fyziky nízkých teplot"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1251";
+  skos:broader skupiny:1170 .
+
+oddělení:1262 a skos:Concept;
+  skos:prefLabel "Department of Condensed Matter Physics"@en, "Katedra fyziky kondenzovaných látek"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1262";
+  skos:broader skupiny:1170 .
+
+oddělení:1271 a skos:Concept;
+  skos:prefLabel "Department of Macromolecular Physics"@en, "Katedra makromolekulární fyziky"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1271";
+  skos:broader skupiny:1170 .
+
+oddělení:1276 a skos:Concept;
+  skos:prefLabel "Department of Geophysics"@en, "Katedra geofyziky"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1276";
+  skos:broader skupiny:1170 .
+
+oddělení:1277 a skos:Concept;
+  skos:prefLabel "Department of Chemical Physics and Optics"@en, "Katedra chemické fyziky a optiky"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1277";
+  skos:broader skupiny:1170 .
+
+oddělení:1284 a skos:Concept;
+  skos:prefLabel "Institute of Particle and Nuclear Physics"@en, "Ústav částicové a jaderné fyziky"@cs;
+  skos:inScheme číselník:;
+  skos:notation "1284";
+  skos:broader skupiny:1170 .
+
+oddělení:1290 a skos:Concept;
+  skos:prefLabel "Katedra fyziky atmosféry"@cs, "Department of Atmospheric Physics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1290";
+  skos:broader skupiny:1170 .
+
+oddělení:1291 a skos:Concept;
+  skos:prefLabel "Ústav teoretické fyziky"@cs, "Institute of Theoretical Physics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1291";
+  skos:broader skupiny:1170 .
+
+oddělení:100026003452 a skos:Concept;
+  skos:prefLabel "Počítačová síť Troja"@cs, "Computer network Troja"@en;
+  skos:inScheme číselník:;
+  skos:notation "100026003452";
+  skos:broader skupiny:1170 .
+
+oddělení:1292 a skos:Concept;
+  skos:prefLabel "Katedra softwaru a výuky informatiky"@cs, "Department of Software and Computer Science Education"@en;
+  skos:inScheme číselník:;
+  skos:notation "1292";
+  skos:broader skupiny:1171 .
+
+oddělení:1293 a skos:Concept;
+  skos:prefLabel "Katedra aplikované matematiky"@cs, "Department of Applied Mathematics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1293";
+  skos:broader skupiny:1171 .
+
+oddělení:1850 a skos:Concept;
+  skos:prefLabel "Katedra distribuovaných a spolehlivých systémů"@cs, "Department of Distributed and Dependable Systems"@en;
+  skos:inScheme číselník:;
+  skos:notation "1850";
+  skos:broader skupiny:1171 .
+
+oddělení:1294 a skos:Concept;
+  skos:prefLabel "Katedra softwarového inženýrství"@cs, "Department of Software Engineering"@en;
+  skos:inScheme číselník:;
+  skos:notation "1294";
+  skos:broader skupiny:1171 .
+
+oddělení:1295 a skos:Concept;
+  skos:prefLabel "Katedra teoretické informatiky a matematické logiky"@cs, "Department of Theoretical Computer Science and Mathematical Logic"@en;
+  skos:inScheme číselník:;
+  skos:notation "1295";
+  skos:broader skupiny:1171 .
+
+oddělení:1296 a skos:Concept;
+  skos:prefLabel "Středisko informatické sítě a laboratoří"@cs, "Network and Labs Management Center"@en;
+  skos:inScheme číselník:;
+  skos:notation "1296";
+  skos:broader skupiny:1171 .
+
+oddělení:1297 a skos:Concept;
+  skos:prefLabel "Ústav formální a aplikované lingvistiky"@cs, "Institute of Formal and Applied Linguistics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1297";
+  skos:broader skupiny:1171 .
+
+oddělení:2110 a skos:Concept;
+  skos:prefLabel "Informatický ústav Univerzity Karlovy"@cs, "Computer Science Institute of Charles University"@en;
+  skos:inScheme číselník:;
+  skos:notation "2110";
+  skos:broader skupiny:1171 .
+
+oddělení:1309 a skos:Concept;
+  skos:prefLabel "Katedra algebry"@cs, "Department of Algebra"@en;
+  skos:inScheme číselník:;
+  skos:notation "1309";
+  skos:broader skupiny:1172 .
+
+oddělení:1310 a skos:Concept;
+  skos:prefLabel "Katedra didaktiky matematiky"@cs, "Department of Mathematics Education"@en;
+  skos:inScheme číselník:;
+  skos:notation "1310";
+  skos:broader skupiny:1172 .
+
+oddělení:1311 a skos:Concept;
+  skos:prefLabel "Katedra matematické analýzy"@cs, "Department of Mathematical Analysis"@en;
+  skos:inScheme číselník:;
+  skos:notation "1311";
+  skos:broader skupiny:1172 .
+
+oddělení:1313 a skos:Concept;
+  skos:prefLabel "Katedra numerické matematiky"@cs, "Department of Numerical Mathematics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1313";
+  skos:broader skupiny:1172 .
+
+oddělení:1314 a skos:Concept;
+  skos:prefLabel "Katedra pravděpodobnosti a matematické statistiky"@cs, "Department of Probability and Mathematical Statistics"@en;
+  skos:inScheme číselník:;
+  skos:notation "1314";
+  skos:broader skupiny:1172 .
+
+oddělení:1315 a skos:Concept;
+  skos:prefLabel "Matematický ústav UK"@cs, "Mathematical Institute of Charles University"@en;
+  skos:inScheme číselník:;
+  skos:notation "1315";
+  skos:broader skupiny:1172 .
+
+oddělení:1204 a skos:Concept;
+  skos:prefLabel "Knihovna fakulty"@cs, "Library"@en;
+  skos:inScheme číselník:;
+  skos:notation "1204";
+  skos:broader skupiny:1175 .
+
+oddělení:1205 a skos:Concept;
+  skos:prefLabel "Katedra jazykové přípravy"@cs, "Department of Language Education"@en;
+  skos:inScheme číselník:;
+  skos:notation "1205";
+  skos:broader skupiny:1175 .
+
+oddělení:1206 a skos:Concept;
+  skos:prefLabel "Katedra tělesné výchovy"@cs, "Department of Physical Education"@en;
+  skos:inScheme číselník:;
+  skos:notation "1206";
+  skos:broader skupiny:1175 .
+
+oddělení:1239 a skos:Concept;
+  skos:prefLabel "Reprografické středisko fakulty"@cs, "Reprographic Centre"@en;
+  skos:inScheme číselník:;
+  skos:notation "1239";
+  skos:broader skupiny:1173 .
+
+oddělení:1240 a skos:Concept;
+  skos:prefLabel "Konferenční a společenské centrum \"Profesní dům\""@cs, "Conference and Social Center \"House for Professed\""@en;
+  skos:inScheme číselník:;
+  skos:notation "1240";
+  skos:broader skupiny:1173 .
+
+oddělení:1241 a skos:Concept;
+  skos:prefLabel "Sekretariát"@cs, "Secretary Office"@en;
+  skos:inScheme číselník:;
+  skos:notation "1241";
+  skos:broader skupiny:1174 .
+
+oddělení:1242 a skos:Concept;
+  skos:prefLabel "Hospodářské oddělení"@cs, "Financial Department"@en;
+  skos:inScheme číselník:;
+  skos:notation "1242";
+  skos:broader skupiny:1174 .
+
+oddělení:1244 a skos:Concept;
+  skos:prefLabel "Oddělení pro vědu a zahraniční styky"@cs, "Research and International Affairs Department"@en;
+  skos:inScheme číselník:;
+  skos:notation "1244";
+  skos:broader skupiny:1174 .
+
+oddělení:1243 a skos:Concept;
+  skos:prefLabel "Studijní oddělení"@cs, "Student Affairs Department"@en;
+  skos:inScheme číselník:;
+  skos:notation "1243";
+  skos:broader skupiny:1174 .
+
+oddělení:1246 a skos:Concept;
+  skos:prefLabel "Zaměstnanecké oddělení"@cs, "Department of Human Resources"@en;
+  skos:inScheme číselník:;
+  skos:notation "1246";
+  skos:broader skupiny:1174 .
+
+oddělení:1248 a skos:Concept;
+  skos:prefLabel "Správa počítačové sítě Karlov a centrálního informačního uzlu"@cs,
+    "IS/IT Division"@en;
+  skos:inScheme číselník:;
+  skos:notation "1248";
+  skos:broader skupiny:1174 .
+
+oddělení:2320 a skos:Concept;
+  skos:prefLabel "Oddělení propagace a mediální komunikace"@cs, "Media Communications and PR Office"@en;
+  skos:inScheme číselník:;
+  skos:notation "2320";
+  skos:broader skupiny:1174 .
+
+oddělení:1249 a skos:Concept;
+  skos:prefLabel "Správa budov"@cs, "Department of Building Maintenance"@en;
+  skos:inScheme číselník:;
+  skos:notation "1249";
+  skos:broader skupiny:1174 .
+
+oddělení:1250 a skos:Concept;
+  skos:prefLabel "Referát energetika"@cs, "Power Management Office"@en;
+  skos:inScheme číselník:;
+  skos:notation "1250";
+  skos:broader skupiny:1174 .
+
+oddělení:1254 a skos:Concept;
+  skos:prefLabel "Referát požárního a bezpečnostního technika"@cs, "Fire and Security Division"@en;
+  skos:inScheme číselník:;
+  skos:notation "1254";
+  skos:broader skupiny:1174 .
+
+oddělení:1255 a skos:Concept;
+  skos:prefLabel "Referát interního auditu a právních služeb"@cs, "Department of Internal Audit and Legal Services"@en;
+  skos:inScheme číselník:;
+  skos:notation "1255";
+  skos:broader skupiny:1174 .
+
+oddělení:100028726779 a skos:Concept;
+  skos:prefLabel "Oddělení firemní spolupráce a kariérního poradenství"@cs, "Department for Business Cooperation and Career Counselling"@en;
+  skos:inScheme číselník:;
+  skos:notation "100028726779";
+  skos:broader skupiny:1174 .
