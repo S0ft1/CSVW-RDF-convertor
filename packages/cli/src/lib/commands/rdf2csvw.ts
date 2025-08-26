@@ -6,9 +6,13 @@ import { readFileOrUrl } from '../utils/read-file-or-url.js';
 import {
   CsvwTableStreams,
   defaultResolveJsonldFn,
+  defaultResolveStreamFn,
+  DescriptorWrapper,
   LogLevel,
+  parseRdf,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
+  rdfToCsvw,
 } from '@csvw-rdf-convertor/core';
 
 import * as csv from 'csv';
@@ -17,6 +21,7 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CommandModule } from 'yargs';
+import { Readable } from 'node:stream';
 
 export const rdf2csvw: CommandModule<
   CommonArgs,
@@ -93,18 +98,32 @@ export const rdf2csvw: CommandModule<
         return await readFile(url, 'utf-8');
       }
     };
-    const convertor = new Rdf2CsvwConvertor(options);
 
+    let rdfStream = await parseRdf(args.input, {
+		baseIri: args.baseIri, resolveStreamFn(path, base) {
+			const url =
+				URL.parse(path, base)?.href ??
+				URL.parse(path)?.href ??
+				resolve(base, path);
+			if (
+				!isAbsolute(url) &&
+				(URL.canParse(url) || URL.canParse(url, base))
+			) {
+				if (url.startsWith('file:')) {
+					return Promise.resolve(
+						Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+					);
+				}
+				return defaultResolveStreamFn(url, base);
+			}
+			return Promise.resolve(
+				Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
+			);
+		},
+	});
     let streams: CsvwTableStreams;
-    let descriptor = '';
-    if (args.descriptor) {
-      descriptor = (await options.resolveJsonldFn?.(args.descriptor, '')) ?? '';
-    }
-    if (args.descriptor === undefined) {
-      streams = await convertor.convert(args.input);
-    } else {
-      streams = await convertor.convert(args.input, descriptor);
-    }
+    let descriptor: DescriptorWrapper;
+    [streams, descriptor] = await rdfToCsvw(rdfStream, options)
 
     if (args.outDir) await mkdir(args.outDir, { recursive: true });
 
@@ -113,8 +132,7 @@ export const rdf2csvw: CommandModule<
         ? fs.createWriteStream(resolve(args.outDir, tableName))
         : process.stdout;
 
-      const descriptorObj = convertor.getDescriptor();
-      const normalizedDescriptor = descriptorObj?.descriptor ?? {};
+      const normalizedDescriptor = descriptor?.descriptor ?? {};
       const dialect = normalizedDescriptor.dialect ?? {};
       const descriptorOptions = {
         header: dialect.header ?? true,

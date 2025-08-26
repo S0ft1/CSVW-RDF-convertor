@@ -6,7 +6,7 @@ import { Readable } from 'readable-stream';
 
 export interface ParseOptions {
   /** for network requests */
-  baseIri: string;
+  baseIri?: string;
   resolveStreamFn: (
     url: string,
     baseIri: string,
@@ -23,7 +23,8 @@ export async function parseRdf(
   url: string,
   options: ParseOptions,
 ): Promise<Stream<Quad>> {
-  const readableStream = await options.resolveStreamFn(url, options.baseIri);
+  let baseIri = options.baseIri ?? '';
+  const readableStream = await options.resolveStreamFn(url, baseIri);
   let parser: StreamParser | JsonLdParser | RdfXmlParser;
   if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
     parser = new RdfXmlParser();

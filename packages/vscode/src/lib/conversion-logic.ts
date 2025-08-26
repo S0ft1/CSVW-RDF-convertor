@@ -1,10 +1,12 @@
-import { csvUrlToRdf, CsvwTableStreams, defaultResolveJsonldFn, Rdf2CsvOptions, Rdf2CsvwConvertor, rdfToCsvw } from '@csvw-rdf-convertor/core'
+import { csvUrlToRdf, CsvwTableStreams, defaultResolveJsonldFn, defaultResolveStreamFn, DescriptorWrapper, parseRdf, Rdf2CsvOptions, Rdf2CsvwConvertor, rdfToCsvw } from '@csvw-rdf-convertor/core'
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core'
 import { MiniOptions } from './types.js';
 import { isAbsolute, resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import * as csv from 'csv';
+import { Readable } from 'node:stream';
+import fs from 'node:fs';
 /**
  * Converts RDF data to CSVW format using CSVW metadata.
  * @param descriptorText - The CSVW metadata descriptor content.
@@ -30,22 +32,37 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 			return await readFile(url, 'utf-8');
 		}
 	};
-	//let x = rdfToCsvw()
-	const convertor = new Rdf2CsvwConvertor(options);
-	let streams: CsvwTableStreams;
-	let descriptor: string = '';
-	if (descriptorPath) {
-		descriptor = (await options.resolveJsonldFn?.(descriptorPath, '')) ?? '';
-	}
-	if (descriptorPath === "") {
-		streams = await convertor.convert(inputPath);
-	} else {
-		streams = await convertor.convert(inputPath, descriptor);
-	}
+
+	let rdfStream = await parseRdf(inputPath, {
+		baseIri: conversion.folderPath, resolveStreamFn(path, base) {
+			const url =
+				URL.parse(path, base)?.href ??
+				URL.parse(path)?.href ??
+				resolve(base, path);
+			if (
+				!isAbsolute(url) &&
+				(URL.canParse(url) || URL.canParse(url, base))
+			) {
+				if (url.startsWith('file:')) {
+					return Promise.resolve(
+						Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
+					);
+				}
+				return defaultResolveStreamFn(url, base);
+			}
+			return Promise.resolve(
+				Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
+			);
+		},
+	});
+
+	let streams: CsvwTableStreams ;
+	let descriptor: DescriptorWrapper ;
+	[streams, descriptor]= await rdfToCsvw(rdfStream, options)
+
 	let outputText: string = '';
 	for (const [tableName, [columns, stream]] of Object.entries(streams)) {
-		const descriptorObj = convertor.getDescriptor();
-		const normalizedDescriptor = descriptorObj?.descriptor ?? {};
+		const normalizedDescriptor = descriptor?.descriptor ?? {};
 		const dialect = normalizedDescriptor.dialect ?? {};
 		const descriptorOptions = {
 			header: dialect.header ?? true,
@@ -168,15 +185,15 @@ export function isRdfContent(inputText: string): { isRdf: boolean, isRecognized:
 
 	// Quick RDF format checks
 	// JSON-LD indicators
-	if (lowerContent.includes('"@context"') || 
-		lowerContent.includes('"@graph"') || 
-		lowerContent.includes('"@id"') || 
+	if (lowerContent.includes('"@context"') ||
+		lowerContent.includes('"@graph"') ||
+		lowerContent.includes('"@id"') ||
 		lowerContent.includes('"@type"')) {
 		return { isRdf: true, isRecognized: true };
 	}
 
 	// Turtle/N3 indicators
-	if (lowerContent.includes('@prefix') || 
+	if (lowerContent.includes('@prefix') ||
 		lowerContent.includes('@base')) {
 		return { isRdf: true, isRecognized: true };
 	}
@@ -200,11 +217,11 @@ export function isRdfContent(inputText: string): { isRdf: boolean, isRecognized:
 	const lines = trimmedContent.split('\n').filter(line => line.trim());
 	if (lines.length > 0) {
 		const firstLine = lines[0].trim();
-		
+
 		// If it has commas and looks like tabular data
 		if (firstLine.includes(',')) {
 			// Make sure it's not RDF that happens to contain commas
-			if (!firstLine.includes('<') && 
+			if (!firstLine.includes('<') &&
 				!firstLine.includes('@') &&
 				!firstLine.includes(':') &&
 				lines.length > 1) {
@@ -220,7 +237,7 @@ export function isRdfContent(inputText: string): { isRdf: boolean, isRecognized:
 
 		// Tab or semicolon separated values
 		if ((firstLine.includes('\t') || firstLine.includes(';')) &&
-			!firstLine.includes('<') && 
+			!firstLine.includes('<') &&
 			!firstLine.includes('@') &&
 			!firstLine.includes('://')) {
 			return { isRdf: false, isRecognized: true };
