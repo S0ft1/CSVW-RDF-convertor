@@ -1,9 +1,6 @@
 import { Csvw2RdfOptions, LogLevel } from '../conversion-options.js';
 import { CSVParser } from '../csv-parser.js';
-import {
-  DescriptorWrapper,
-  normalizeDescriptor,
-} from '../descriptor.js';
+import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
 import {
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
@@ -37,6 +34,7 @@ import { IssueTracker } from '../utils/issue-tracker.js';
 import { parseDate } from '../utils/parse-date.js';
 import { NumberParser } from '../utils/parse-number.js';
 import { replaceUrl } from '../utils/replace-url.js';
+import { expandIri } from '../utils/expand-iri.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -810,8 +808,7 @@ export class Csvw2RdfConvertor {
    * @returns [datatype URI, datatype description]
    */
   private normalizeDatatype(ctx: TableContext): [string, CsvwDatatype] {
-    const dtOrBuiltin =
-      ctx.col.datatype ?? 'string';
+    const dtOrBuiltin = ctx.col.datatype ?? 'string';
     const dt =
       typeof dtOrBuiltin === 'string' ? { base: dtOrBuiltin } : dtOrBuiltin;
     let dtUri = dt['@id'];
@@ -824,7 +821,7 @@ export class Csvw2RdfConvertor {
         dtUri = xsd + dt.base;
       }
     } else {
-      dtUri = this.expandIri(dtUri);
+      dtUri = expandIri(dtUri);
     }
     return [dtUri, dt];
   }
@@ -1201,23 +1198,6 @@ export class Csvw2RdfConvertor {
   }
 
   /**
-   * Expands an IRI based on the common prefixes.
-   * @param iri - IRI to be expanded
-   * @returns Expanded IRI
-   */
-  private expandIri(iri: string): string {
-    const i = iri.indexOf(':');
-    if (i === -1) return iri;
-    const prefix = iri.slice(0, i);
-    if (prefix in commonPrefixes) {
-      return (
-        commonPrefixes[prefix as keyof typeof commonPrefixes] + iri.slice(i + 1)
-      );
-    }
-    return iri;
-  }
-
-  /**
    * Expands a template URI.
    * @param template - Template to be expanded
    * @param srcCol - Source column number ({@link Csvw2RdfConvertor#location} column + {@link CsvwDialectDescription#skipColumns})
@@ -1241,7 +1221,7 @@ export class Csvw2RdfConvertor {
       _sourceRow: srcRow,
       _name: decodeURIComponent(ctx.col.name as string),
     });
-    uri = this.expandIri(uri);
+    uri = expandIri(uri);
     uri = URL.parse(uri)?.href ?? baseIri + uri;
     if (this.options.templateIris) {
       const parsed = URL.parse(uri) as URL;

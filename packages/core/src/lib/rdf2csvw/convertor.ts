@@ -17,6 +17,7 @@ import {
 import { CsvLocationTracker } from '../utils/code-location.js';
 import { coerceArray } from '../utils/coerce.js';
 import { commonPrefixes } from '../utils/prefix.js';
+import { expandIri } from '../utils/expand-iri.js';
 import { IssueTracker } from '../utils/issue-tracker.js';
 
 import { MemoryLevel } from 'memory-level';
@@ -40,6 +41,8 @@ export type CsvwTableStreams = {
 
 type OptionsWithDefaults = Required<Omit<Rdf2CsvOptions, 'descriptor'>> &
   Pick<Rdf2CsvOptions, 'descriptor'>;
+
+const { rdf } = commonPrefixes;
 
 export class Rdf2CsvwConvertor {
   private options: OptionsWithDefaults;
@@ -230,11 +233,7 @@ export class Rdf2CsvwConvertor {
         queryVars[valueUrl] = `_${queryVarCounter++}`;
 
       let queryVar: string;
-      if (
-        propertyUrl &&
-        this.expandIri(propertyUrl) ===
-          'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-      ) {
+      if (propertyUrl && expandIri(propertyUrl) === rdf + 'type') {
         queryVar = queryVars[aboutUrl ?? ''];
       } else {
         queryVar = valueUrl ? queryVars[valueUrl] : `_${queryVarCounter++}`;
@@ -251,11 +250,7 @@ export class Rdf2CsvwConvertor {
 
       const aboutUrl = column.aboutUrl;
       const referencedBy = table.tableSchema.columns.find((col) => {
-        if (
-          col.propertyUrl &&
-          this.expandIri(col.propertyUrl) ===
-            'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-        )
+        if (col.propertyUrl && expandIri(col.propertyUrl) === rdf + 'type')
           return col !== column && col.aboutUrl && col.aboutUrl === aboutUrl;
         else return col !== column && col.valueUrl && col.valueUrl === aboutUrl;
       });
@@ -350,7 +345,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       const subject = `?${queryVars[aboutUrl ?? '']}`;
 
       const predicate = propertyUrl
-        ? `<${this.expandIri(
+        ? `<${expandIri(
             parseTemplate(propertyUrl).expand({
               _column: index + 1,
               _sourceColumn: index + 1,
@@ -369,11 +364,8 @@ ${lines.map((line) => `    ${line}`).join('\n')}
           _sourceColumn: index + 1,
           _name: columns[index].name,
         });
-        if (
-          column.datatype === 'anyURI' ||
-          predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
-        )
-          object = `<${this.expandIri(object)}>`;
+        if (column.datatype === 'anyURI' || predicate === `<${rdf}type>`)
+          object = `<${expandIri(object)}>`;
         else object = `"${object}"`;
       }
 
@@ -386,7 +378,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       }
 
       if (aboutUrl && subject.startsWith('?')) {
-        const templateUrl = this.expandIri(
+        const templateUrl = expandIri(
           parseTemplate(
             aboutUrl.replaceAll(
               /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
@@ -405,7 +397,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
       }
 
       if (valueUrl && object.startsWith('?')) {
-        const templateUrl = this.expandIri(
+        const templateUrl = expandIri(
           parseTemplate(
             valueUrl.replaceAll(
               /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
@@ -418,9 +410,7 @@ ${lines.map((line) => `    ${line}`).join('\n')}
           }),
         );
         if (templateUrl !== '.*')
-          lines.push(
-            `        FILTER REGEX(STR(${object}), "${templateUrl}$")`,
-          );
+          lines.push(`        FILTER REGEX(STR(${object}), "${templateUrl}$")`);
       }
 
       subjects.add(subject);
@@ -461,7 +451,7 @@ ${lines.join('\n')}
     const subject = `?${queryVars[aboutUrl ?? '']}`;
 
     const predicate = propertyUrl
-      ? `<${this.expandIri(
+      ? `<${expandIri(
           parseTemplate(propertyUrl).expand({
             _column: index + 1,
             _sourceColumn: index + 1,
@@ -480,11 +470,8 @@ ${lines.join('\n')}
         _sourceColumn: index + 1,
         _name: columns[index].name,
       });
-      if (
-        column.datatype === 'anyURI' ||
-        predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
-      )
-        object = `<${this.expandIri(object)}>`;
+      if (column.datatype === 'anyURI' || predicate === `<${rdf}type>`)
+        object = `<${expandIri(object)}>`;
       else object = `"${object}"`;
     }
 
@@ -497,7 +484,7 @@ ${lines.join('\n')}
     }
 
     if (aboutUrl && subject.startsWith('?')) {
-      const templateUrl = this.expandIri(
+      const templateUrl = expandIri(
         parseTemplate(
           aboutUrl.replaceAll(
             /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
@@ -514,7 +501,7 @@ ${lines.join('\n')}
     }
 
     if (valueUrl && object.startsWith('?')) {
-      const templateUrl = this.expandIri(
+      const templateUrl = expandIri(
         parseTemplate(
           valueUrl.replaceAll(
             /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
@@ -530,7 +517,7 @@ ${lines.join('\n')}
         lines.push(`  FILTER REGEX(STR(${object}), "${templateUrl}$")`);
     }
 
-    if (predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>') {
+    if (predicate === `<${rdf}type>`) {
       if (aboutUrl) {
         table.tableSchema.columns.forEach((col, i) => {
           if (col !== column && col.aboutUrl === aboutUrl) {
@@ -549,8 +536,7 @@ ${lines.join('\n')}
         const typeColumn = table.tableSchema.columns.find(
           (col) =>
             col.propertyUrl &&
-            this.expandIri(col.propertyUrl) ===
-              'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+            expandIri(col.propertyUrl) === rdf + 'type' &&
             col.aboutUrl === valueUrl,
         );
         table.tableSchema.columns.forEach((col, i) => {
@@ -559,9 +545,7 @@ ${lines.join('\n')}
             // so their triples are not generated twice
             if (
               typeColumn === undefined ||
-              (col.propertyUrl &&
-                this.expandIri(col.propertyUrl) ===
-                  'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+              (col.propertyUrl && expandIri(col.propertyUrl) === rdf + 'type')
             ) {
               const patterns = this.createTriplePatterns(
                 table,
@@ -586,23 +570,6 @@ ${lines.map((line) => `  ${line}`).join('\n')}
   }
 
   /**
-   * Expands an IRI based on the common prefixes.
-   * @param iri - IRI to be expanded
-   * @returns Expanded IRI
-   */
-  private expandIri(iri: string): string {
-    const i = iri.indexOf(':');
-    if (i === -1) return iri;
-    const prefix = iri.slice(0, i);
-    if (prefix in commonPrefixes) {
-      return (
-        commonPrefixes[prefix as keyof typeof commonPrefixes] + iri.slice(i + 1)
-      );
-    }
-    return iri;
-  }
-
-  /**
    * Creates a new descriptor from the rdf data, used only if no descriptor is provided.
    * @param parser
    * @returns
@@ -622,7 +589,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
 
       // TODO: should we use information from csvw predicates and types to improve quality?
       if (
-        predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+        predicate.value === rdf + 'type' &&
         !object.value.startsWith('http://www.w3.org/ns/csvw#')
       ) {
         // TODO: make sure that tableUrls for different types are different
@@ -651,7 +618,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       } else if (!predicate.value.startsWith('http://www.w3.org/ns/csvw#')) {
         let hasType = false;
         const stream = await this.engine.queryBindings(
-          `SELECT ?_type WHERE { <${subject.value}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?_type }`,
+          `SELECT ?_type WHERE { <${subject.value}> <${rdf}type> ?_type }`,
           { baseIRI: '.' },
         );
 
