@@ -4,13 +4,18 @@ import { isNumericColumn, formatNumber } from '../utils/format-number.js';
 import { isDateTimeColumn, formatDateTime } from '../utils/format-datetime.js';
 import { formatOther } from '../utils/format-other.js';
 import { trimUrl } from '../utils/url-trimming.js';
+import { commonPrefixes } from '../utils/prefix.js';
+import { expandIri } from '../utils/expand-iri.js';
 import { IssueTracker } from '../utils/issue-tracker.js';
 import { CsvwTableDescriptionWithRequiredColumns } from '../types/descriptor/table.js';
 import { Readable } from 'readable-stream';
 import { DataFactory } from 'rdf-data-factory';
 import { Bindings, ResultStream } from '@rdfjs/types';
 import { Term } from 'n3';
+
 const factory = new DataFactory();
+
+const { rdf } = commonPrefixes;
 
 export function transformStream(
   stream: ResultStream<Bindings>,
@@ -95,28 +100,35 @@ export function transformStream(
         );
       }
 
-      if (columnDescription.valueUrl) {
-        const formattedValue = trimUrl(
-          value,
-          columnDescription.valueUrl,
-          columns[i].name,
-          issueTracker,
-        );
-        bindings = bindings.set(
-          columns[i].queryVariable,
-          factory.literal(formattedValue),
-        );
-      } else if (tableDescription.aboutUrl) {
-        const formattedValue = trimUrl(
-          value,
-          tableDescription.aboutUrl,
-          columns[i].name,
-          issueTracker,
-        );
-        bindings = bindings.set(
-          columns[i].queryVariable,
-          factory.literal(formattedValue),
-        );
+      if (
+        columnDescription.propertyUrl &&
+        expandIri(columnDescription.propertyUrl) === rdf + 'type'
+      ) {
+        if (tableDescription.aboutUrl) {
+          const formattedValue = trimUrl(
+            value,
+            tableDescription.aboutUrl,
+            columns[i].name,
+            issueTracker,
+          );
+          bindings = bindings.set(
+            columns[i].queryVariable,
+            factory.literal(formattedValue),
+          );
+        }
+      } else {
+        if (columnDescription.valueUrl) {
+          const formattedValue = trimUrl(
+            value,
+            columnDescription.valueUrl,
+            columns[i].name,
+            issueTracker,
+          );
+          bindings = bindings.set(
+            columns[i].queryVariable,
+            factory.literal(formattedValue),
+          );
+        }
       }
     }
     transformedStream.push(bindings);

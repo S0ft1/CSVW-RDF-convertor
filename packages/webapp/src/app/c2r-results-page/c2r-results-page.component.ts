@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,16 +7,15 @@ import {
   OnDestroy,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { C2RService } from '../services/c2r.service';
-import { MatProgressBar } from '@angular/material/progress-bar';
-import { MatCardModule } from '@angular/material/card';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { IssueCardComponent } from './issue-card/issue-card.component';
+import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
-import { fileExtensions, mimeTypes } from '@csvw-rdf-convertor/loaders';
+import { fileExtensions, mimeTypes } from '@csvw-rdf-convertor/core';
+import { C2RService } from '../services/c2r.service';
+import { IssueCardComponent } from './issue-card/issue-card.component';
 
 @Component({
   selector: 'app-c2r-results-page',

@@ -1,12 +1,11 @@
 import { CommandModule } from 'yargs';
 import { CommonArgs } from '../../common.js';
 import { pairwise } from '../../utils/pairwise.js';
-import { commonPrefixes } from '@csvw-rdf-convertor/core';
+import { commonPrefixes, RDFSerialization } from '@csvw-rdf-convertor/core';
 import { ArgsWithDefaults, handler } from './handler.js';
 import { dotProps } from '../../utils/dot-props.js';
 import { confirm, input, select } from '@inquirer/prompts';
 import { getPrefixes } from '../interactive/get-path-overrides.js';
-import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
 
 export type TurtleOptions = {
   base?: string;

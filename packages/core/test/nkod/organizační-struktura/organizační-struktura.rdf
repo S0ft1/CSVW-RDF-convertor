@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+	xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
+	<skos:prefLabel xml:lang="en">Organizational structure of FMP CUNI</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/fakulty">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
+	<skos:member rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Faculty of Mathematics and Physics</skos:prefLabel>
+	<skos:notation>116</skos:notation>
+	<skos:prefLabel xml:lang="cs">Matematicko-fyzikální fakulta</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura">
+	<skos:prefLabel xml:lang="cs">Organizační struktura MFF UK</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Authorities of the Faculty</skos:prefLabel>
+	<skos:notation>0</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+	<skos:prefLabel xml:lang="cs">Orgány fakulty</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/sekce">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
+	<skos:member rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Fyzikální sekce</skos:prefLabel>
+	<skos:notation>1170</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+	<skos:prefLabel xml:lang="en">School of Physics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/sekce">
+	<skos:member rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Informatická sekce</skos:prefLabel>
+	<skos:notation>1171</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+	<skos:prefLabel xml:lang="en">School of Computer Science</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/kolekce/sekce">
+	<skos:member rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Matematická sekce</skos:prefLabel>
+	<skos:notation>1172</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+	<skos:prefLabel xml:lang="en">School of Mathematics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Jiná pracoviště</skos:prefLabel>
+	<skos:notation>1175</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+	<skos:prefLabel xml:lang="en">Other Departments</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1173">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Technical Support</skos:prefLabel>
+	<skos:notation>1173</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+	<skos:prefLabel xml:lang="cs">Účelová zařízení</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Dean's Office</skos:prefLabel>
+	<skos:notation>1174</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/fakulty/116"/>
+	<skos:prefLabel xml:lang="cs">Děkanát</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/5">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Poradní orgány vedení fakulty</skos:prefLabel>
+	<skos:notation>5</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"/>
+	<skos:prefLabel xml:lang="en">The Advisory Body of the Faculty Management</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/4">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Disciplinary Board</skos:prefLabel>
+	<skos:notation>4</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"/>
+	<skos:prefLabel xml:lang="cs">Disciplinární komise</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/3">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Scientific Council</skos:prefLabel>
+	<skos:notation>3</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"/>
+	<skos:prefLabel xml:lang="cs">Vědecká rada</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/2">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Management of the Faculty</skos:prefLabel>
+	<skos:notation>2</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"/>
+	<skos:prefLabel xml:lang="cs">Vedení fakulty</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Academic Senate</skos:prefLabel>
+	<skos:notation>1</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/0"/>
+	<skos:prefLabel xml:lang="cs">Akademický senát</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1190">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Astronomical Institute of Charles University</skos:prefLabel>
+	<skos:notation>1190</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Astronomický ústav UK</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1191">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Fyzikální ústav UK</skos:prefLabel>
+	<skos:notation>1191</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="en">Institute of Physics of Charles University</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1214">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Kabinet výuky obecné fyziky</skos:prefLabel>
+	<skos:notation>1214</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="en">Laboratory of General Physics Education</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1215">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Physics Education</skos:prefLabel>
+	<skos:notation>1215</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra didaktiky fyziky</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1220">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Surface and Plasma Science</skos:prefLabel>
+	<skos:notation>1220</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra fyziky povrchů a plazmatu</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1231">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Physics of Materials</skos:prefLabel>
+	<skos:notation>1231</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra fyziky materiálů</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1251">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Low Temperature Physics</skos:prefLabel>
+	<skos:notation>1251</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra fyziky nízkých teplot</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1262">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Condensed Matter Physics</skos:prefLabel>
+	<skos:notation>1262</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra fyziky kondenzovaných látek</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1271">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Macromolecular Physics</skos:prefLabel>
+	<skos:notation>1271</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra makromolekulární fyziky</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1276">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Geophysics</skos:prefLabel>
+	<skos:notation>1276</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra geofyziky</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1277">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Department of Chemical Physics and Optics</skos:prefLabel>
+	<skos:notation>1277</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Katedra chemické fyziky a optiky</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1284">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="en">Institute of Particle and Nuclear Physics</skos:prefLabel>
+	<skos:notation>1284</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="cs">Ústav částicové a jaderné fyziky</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1290">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra fyziky atmosféry</skos:prefLabel>
+	<skos:notation>1290</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="en">Department of Atmospheric Physics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1291">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Ústav teoretické fyziky</skos:prefLabel>
+	<skos:notation>1291</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="en">Institute of Theoretical Physics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/100026003452">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Počítačová síť Troja</skos:prefLabel>
+	<skos:notation>100026003452</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1170"/>
+	<skos:prefLabel xml:lang="en">Computer network Troja</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1292">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra softwaru a výuky informatiky</skos:prefLabel>
+	<skos:notation>1292</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Department of Software and Computer Science Education</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1293">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra aplikované matematiky</skos:prefLabel>
+	<skos:notation>1293</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Department of Applied Mathematics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1850">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra distribuovaných a spolehlivých systémů</skos:prefLabel>
+	<skos:notation>1850</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Department of Distributed and Dependable Systems</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1294">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra softwarového inženýrství</skos:prefLabel>
+	<skos:notation>1294</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Department of Software Engineering</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1295">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra teoretické informatiky a matematické logiky</skos:prefLabel>
+	<skos:notation>1295</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Department of Theoretical Computer Science and Mathematical Logic</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1296">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Středisko informatické sítě a laboratoří</skos:prefLabel>
+	<skos:notation>1296</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Network and Labs Management Center</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1297">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Ústav formální a aplikované lingvistiky</skos:prefLabel>
+	<skos:notation>1297</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Institute of Formal and Applied Linguistics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/2110">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Informatický ústav Univerzity Karlovy</skos:prefLabel>
+	<skos:notation>2110</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1171"/>
+	<skos:prefLabel xml:lang="en">Computer Science Institute of Charles University</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1309">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra algebry</skos:prefLabel>
+	<skos:notation>1309</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"/>
+	<skos:prefLabel xml:lang="en">Department of Algebra</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1310">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra didaktiky matematiky</skos:prefLabel>
+	<skos:notation>1310</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"/>
+	<skos:prefLabel xml:lang="en">Department of Mathematics Education</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1311">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra matematické analýzy</skos:prefLabel>
+	<skos:notation>1311</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"/>
+	<skos:prefLabel xml:lang="en">Department of Mathematical Analysis</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1313">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra numerické matematiky</skos:prefLabel>
+	<skos:notation>1313</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"/>
+	<skos:prefLabel xml:lang="en">Department of Numerical Mathematics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1314">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra pravděpodobnosti a matematické statistiky</skos:prefLabel>
+	<skos:notation>1314</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"/>
+	<skos:prefLabel xml:lang="en">Department of Probability and Mathematical Statistics</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1315">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Matematický ústav UK</skos:prefLabel>
+	<skos:notation>1315</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1172"/>
+	<skos:prefLabel xml:lang="en">Mathematical Institute of Charles University</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1204">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Knihovna fakulty</skos:prefLabel>
+	<skos:notation>1204</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175"/>
+	<skos:prefLabel xml:lang="en">Library</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1205">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra jazykové přípravy</skos:prefLabel>
+	<skos:notation>1205</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175"/>
+	<skos:prefLabel xml:lang="en">Department of Language Education</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1206">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Katedra tělesné výchovy</skos:prefLabel>
+	<skos:notation>1206</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1175"/>
+	<skos:prefLabel xml:lang="en">Department of Physical Education</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1239">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Reprografické středisko fakulty</skos:prefLabel>
+	<skos:notation>1239</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1173"/>
+	<skos:prefLabel xml:lang="en">Reprographic Centre</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1240">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Konferenční a společenské centrum "Profesní dům"</skos:prefLabel>
+	<skos:notation>1240</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1173"/>
+	<skos:prefLabel xml:lang="en">Conference and Social Center "House for Professed"</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1241">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Sekretariát</skos:prefLabel>
+	<skos:notation>1241</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Secretary Office</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1242">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Hospodářské oddělení</skos:prefLabel>
+	<skos:notation>1242</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Financial Department</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1244">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Oddělení pro vědu a zahraniční styky</skos:prefLabel>
+	<skos:notation>1244</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Research and International Affairs Department</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1243">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Studijní oddělení</skos:prefLabel>
+	<skos:notation>1243</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Student Affairs Department</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1246">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Zaměstnanecké oddělení</skos:prefLabel>
+	<skos:notation>1246</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Department of Human Resources</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1248">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Správa počítačové sítě Karlov a centrálního informačního uzlu</skos:prefLabel>
+	<skos:notation>1248</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">IS/IT Division</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/2320">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Oddělení propagace a mediální komunikace</skos:prefLabel>
+	<skos:notation>2320</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Media Communications and PR Office</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1249">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Správa budov</skos:prefLabel>
+	<skos:notation>1249</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Department of Building Maintenance</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1250">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Referát energetika</skos:prefLabel>
+	<skos:notation>1250</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Power Management Office</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1254">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Referát požárního a bezpečnostního technika</skos:prefLabel>
+	<skos:notation>1254</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Fire and Security Division</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/1255">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Referát interního auditu a právních služeb</skos:prefLabel>
+	<skos:notation>1255</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Department of Internal Audit and Legal Services</skos:prefLabel>
+</rdf:Description>
+
+<rdf:Description rdf:about="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/oddělení/100028726779">
+	<rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+	<skos:inScheme rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura"/>
+	<skos:prefLabel xml:lang="cs">Oddělení firemní spolupráce a kariérního poradenství</skos:prefLabel>
+	<skos:notation>100028726779</skos:notation>
+	<skos:broader rdf:resource="https://data.mff.cuni.cz/zdroj/číselníky/organizační-struktura/skupiny/1174"/>
+	<skos:prefLabel xml:lang="en">Department for Business Cooperation and Career Counselling</skos:prefLabel>
+</rdf:Description>
+
+</rdf:RDF>

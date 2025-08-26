@@ -16,9 +16,6 @@
       "path": "../core"
     },
     {
-      "path": "../loaders"
-    },
-    {
       "path": "./tsconfig.editor.json"
     },
     {

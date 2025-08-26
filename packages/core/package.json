@@ -61,6 +61,7 @@
     "bcp47-validate": "^1.0.0",
     "csv": "^6.3.11",
     "date-fns": "^4.1.0",
+    "es-toolkit": "^1.39.10",
     "idna-uts46-hx": "^6.0.8",
     "jsonld": "^8.3.3",
     "jsonld-streaming-parser": "^5.0.0",

@@ -62,7 +62,7 @@ export const commonPrefixes = {
 
 const { xsd, rdf, csvw } = commonPrefixes;
 
-export const numericTypes = new Set([
+export const numericTypes = [
   xsd + 'integer',
   xsd + 'decimal',
   xsd + 'long',
@@ -79,14 +79,14 @@ export const numericTypes = new Set([
   xsd + 'float',
   xsd + 'nonPositiveInteger',
   xsd + 'negativeInteger',
-]);
-export const dateTypes = new Set([
+];
+export const dateTypes = [
   xsd + 'date',
   xsd + 'dateTime',
   xsd + 'time',
   xsd + 'dateTimeStamp',
-]);
-export const stringTypes = new Set([
+];
+export const stringTypes = [
   xsd + 'string',
   xsd + 'normalizedString',
   xsd + 'token',
@@ -95,7 +95,7 @@ export const stringTypes = new Set([
   xsd + 'Name',
   xsd + 'hexBinary',
   xsd + 'base64Binary',
-]);
+];
 
 export const dtUris: Record<CsvwBuiltinDatatype, string> = {
   any: xsd + 'anyAtomicType',
@@ -146,5 +146,77 @@ export const dtUris: Record<CsvwBuiltinDatatype, string> = {
   xml: rdf + 'XMLLiteral',
   yearMonthDuration: xsd + 'yearMonthDuration',
 };
+export const builtinDts = Object.fromEntries(
+  Object.entries(dtUris).map(([key, value]) => [value, key]),
+);
+
+type DtTree = {
+  [K in CsvwBuiltinDatatype]?: DtTree | null;
+};
+export const dtTree: DtTree = {
+  anyAtomicType: {
+    anyURI: null,
+    base64Binary: null,
+    boolean: null,
+    date: null,
+    dateTime: {
+      dateTimeStamp: null,
+    },
+    decimal: {
+      integer: {
+        long: {
+          int: {
+            short: {
+              byte: null,
+            },
+          },
+        },
+        nonNegativeInteger: {
+          positiveInteger: null,
+          unsignedLong: {
+            unsignedInt: {
+              unsignedShort: {
+                unsignedByte: null,
+              },
+            },
+          },
+        },
+        nonPositiveInteger: {
+          negativeInteger: null,
+        },
+      },
+    },
+    double: null,
+    duration: {
+      dayTimeDuration: null,
+      yearMonthDuration: null,
+    },
+    float: null,
+    gDay: null,
+    gMonth: null,
+    gMonthDay: null,
+    gYear: null,
+    gYearMonth: null,
+    hexBinary: null,
+    QName: null,
+    string: {
+      normalizedString: {
+        token: {
+          language: null,
+          Name: null,
+          NMTOKEN: null,
+        },
+      },
+      xml: null,
+      html: null,
+      json: null,
+    },
+    time: null,
+  },
+};
+dtTree.any = dtTree.anyAtomicType;
+dtTree.any!.binary = dtTree.any!.base64Binary;
+dtTree.any!.datetime = dtTree.any!.dateTime;
+dtTree.any!.number = dtTree.any!.double;
 
 export const invalidValuePrefix = '@@invalid@@';

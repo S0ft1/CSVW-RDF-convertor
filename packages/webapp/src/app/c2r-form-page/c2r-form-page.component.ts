@@ -12,7 +12,7 @@ import { MatButton } from '@angular/material/button';
 import { FilesFormComponent } from './files-form/files-form.component';
 import { FormatFormComponent } from './format-form/format-form.component';
 import { OptionsFormComponent } from './options-form/options-form.component';
-import { RDFSerialization } from '@csvw-rdf-convertor/loaders';
+import { RDFSerialization } from '@csvw-rdf-convertor/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { startWith, filter, switchMap } from 'rxjs/operators';
 import { C2RService, InitC2RParams } from '../services/c2r.service';

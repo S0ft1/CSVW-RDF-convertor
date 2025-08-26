@@ -2,7 +2,9 @@
   "name": "@csvw-rdf-convertor/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "watch": "nx watch -p webapp -d -- nx run-many -t build -p %NX_PROJECT_NAME% --exclude=webapp"
+  },
   "private": true,
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "~1.17.1",

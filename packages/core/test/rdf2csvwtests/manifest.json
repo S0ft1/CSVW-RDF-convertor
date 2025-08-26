@@ -788,7 +788,7 @@
   },
   {
     "id": "127",
-    "type": "ToCsvwTestWithWarnings",
+    "type": "ToCsvwTest",
     "name": "incompatible table",
     "comment": "if TM is not compatible with EM validators MUST raise an error, other processors MUST generate a warning and continue processing",
     "action": "127/input.ttl",

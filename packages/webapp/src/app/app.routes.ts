@@ -88,4 +88,13 @@ export const appRoutes: Route[] = [
     canMatch: [conversionExistsGuard(R2CService, '/r2c-simple')],
     title: 'RDF → CSVW',
   },
+  {
+    path: 'r2c/schema',
+    loadComponent: () =>
+      import('./r2c-schema-page/r2c-schema-page.component').then(
+        (m) => m.R2cSchemaPageComponent,
+      ),
+    canMatch: [conversionExistsGuard(R2CService, '/r2c')],
+    title: 'RDF → CSVW',
+  },
 ];

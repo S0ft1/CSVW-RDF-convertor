@@ -46,7 +46,7 @@ const datatypeSchema: Partial<Record<keyof CsvwDatatype, PropertySchema>> = {
  */
 export function validateDatatype(
   props: CsvwInheritedProperties,
-  ctx: ValidationContext
+  ctx: ValidationContext,
 ) {
   const dt = props.datatype;
   if (dt === undefined) return;
@@ -63,7 +63,7 @@ export function validateDatatype(
   validateDatatypeId(dt, ctx);
   if (dt.base && !(dt.base in dtUris)) {
     ctx.issueTracker.addWarning(
-      `Datatype "${dt.base}" is not a valid datatype.`
+      `Datatype "${dt.base}" is not a valid datatype.`,
     );
     dt.base = 'string';
   }
@@ -77,7 +77,7 @@ export function validateDatatype(
 
   validateObject(dt, datatypeSchema, 'Datatype', ctx);
 
-  if (numericTypes.has(xsd + dt.base)) {
+  if (numericTypes.includes(xsd + dt.base)) {
     if (typeof dt.format === 'string') {
       dt.format = { pattern: dt.format };
     }
@@ -88,7 +88,7 @@ export function validateDatatype(
     ctx.issueTracker.addWarning(
       `Datatype "${
         dt.base
-      }" format is of type ${typeof dt.format}, expected string.`
+      }" format is of type ${typeof dt.format}, expected string.`,
     );
     dt.format = undefined;
     return;
@@ -97,19 +97,19 @@ export function validateDatatype(
   if (dt.base === 'boolean') {
     if (!dt.format.includes('|')) {
       ctx.issueTracker.addWarning(
-        `Datatype "${dt.base}" format is "${dt.format}", should be string with "|" separator.`
+        `Datatype "${dt.base}" format is "${dt.format}", should be string with "|" separator.`,
       );
       dt.format = undefined;
     }
     return;
   }
 
-  if (!dateTypes.has(xsd + dt.base) && dt.base !== 'datetime') {
+  if (!dateTypes.includes(xsd + dt.base) && dt.base !== 'datetime') {
     try {
       dt.format = new RegExp(dt.format);
     } catch {
       ctx.issueTracker.addWarning(
-        `Datatype "${dt.base}" format is "${dt.format}", should be a valid regex.`
+        `Datatype "${dt.base}" format is "${dt.format}", should be a valid regex.`,
       );
       dt.format = undefined;
     }
@@ -123,27 +123,27 @@ function validateLengthConstraints(dt: CsvwDatatype, ctx: ValidationContext) {
 
   if (
     (length ?? minLength ?? maxLength) !== undefined &&
-    !stringTypes.has(xsd + base) &&
+    !stringTypes.includes(xsd + base) &&
     !['json', 'html', 'xml'].includes(base)
   ) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" cannot have length, minLength or maxLength constraints.`
+      `Datatype "${dt.base}" cannot have length, minLength or maxLength constraints.`,
     );
   }
 
   if (length < minLength) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" length (${length}) is less than minLength (${minLength}).`
+      `Datatype "${dt.base}" length (${length}) is less than minLength (${minLength}).`,
     );
   }
   if (length > maxLength) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" length (${length}) is greater than maxLength (${maxLength}).`
+      `Datatype "${dt.base}" length (${length}) is greater than maxLength (${maxLength}).`,
     );
   }
   if (minLength > maxLength) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" minLength (${minLength}) is greater than maxLength (${maxLength}).`
+      `Datatype "${dt.base}" minLength (${minLength}) is greater than maxLength (${maxLength}).`,
     );
   }
 }
@@ -158,15 +158,15 @@ function validateMinMaxConstraints(dt: CsvwDatatype, ctx: ValidationContext) {
 
   if (
     (minExclusive ?? maxExclusive ?? minimum ?? maximum) !== undefined &&
-    !numericTypes.has(xsd + base) &&
-    !dateTypes.has(xsd + base)
+    !numericTypes.includes(xsd + base) &&
+    !dateTypes.includes(xsd + base)
   ) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" cannot have minimum or maximum constraints.`
+      `Datatype "${dt.base}" cannot have minimum or maximum constraints.`,
     );
   }
 
-  if (dateTypes.has(xsd + base)) {
+  if (dateTypes.includes(xsd + base)) {
     if (minExclusive !== undefined) {
       minExclusive = parseDate(minExclusive as string, dt.base as string);
     }
@@ -183,33 +183,33 @@ function validateMinMaxConstraints(dt: CsvwDatatype, ctx: ValidationContext) {
 
   if (minimum !== undefined && minExclusive !== undefined) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" minInclusive (${minimum}) and minExclusive (${minExclusive}) cannot be used together.`
+      `Datatype "${dt.base}" minInclusive (${minimum}) and minExclusive (${minExclusive}) cannot be used together.`,
     );
   }
   if (maximum !== undefined && maxExclusive !== undefined) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" maxInclusive (${maximum}) and maxExclusive (${maxExclusive}) cannot be used together.`
+      `Datatype "${dt.base}" maxInclusive (${maximum}) and maxExclusive (${maxExclusive}) cannot be used together.`,
     );
   }
 
   if (maximum < minimum) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" maxInclusive (${maximum}) is less than minInclusive (${minimum}).`
+      `Datatype "${dt.base}" maxInclusive (${maximum}) is less than minInclusive (${minimum}).`,
     );
   }
   if (maxExclusive <= minimum) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" maxExclusive (${maxExclusive}) is less than or equal to minInclusive (${minimum}).`
+      `Datatype "${dt.base}" maxExclusive (${maxExclusive}) is less than or equal to minInclusive (${minimum}).`,
     );
   }
   if (maximum <= minExclusive) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" maxInclusive (${maximum}) is less than or equal to minExclusive (${minExclusive}).`
+      `Datatype "${dt.base}" maxInclusive (${maximum}) is less than or equal to minExclusive (${minExclusive}).`,
     );
   }
   if (maxExclusive <= minExclusive) {
     ctx.issueTracker.addError(
-      `Datatype "${dt.base}" maxExclusive (${maxExclusive}) is less than or equal to minExclusive (${minExclusive}).`
+      `Datatype "${dt.base}" maxExclusive (${maxExclusive}) is less than or equal to minExclusive (${minExclusive}).`,
     );
   }
 }
@@ -222,7 +222,7 @@ function validateDatatypeId(dt: CsvwDatatype, ctx: ValidationContext) {
     .replace(/^csvw:/, csvw);
   if (Object.values(dtUris).includes(id)) {
     ctx.issueTracker.addError(
-      `Datatype @id "${dt['@id']}" must not be a builtin datatype.`
+      `Datatype @id "${dt['@id']}" must not be a builtin datatype.`,
     );
   }
 }

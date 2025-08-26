@@ -13,3 +13,7 @@ export * from './lib/utils/all-uris.js';
 export * from './lib/utils/issue-tracker.js';
 export * from './lib/utils/code-location.js';
 export * from './lib/utils/event-emitter.js';
+export * from './lib/loaders/parse.js';
+export * from './lib/loaders/serialize.js';
+export * from './lib/loaders/prefix-lookup.js';
+export * from './lib/loaders/rdf-serialization.js';

@@ -27,28 +27,30 @@ export class WindowStore {
   }
 
   /**
-   * Advances the underlying stream.
+   * Advances the underlying stream by {@link stepSize} quads.
    */
-  public async moveWindow(): Promise<Quad[]> {
-    const results: Quad[] = [];
+  public async moveWindow(): Promise<[added: Quad[], removed: Quad[]]> {
+    const added: Quad[] = [];
+    const removed: Quad[] = [];
     if (!this.streamInitialized) {
       throw new Error('Stream not initialized');
     }
     if (!this.queue) {
-      return results;
+      return [added, removed];
     }
     for (let i = 0; i < (this.stepSize as number) && !this._done; i++) {
       const nextQuad = await this.streamIter.next();
       if (nextQuad.value) {
         this.queue.push(nextQuad.value);
-        results.push(nextQuad.value);
+        added.push(nextQuad.value);
         await this.store.put(nextQuad.value);
         const quad = this.queue.shift() as Quad;
+        removed.push(quad);
         await this.store.del(quad);
       }
       this._done = !!nextQuad.done;
     }
-    return results;
+    return [added, removed];
   }
 
   /**
@@ -58,12 +60,21 @@ export class WindowStore {
     if (!this.queue) {
       await this.store.putStream(this.stream);
       this._done = true;
+      console.log('Stream fully loaded into store');
     } else {
       const iterable =
         Symbol.asyncIterator in this.stream
           ? (this.stream as AsyncIterable<Quad>)
           : eventEmitterToAsyncIterable<Quad>(this.stream);
       this.streamIter = iterable[Symbol.asyncIterator]();
+      for (let i = 0; i < (this.windowSize as number) && !this._done; i++) {
+        const nextQuad = await this.streamIter.next();
+        if (nextQuad.value) {
+          this.queue.push(nextQuad.value);
+          await this.store.put(nextQuad.value);
+        }
+        this._done = !!nextQuad.done;
+      }
     }
     this.streamInitialized = true;
   }

@@ -20,9 +20,6 @@
   "references": [
     {
       "path": "../core/tsconfig.lib.json"
-    },
-    {
-      "path": "../loaders/tsconfig.lib.json"
     }
   ]
 }

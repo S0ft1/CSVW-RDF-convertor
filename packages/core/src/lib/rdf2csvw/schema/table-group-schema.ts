@@ -6,7 +6,7 @@ export class TableGroupSchema implements CsvwTableGroupDescription {
 
   public addTable(url: string, ...columns: string[]): TableSchema {
     if (this.tables?.some((table) => table.url === url))
-      throw new Error('Cannot add table with an existing name');
+      throw new Error('Cannot add table with an existing name: ' + url);
 
     const table = new TableSchema(url, ...columns);
     if (this.tables === undefined) this.tables = [table];
@@ -32,5 +32,21 @@ export class TableGroupSchema implements CsvwTableGroupDescription {
   }
   public removeTableCol(table: string, name: string) {
     throw new Error('Method not implemented.');
+  }
+
+  public clone() {
+    const clone = new TableGroupSchema();
+    clone.tables = this.tables.map((table) => table.clone()) as [
+      TableSchema,
+      ...TableSchema[],
+    ];
+    return clone;
+  }
+
+  /**
+   * Locks the current tables, preventing them from being extended.
+   */
+  public lock() {
+    this.tables.forEach((table) => (table.locked = true));
   }
 }

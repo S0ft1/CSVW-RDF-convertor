@@ -9,7 +9,7 @@
     "emitDeclarationOnly": true,
     "forceConsistentCasingInFileNames": true,
     "types": [],
-    "lib": ["ES2022", "DOM", "DOM.AsyncIterable"]
+    "lib": ["ES2022", "DOM", "DOM.AsyncIterable", "ESNext.Array"]
   },
   "include": ["src/**/*.ts"],
   "references": [],

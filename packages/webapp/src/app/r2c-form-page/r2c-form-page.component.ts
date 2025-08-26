@@ -85,8 +85,13 @@ export class R2cFormPageComponent {
   }
 
   submit() {
-    this.service.initConversion(this.form.value as InitR2CParams);
+    if (this.form.value.options.interactiveSchema) {
+      this.service.inferSchema(this.form.value as InitR2CParams);
+      this.router.navigate(['r2c/schema']);
+    } else {
+      this.service.initConversion(this.form.value as InitR2CParams);
+      this.router.navigate(['r2c/results']);
+    }
     this.form.reset();
-    this.router.navigate(['r2c/results']);
   }
 }
