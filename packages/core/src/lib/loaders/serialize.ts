@@ -1,4 +1,3 @@
-import { commonPrefixes, rdfStreamToArray } from '@csvw-rdf-convertor/core';
 import { Quad, Stream } from '@rdfjs/types';
 import N3, { StreamWriter } from 'n3';
 import TurtleSerializer from '@rdfjs/serializer-turtle';
@@ -7,6 +6,8 @@ import { Readable } from 'readable-stream';
 import { JsonLdSerializer } from 'jsonld-streaming-serializer';
 import { lookupPrefixes } from './prefix-lookup.js';
 import { n3Formats, RDFSerialization } from './rdf-serialization.js';
+import { commonPrefixes } from '../utils/prefix.js';
+import { rdfStreamToArray } from '../utils/stream-to-array.js';
 
 const { namedNode } = N3.DataFactory;
 
