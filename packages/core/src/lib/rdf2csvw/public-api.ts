@@ -2,11 +2,12 @@ import { Quad, Stream } from '@rdfjs/types';
 import { Rdf2CsvOptions } from '../conversion-options.js';
 import { TableGroupSchema } from './schema/table-group-schema.js';
 import { CsvwTableStreams, Rdf2CsvwConvertor } from './convertor.js';
+import { DescriptorWrapper } from '../descriptor.js';
 
 export async function rdfToCsvw(
   rdf: Stream<Quad>,
   options?: Rdf2CsvOptions,
-): Promise<CsvwTableStreams> {
+): Promise<[CsvwTableStreams, DescriptorWrapper]> {
   options ??= {};
   if (!options?.descriptor) {
     options.descriptor = await rdfToTableSchema(rdf, options);
