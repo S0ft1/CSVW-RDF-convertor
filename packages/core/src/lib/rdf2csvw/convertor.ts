@@ -17,6 +17,7 @@ import {
 import { CsvLocationTracker } from '../utils/code-location.js';
 import { coerceArray } from '../utils/coerce.js';
 import { commonPrefixes } from '../utils/prefix.js';
+import { expandIri } from '../utils/expand-iri.js';
 import { IssueTracker } from '../utils/issue-tracker.js';
 
 import { MemoryLevel } from 'memory-level';
@@ -45,6 +46,8 @@ export type OptionsWithDefaults = Required<
   Omit<Rdf2CsvOptions, NullableOptions>
 > &
   Pick<Rdf2CsvOptions, NullableOptions>;
+
+const { rdf } = commonPrefixes;
 
 export class Rdf2CsvwConvertor {
   private options: OptionsWithDefaults;
@@ -130,52 +133,8 @@ export class Rdf2CsvwConvertor {
       // TODO: row number in url templates
       // TODO: detect cycles
 
-      const columns: CsvwColumn[] =
-        tableWithRequiredColumns.tableSchema.columns.map((col, i) => {
-          const defaultLang =
-            (this.wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
-            '@none';
-
-          let name = `_col.${i + 1}`;
-          if (col.name !== undefined) {
-            name = encodeURIComponent(col.name);
-          } else if (col.titles !== undefined) {
-            if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
-              name = encodeURIComponent(coerceArray(col.titles)[0]);
-            } else {
-              // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
-              if (defaultLang in col.titles) {
-                name = encodeURIComponent(
-                  coerceArray(col.titles[defaultLang])[0],
-                );
-              }
-            }
-          }
-
-          let title = undefined;
-          if (col.titles !== undefined) {
-            if (typeof col.titles === 'string' || Array.isArray(col.titles)) {
-              title = coerceArray(col.titles)[0];
-            } else {
-              // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
-              if (defaultLang in col.titles) {
-                title = coerceArray(col.titles[defaultLang])[0];
-              }
-            }
-          }
-          if (title === undefined && col.name !== undefined) {
-            title = col.name;
-          }
-          if (title === undefined) title = `_col.${i + 1}`;
-
-          // note that queryVariable does not contain dot that is special char in SPARQL.
-          // queryVariable of 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' will be set later,
-          // because we want to select its subject, not object.
-          return { name: name, title: title, queryVariable: `_col${i + 1}` };
-        });
-      const query = this.createQuery(
+      const [columns, query] = this.createQuery(
         tableWithRequiredColumns,
-        columns,
         useNamedGraphs,
       );
       if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
@@ -220,9 +179,67 @@ export class Rdf2CsvwConvertor {
    */
   private createQuery(
     table: CsvwTableDescriptionWithRequiredColumns,
-    columns: CsvwColumn[],
     useNamedGraphs: boolean,
-  ) {
+  ): [CsvwColumn[], string] {
+    let queryVarCounter = 0;
+    const queryVars: Record<string, string> = {};
+
+    const columns: CsvwColumn[] = table.tableSchema.columns.map((column, i) => {
+      const defaultLang =
+        (this.wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
+        '@none';
+
+      let name = `_col.${i + 1}`;
+      if (column.name !== undefined) {
+        name = encodeURIComponent(column.name);
+      } else if (column.titles !== undefined) {
+        if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
+          name = encodeURIComponent(coerceArray(column.titles)[0]);
+        } else {
+          // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+          if (defaultLang in column.titles) {
+            name = encodeURIComponent(
+              coerceArray(column.titles[defaultLang])[0],
+            );
+          }
+        }
+      }
+
+      let title = undefined;
+      if (column.titles !== undefined) {
+        if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
+          title = coerceArray(column.titles)[0];
+        } else {
+          // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+          if (defaultLang in column.titles) {
+            title = coerceArray(column.titles[defaultLang])[0];
+          }
+        }
+      }
+      if (title === undefined && column.name !== undefined) {
+        title = column.name;
+      }
+      if (title === undefined) title = `_col.${i + 1}`;
+
+      const aboutUrl = column.aboutUrl;
+      const propertyUrl = column.propertyUrl;
+      const valueUrl = column.valueUrl;
+
+      if (queryVars[aboutUrl ?? ''] === undefined)
+        queryVars[aboutUrl ?? ''] = `_${queryVarCounter++}`;
+      if (valueUrl && queryVars[valueUrl] === undefined)
+        queryVars[valueUrl] = `_${queryVarCounter++}`;
+
+      let queryVar: string;
+      if (propertyUrl && expandIri(propertyUrl) === rdf + 'type') {
+        queryVar = queryVars[aboutUrl ?? ''];
+      } else {
+        queryVar = valueUrl ? queryVars[valueUrl] : `_${queryVarCounter++}`;
+      }
+
+      return { name: name, title: title, queryVariable: queryVar };
+    });
+
     const lines: string[] = [];
     let allOptional = true;
     const topLevel: number[] = [];
@@ -231,21 +248,24 @@ export class Rdf2CsvwConvertor {
 
       const aboutUrl = column.aboutUrl;
       const referencedBy = table.tableSchema.columns.find((col) => {
-        const valueUrl = col.valueUrl;
-        return col !== column && valueUrl && valueUrl === aboutUrl;
+        if (col.propertyUrl && expandIri(col.propertyUrl) === rdf + 'type')
+          return col !== column && col.aboutUrl && col.aboutUrl === aboutUrl;
+        else return col !== column && col.valueUrl && col.valueUrl === aboutUrl;
       });
 
       // TODO: use tableSchema.foreignKeys
       if (
         !referencedBy ||
         (table.tableSchema.primaryKey &&
-          table.tableSchema.primaryKey === column.name)
+          coerceArray(table.tableSchema.primaryKey).includes(
+            columns[index].name,
+          ))
       ) {
         const patterns = this.createTriplePatterns(
           table,
           columns,
           index,
-          '?_subject',
+          queryVars,
         );
         // Required columns are prepended, because OPTIONAL pattern should not be at the beginning.
         // For more information, see createSelectOfOptionalSubjects function bellow.
@@ -261,14 +281,21 @@ export class Rdf2CsvwConvertor {
 
     if (allOptional) {
       lines.unshift(
-        this.createSelectOfOptionalSubjects(table, columns, topLevel),
+        this.createSelectOfOptionalSubjects(
+          table,
+          columns,
+          topLevel,
+          queryVars,
+        ),
       );
     }
 
-    return `SELECT ${columns
-      .filter((col, i) => !table.tableSchema.columns[i].virtual)
-      .map((column) => `?${column.queryVariable}`)
-      .join(' ')}
+    return [
+      columns,
+      `SELECT ${columns
+        .filter((col, i) => !table.tableSchema.columns[i].virtual)
+        .map((column) => `?${column.queryVariable}`)
+        .join(' ')}
 WHERE {
 ${
   !useNamedGraphs
@@ -283,7 +310,8 @@ ${lines.map((line) => `    ${line}`).join('\n')}
     }
   }`
 }
-}`;
+}`,
+    ];
   }
 
   /**
@@ -300,94 +328,99 @@ ${lines.map((line) => `    ${line}`).join('\n')}
     table: CsvwTableDescriptionWithRequiredColumns,
     columns: CsvwColumn[],
     topLevel: number[],
-  ) {
-    return `  {
-    SELECT DISTINCT ?_subject WHERE {
-      ${topLevel
-        .map((index) => {
-          const column = table.tableSchema.columns[index];
+    queryVars: Record<string, string>,
+  ): string {
+    const subjects = new Set<string>();
+    const alternatives: string[] = [];
 
-          const aboutUrl = column.aboutUrl;
-          const propertyUrl = column.propertyUrl;
-          const valueUrl = column.valueUrl;
+    for (const index of topLevel) {
+      const column = table.tableSchema.columns[index];
 
-          const subject = '?_subject';
-          const predicate = propertyUrl
-            ? `<${this.expandIri(
-                parseTemplate(propertyUrl).expand({
-                  _column: index + 1,
-                  _sourceColumn: index + 1,
-                  _name: columns[index].name,
-                }),
-              )}>`
-            : `<${table.url}#${columns[index].name}>`;
-          let object = '?_object';
+      const aboutUrl = column.aboutUrl;
+      const propertyUrl = column.propertyUrl;
+      const valueUrl = column.valueUrl;
 
-          if (
-            valueUrl &&
-            valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
-          ) {
-            object = parseTemplate(valueUrl).expand({
+      const subject = `?${queryVars[aboutUrl ?? '']}`;
+
+      const predicate = propertyUrl
+        ? `<${expandIri(
+            parseTemplate(propertyUrl).expand({
               _column: index + 1,
               _sourceColumn: index + 1,
               _name: columns[index].name,
-            });
-            const datatype = column.datatype;
-            if (
-              datatype === 'anyURI' ||
-              predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
-            )
-              object = `<${this.expandIri(object)}>`;
-            else object = `"${object}"`;
-          }
+            }),
+          )}>`
+        : `<${table.url}#${columns[index].name}>`;
 
-          const lines = [`          ${subject} ${predicate} ${object} .`];
+      let object = `?_object`;
+      if (
+        valueUrl &&
+        valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
+      ) {
+        object = parseTemplate(valueUrl).expand({
+          _column: index + 1,
+          _sourceColumn: index + 1,
+          _name: columns[index].name,
+        });
+        if (column.datatype === 'anyURI' || predicate === `<${rdf}type>`)
+          object = `<${expandIri(object)}>`;
+        else object = `"${object}"`;
+      }
 
-          const lang = column.lang;
-          if (lang) {
-            // TODO: Should we lower our expectations if the matching language is not found?
-            lines.push(
-              `          FILTER LANGMATCHES (LANG(${object}), "${lang}")`,
-            );
-          }
+      const lines = [`        ${subject} ${predicate} ${object} .`];
 
-          if (aboutUrl)
-            lines.push(
-              `          FILTER REGEX(STR(?_subject), "${this.expandIri(
-                parseTemplate(
-                  aboutUrl.replaceAll(
-                    /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-                    '.*',
-                  ),
-                ).expand({
-                  _column: index + 1,
-                  _sourceColumn: index + 1,
-                  _name: columns[index].name,
-                }),
-              )}$")`,
-            );
+      const lang = column.lang;
+      if (lang && object.startsWith('?')) {
+        // TODO: Should we lower our expectations if the matching language is not found?
+        lines.push(`        FILTER LANGMATCHES(LANG(${object}), "${lang}")`);
+      }
 
-          if (object.startsWith('?') && valueUrl)
-            lines.push(
-              `          FILTER REGEX(STR(?_object), "${this.expandIri(
-                parseTemplate(
-                  valueUrl.replaceAll(
-                    /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-                    '.*',
-                  ),
-                ).expand({
-                  _column: index + 1,
-                  _sourceColumn: index + 1,
-                  _name: columns[index].name,
-                }),
-              )}$")`,
-            );
+      if (aboutUrl && subject.startsWith('?')) {
+        const templateUrl = expandIri(
+          parseTemplate(
+            aboutUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*',
+            ),
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          }),
+        );
+        if (templateUrl !== '.*')
+          lines.push(
+            `        FILTER REGEX(STR(${subject}), "${templateUrl}$")`,
+          );
+      }
 
-          return `{
+      if (valueUrl && object.startsWith('?')) {
+        const templateUrl = expandIri(
+          parseTemplate(
+            valueUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*',
+            ),
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          }),
+        );
+        if (templateUrl !== '.*')
+          lines.push(`        FILTER REGEX(STR(${object}), "${templateUrl}$")`);
+      }
+
+      subjects.add(subject);
+      alternatives.push(`{
 ${lines.join('\n')}
-      }`;
-        })
-        .join(' UNION ')}
+      }`);
+    }
+
+    return `  {
+    SELECT DISTINCT ${[...subjects].join(' ')}
+    WHERE {
+      ${alternatives.join(' UNION ')}
     }
   }`;
   }
@@ -405,7 +438,7 @@ ${lines.join('\n')}
     table: CsvwTableDescriptionWithRequiredColumns,
     columns: CsvwColumn[],
     index: number,
-    subject: string,
+    queryVars: Record<string, string>,
   ): string {
     const column = table.tableSchema.columns[index];
 
@@ -413,8 +446,10 @@ ${lines.join('\n')}
     const propertyUrl = column.propertyUrl;
     const valueUrl = column.valueUrl;
 
+    const subject = `?${queryVars[aboutUrl ?? '']}`;
+
     const predicate = propertyUrl
-      ? `<${this.expandIri(
+      ? `<${expandIri(
           parseTemplate(propertyUrl).expand({
             _column: index + 1,
             _sourceColumn: index + 1,
@@ -422,10 +457,6 @@ ${lines.join('\n')}
           }),
         )}>`
       : `<${table.url}#${columns[index].name}>`;
-
-    // we want to select subject of 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' instead of its object
-    if (predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>')
-      columns[index].queryVariable = subject.substring(1);
 
     let object = `?${columns[index].queryVariable}`;
     if (
@@ -437,61 +468,94 @@ ${lines.join('\n')}
         _sourceColumn: index + 1,
         _name: columns[index].name,
       });
-      if (
-        column.datatype === 'anyURI' ||
-        predicate === '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>'
-      )
-        object = `<${this.expandIri(object)}>`;
+      if (column.datatype === 'anyURI' || predicate === `<${rdf}type>`)
+        object = `<${expandIri(object)}>`;
       else object = `"${object}"`;
     }
 
     const lines = [`  ${subject} ${predicate} ${object} .`];
 
     const lang = column.lang;
-    if (lang) {
+    if (lang && object.startsWith('?')) {
       // TODO: Should we lower our expectations if the matching language is not found?
       lines.push(`  FILTER LANGMATCHES(LANG(${object}), "${lang}")`);
     }
 
-    if (aboutUrl && subject === '?_subject') {
-      lines.push(
-        `  FILTER REGEX(STR(${subject}), "${this.expandIri(
-          parseTemplate(
-            aboutUrl.replaceAll(
-              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-              '.*',
-            ),
-          ).expand({
-            _column: index + 1,
-            _sourceColumn: index + 1,
-            _name: columns[index].name,
-          }),
-        )}$")`,
+    if (aboutUrl && subject.startsWith('?')) {
+      const templateUrl = expandIri(
+        parseTemplate(
+          aboutUrl.replaceAll(
+            /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+            '.*',
+          ),
+        ).expand({
+          _column: index + 1,
+          _sourceColumn: index + 1,
+          _name: columns[index].name,
+        }),
       );
+      if (templateUrl !== '.*')
+        lines.push(`  FILTER REGEX(STR(${subject}), "${templateUrl}$")`);
     }
 
-    if (object.startsWith('?') && valueUrl) {
-      lines.push(
-        `  FILTER REGEX(STR(${object}), "${this.expandIri(
-          parseTemplate(
-            valueUrl.replaceAll(
-              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-              '.*',
-            ),
-          ).expand({
-            _column: index + 1,
-            _sourceColumn: index + 1,
-            _name: columns[index].name,
-          }),
-        )}$")`,
+    if (valueUrl && object.startsWith('?')) {
+      const templateUrl = expandIri(
+        parseTemplate(
+          valueUrl.replaceAll(
+            /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+            '.*',
+          ),
+        ).expand({
+          _column: index + 1,
+          _sourceColumn: index + 1,
+          _name: columns[index].name,
+        }),
       );
+      if (templateUrl !== '.*')
+        lines.push(`  FILTER REGEX(STR(${object}), "${templateUrl}$")`);
+    }
 
-      table.tableSchema.columns.forEach((col, i) => {
-        if (col !== column && col.aboutUrl === valueUrl) {
-          const patterns = this.createTriplePatterns(table, columns, i, object);
-          lines.push(...patterns.split('\n'));
-        }
-      });
+    if (predicate === `<${rdf}type>`) {
+      if (aboutUrl) {
+        table.tableSchema.columns.forEach((col, i) => {
+          if (col !== column && col.aboutUrl === aboutUrl) {
+            const patterns = this.createTriplePatterns(
+              table,
+              columns,
+              i,
+              queryVars,
+            );
+            lines.push(...patterns.split('\n'));
+          }
+        });
+      }
+    } else {
+      if (valueUrl) {
+        const typeColumn = table.tableSchema.columns.find(
+          (col) =>
+            col.propertyUrl &&
+            expandIri(col.propertyUrl) === rdf + 'type' &&
+            col.aboutUrl === valueUrl,
+        );
+        table.tableSchema.columns.forEach((col, i) => {
+          if (col !== column && col.aboutUrl === valueUrl) {
+            // filter out columns that are referenced by typeColumn
+            // so their triples are not generated twice
+            if (
+              typeColumn === undefined ||
+              (col.propertyUrl && expandIri(col.propertyUrl) === rdf + 'type')
+            ) {
+              const patterns = this.createTriplePatterns(
+                table,
+                columns,
+                i,
+                queryVars,
+              );
+              lines.push(...patterns.split('\n'));
+            }
+          }
+        });
+      }
     }
 
     if (!column.required) {
@@ -501,23 +565,6 @@ ${lines.map((line) => `  ${line}`).join('\n')}
     } else {
       return lines.map((line) => `${line}`).join('\n');
     }
-  }
-
-  /**
-   * Expands an IRI based on the common prefixes.
-   * @param iri - IRI to be expanded
-   * @returns Expanded IRI
-   */
-  private expandIri(iri: string): string {
-    const i = iri.indexOf(':');
-    if (i === -1) return iri;
-    const prefix = iri.slice(0, i);
-    if (prefix in commonPrefixes) {
-      return (
-        commonPrefixes[prefix as keyof typeof commonPrefixes] + iri.slice(i + 1)
-      );
-    }
-    return iri;
   }
 
   /**
@@ -538,7 +585,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
 
       // TODO: should we use information from csvw predicates and types to improve quality?
       if (
-        predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+        predicate.value === rdf + 'type' &&
         !object.value.startsWith('http://www.w3.org/ns/csvw#')
       ) {
         // TODO: make sure that tableUrls for different types are different
@@ -567,7 +614,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       } else if (!predicate.value.startsWith('http://www.w3.org/ns/csvw#')) {
         let hasType = false;
         const stream = await this.engine.queryBindings(
-          `SELECT ?_type WHERE { <${subject.value}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?_type }`,
+          `SELECT ?_type WHERE { <${subject.value}> <${rdf}type> ?_type }`,
           { baseIRI: '.' },
         );
 

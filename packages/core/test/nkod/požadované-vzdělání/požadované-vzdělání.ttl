@@ -1,0 +1,55 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání> a skos:ConceptScheme;
+  skos:prefLabel "Číselník požadovaných vzdělání Univerzity Karlovy"@cs, "Codelist of required education by Charles University"@en .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/BC> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Ukončené vysokoškolské vzdělání nebo srovnatelné vzdělání v zahraničí"@cs,
+    "University degree or comparable education abroad"@en;
+  skos:notation "BC" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/DOC> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Úspěšné ukončení habilitačního řízení nebo dosažení srovnatelného postavení v zahraničí"@cs,
+    "Successful completion of the habilitation procedure or attainment of comparable status abroad"@en;
+  skos:notation "DOC" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/DR> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Titul Ph.D., CSc, Th.D. nebo srovnatelné vzdělání v zahraničí"@cs,
+    "Ph.D., CSc, Th.D. or comparable education abroad"@en;
+  skos:notation "DR" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/MGR> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Ukončené magisterské vzdělání nebo srovnatelné vzdělání v zahraničí"@cs,
+    "Master's degree or equivalent education abroad"@en;
+  skos:notation "MGR" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/PROF> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Úspěšné ukončení řízení ke jmenování profesorem nebo dosažení srovnatelného postavení v zahraničí"@cs,
+    "Successful completion of the procedure for appointment as a professor or attainment of comparable status abroad"@en;
+  skos:notation "PROF" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/VOS> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Vyšší odborné"@cs, "Higher professional school"@en;
+  skos:notation "VOS" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/VYUCBEZM> a
+    skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Odborné vyučení bez maturity"@cs, "Vocational school"@en;
+  skos:notation "VYUCBEZM" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/VYUCSM> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Středoškolské nebo odborné vyučení s maturitou"@cs, "Secondary/High School"@en;
+  skos:notation "VYUCSM" .
+
+<https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání/položky/ZAK> a skos:Concept;
+  skos:inScheme <https://data.mff.cuni.cz/zdroj/číselníky/požadované-vzdělání>;
+  skos:prefLabel "Základní"@cs, "Elementary school"@en;
+  skos:notation "ZAK" .
