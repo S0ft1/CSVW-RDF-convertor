@@ -1,14 +1,16 @@
 import { LogLevel, Rdf2CsvOptions } from '../conversion-options.js';
 import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
+import { DefaultFetchCache } from '../fetch-cache.js';
 import {
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
 } from '../req-resolve.js';
-import { ColumnSchema } from './schema/column-schema.js';
-import { TableGroupSchema } from './schema/table-group-schema.js';
+import { SchemaInferrer } from './schema-inferrer.js';
 import { transformStream } from './transformation-stream.js';
+import { WindowStore } from './window-store.js';
 
-import { AnyCsvwDescriptor } from '../types/descriptor/descriptor.js';
+import { TableGroupSchema } from './schema/table-group-schema.js';
+
 import {
   CsvwTableDescription,
   CsvwTableDescriptionWithRequiredColumns,
@@ -21,25 +23,21 @@ import { expandIri } from '../utils/expand-iri.js';
 import { IssueTracker } from '../utils/issue-tracker.js';
 
 import { MemoryLevel } from 'memory-level';
-import { DataFactory, StreamParser } from 'n3';
+import { Queue } from 'mnemonist';
+import { DataFactory } from 'n3';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
-import { JsonLdParser } from 'jsonld-streaming-parser';
-import { Bindings, ResultStream, Stream, Quad } from '@rdfjs/types';
-import { RdfXmlParser } from 'rdfxml-streaming-parser';
+import { Readable } from 'readable-stream';
+import { Stream, Quad } from '@rdfjs/types';
 import { parseTemplate } from 'url-template';
-import { WindowStore } from './window-store.js';
-import { SchemaInferrer } from './schema-inferrer.js';
-import { DefaultFetchCache } from '../fetch-cache.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
-export type CsvwColumn = { name: string; title: string; queryVariable: string };
-export type CsvwTableStreams = {
-  [tableName: string]: [
-    columns: CsvwColumn[],
-    // XXX: ResultStream will be merged with Stream upon the next major change of rdf.js library
-    rowsStream: ResultStream<Bindings>,
-  ];
+export type CsvwColumn = { name: string; title: string };
+export type CsvwColumnWithQueryVar = CsvwColumn & { queryVariable: string };
+export type CsvwRow = { [column: string]: string };
+export type CsvwTable = {
+  name: string;
+  columns: CsvwColumn[];
 };
 
 type NullableOptions = 'descriptor' | 'windowSize';
@@ -58,14 +56,9 @@ export class Rdf2CsvwConvertor {
   });
   private store: WindowStore;
   private engine: Engine;
-  /** Wrapper of the descriptor used in the last conversion */
+
   private wrapper: DescriptorWrapper;
-
   private schemaInferrer: SchemaInferrer;
-
-  public getDescriptor(): DescriptorWrapper {
-    return this.wrapper;
-  }
 
   constructor(options?: Rdf2CsvOptions) {
     this.options = this.setDefaults(options);
@@ -77,90 +70,133 @@ export class Rdf2CsvwConvertor {
    * @param descriptor CSVW descriptor to use for the conversion. If not provided, a new descriptor will be created from the rdf data.
    * @returns A stream of csvw data.
    */
-  public async convert(
-    stream: Stream<Quad>,
-    descriptor?: string | AnyCsvwDescriptor,
-  ): Promise<CsvwTableStreams> {
-    // TODO: What if we do not have enough memory to hold all the quads in the store?
-    const parser: StreamParser | JsonLdParser | RdfXmlParser = null as any;
+  public async convert(stream: Stream<Quad>): Promise<Readable> {
+    const queue: Queue<[DescriptorWrapper, CsvwTable, CsvwRow]> = new Queue<
+      [DescriptorWrapper, CsvwTable, CsvwRow]
+    >();
 
-    await this.openStore(stream);
+    const outputStream = new Readable({
+      objectMode: true,
+      read: async () => {
+        if (queue.size != 0) {
+          outputStream.push(queue.dequeue());
+          return;
+        }
 
-    if (descriptor === undefined) {
-      // TODO: return created descriptor to the user, so it can be saved, modified and used later
-      this.wrapper = await this.createDescriptor(parser);
-    } else {
-      this.wrapper = await normalizeDescriptor(
-        descriptor,
-        this.options,
-        this.issueTracker,
-      );
-      await this.store.store.putStream(parser);
-    }
-    const useNamedGraphs = false;
+        let added: Quad[];
 
-    // Now we have a descriptor either from user or from rdf data.
-    const tables = this.wrapper.isTableGroup
-      ? this.wrapper.getTables()
-      : ([this.wrapper.descriptor] as CsvwTableDescription[]);
-    const streams = {} as CsvwTableStreams;
-    let openedStreamsCount = 0;
-
-    for (const table of tables) {
-      // TODO: use IssueTracker
-      if (!table.tableSchema?.columns) {
-        if (this.options.logLevel >= LogLevel.Warn)
-          console.warn(
-            `Skipping table ${table.url.replace(/[?#].*$/, '')}: no columns found`,
+        if (this.store === undefined) {
+          await this.openStore(stream);
+          added = await Array.fromAsync(
+            (this.store as WindowStore).store.match(),
           );
-        continue;
-      }
-      if (table.suppressOutput === true) {
-        if (this.options.logLevel >= LogLevel.Warn)
-          console.warn(
-            `Skipping table ${table.url.replace(/[?#].*$/, '')}: suppressOutput set to true`,
+
+          if (this.options.descriptor) {
+            if (this.options.descriptor instanceof TableGroupSchema) {
+              // TODO: Change normalizeDescriptor API instead of this
+              this.wrapper = new DescriptorWrapper(
+                this.options.descriptor,
+                new Map(),
+              );
+            } else {
+              this.wrapper = await normalizeDescriptor(
+                this.options.descriptor,
+                this.options,
+                this.issueTracker,
+              );
+            }
+          } else {
+            this.schemaInferrer = new SchemaInferrer(this.store, this.options);
+          }
+        } else {
+          if (this.store.done) {
+            console.log('>>>', null);
+            outputStream.push(null);
+            return;
+          }
+          [added] = await this.store.moveWindow();
+        }
+
+        if (this.schemaInferrer) {
+          for (const quad of added) {
+            this.schemaInferrer.addQuadToSchema(quad);
+          }
+
+          this.schemaInferrer.lockCurrentSchema();
+
+          this.wrapper = new DescriptorWrapper(
+            this.schemaInferrer.schema,
+            new Map(),
           );
-        continue;
-      }
+        }
 
-      const tableWithRequiredColumns =
-        table as CsvwTableDescriptionWithRequiredColumns;
+        const tables = this.wrapper.isTableGroup
+          ? this.wrapper.getTables()
+          : ([this.wrapper.descriptor] as CsvwTableDescription[]);
 
-      // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
-      // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
+        for (const table of tables) {
+          // TODO: use IssueTracker
+          if (!table.tableSchema?.columns) {
+            if (this.options.logLevel >= LogLevel.Warn)
+              console.warn(
+                `Skipping table ${table.url.replace(/[?#].*$/, '')}: no columns found`,
+              );
+            continue;
+          }
+          if (table.suppressOutput === true) {
+            if (this.options.logLevel >= LogLevel.Warn)
+              console.warn(
+                `Skipping table ${table.url.replace(/[?#].*$/, '')}: suppressOutput set to true`,
+              );
+            continue;
+          }
 
-      // TODO: rdf lists
-      // TODO: skip columns
-      // TODO: row number in url templates
-      // TODO: detect cycles
+          const tableWithRequiredColumns =
+            table as CsvwTableDescriptionWithRequiredColumns;
 
-      const [columns, query] = this.createQuery(
-        tableWithRequiredColumns,
-        useNamedGraphs,
-      );
-      if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
+          // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
+          // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
 
-      const stream = transformStream(
-        // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
-        await this.engine.queryBindings(query, { baseIRI: '.' }),
-        tableWithRequiredColumns,
-        columns,
-        this.issueTracker,
-      );
-      openedStreamsCount++;
-      streams[tableWithRequiredColumns.url.replace(/[?#].*$/, '')] = [
-        columns.filter(
-          (col, i) => !tableWithRequiredColumns.tableSchema.columns[i].virtual,
-        ),
-        stream,
-      ];
-    }
-    for (const [, [, stream]] of Object.entries(streams)) {
-      stream.once('end', () => {
-        if (--openedStreamsCount === 0) this.store.store.close();
-      });
-    }
-    return streams;
+          // TODO: rdf lists
+          // TODO: skip columns
+          // TODO: row number in url templates
+          // TODO: detect cycles
+
+          const [columns, query] = this.createQuery(
+            tableWithRequiredColumns,
+            this.wrapper,
+          );
+          if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
+
+          // TODO: add only bindings that contains information from added quads
+
+          const rowStream = transformStream(
+            // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
+            await this.engine.queryBindings(query, { baseIRI: '.' }),
+            tableWithRequiredColumns,
+            columns,
+            this.issueTracker,
+          );
+
+          const csvwTable: CsvwTable = {
+            name: tableWithRequiredColumns.url.replace(/[?#].*$/, ''),
+            columns: columns.filter(
+              (col, i) =>
+                !tableWithRequiredColumns.tableSchema.columns[i].virtual,
+            ),
+          };
+          for await (const row of rowStream) {
+            queue.enqueue([this.wrapper, csvwTable, row]);
+          }
+
+          outputStream.push(queue.dequeue() ?? null);
+        }
+      },
+    });
+
+    outputStream.once('end', () => this.store.store.close());
+
+    return outputStream;
   }
 
   public async inferSchema(rdf: Stream<Quad>) {
@@ -180,66 +216,74 @@ export class Rdf2CsvwConvertor {
    */
   private createQuery(
     table: CsvwTableDescriptionWithRequiredColumns,
-    useNamedGraphs: boolean,
-  ): [CsvwColumn[], string] {
+    wrapper: DescriptorWrapper,
+  ): [CsvwColumnWithQueryVar[], string] {
     let queryVarCounter = 0;
     const queryVars: Record<string, string> = {};
 
-    const columns: CsvwColumn[] = table.tableSchema.columns.map((column, i) => {
-      const defaultLang =
-        (this.wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
-        '@none';
+    const columns: CsvwColumnWithQueryVar[] = table.tableSchema.columns.map(
+      (column, i) => {
+        const defaultLang =
+          (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ??
+          '@none';
 
-      let name = `_col.${i + 1}`;
-      if (column.name !== undefined) {
-        name = encodeURIComponent(column.name);
-      } else if (column.titles !== undefined) {
-        if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
-          name = encodeURIComponent(coerceArray(column.titles)[0]);
-        } else {
-          // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
-          if (defaultLang in column.titles) {
-            name = encodeURIComponent(
-              coerceArray(column.titles[defaultLang])[0],
-            );
+        let name = `_col.${i + 1}`;
+        if (column.name !== undefined) {
+          name = encodeURIComponent(column.name);
+        } else if (column.titles !== undefined) {
+          if (
+            typeof column.titles === 'string' ||
+            Array.isArray(column.titles)
+          ) {
+            name = encodeURIComponent(coerceArray(column.titles)[0]);
+          } else {
+            // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+            if (defaultLang in column.titles) {
+              name = encodeURIComponent(
+                coerceArray(column.titles[defaultLang])[0],
+              );
+            }
           }
         }
-      }
 
-      let title = undefined;
-      if (column.titles !== undefined) {
-        if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
-          title = coerceArray(column.titles)[0];
-        } else {
-          // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
-          if (defaultLang in column.titles) {
-            title = coerceArray(column.titles[defaultLang])[0];
+        let title = undefined;
+        if (column.titles !== undefined) {
+          if (
+            typeof column.titles === 'string' ||
+            Array.isArray(column.titles)
+          ) {
+            title = coerceArray(column.titles)[0];
+          } else {
+            // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+            if (defaultLang in column.titles) {
+              title = coerceArray(column.titles[defaultLang])[0];
+            }
           }
         }
-      }
-      if (title === undefined && column.name !== undefined) {
-        title = column.name;
-      }
-      if (title === undefined) title = `_col.${i + 1}`;
+        if (title === undefined && column.name !== undefined) {
+          title = column.name;
+        }
+        if (title === undefined) title = `_col.${i + 1}`;
 
-      const aboutUrl = column.aboutUrl;
-      const propertyUrl = column.propertyUrl;
-      const valueUrl = column.valueUrl;
+        const aboutUrl = column.aboutUrl;
+        const propertyUrl = column.propertyUrl;
+        const valueUrl = column.valueUrl;
 
-      if (queryVars[aboutUrl ?? ''] === undefined)
-        queryVars[aboutUrl ?? ''] = `_${queryVarCounter++}`;
-      if (valueUrl && queryVars[valueUrl] === undefined)
-        queryVars[valueUrl] = `_${queryVarCounter++}`;
+        if (queryVars[aboutUrl ?? ''] === undefined)
+          queryVars[aboutUrl ?? ''] = `_${queryVarCounter++}`;
+        if (valueUrl && queryVars[valueUrl] === undefined)
+          queryVars[valueUrl] = `_${queryVarCounter++}`;
 
-      let queryVar: string;
-      if (propertyUrl && expandIri(propertyUrl) === rdf + 'type') {
-        queryVar = queryVars[aboutUrl ?? ''];
-      } else {
-        queryVar = valueUrl ? queryVars[valueUrl] : `_${queryVarCounter++}`;
-      }
+        let queryVar: string;
+        if (propertyUrl && expandIri(propertyUrl) === rdf + 'type') {
+          queryVar = queryVars[aboutUrl ?? ''];
+        } else {
+          queryVar = valueUrl ? queryVars[valueUrl] : `_${queryVarCounter++}`;
+        }
 
-      return { name: name, title: title, queryVariable: queryVar };
-    });
+        return { name: name, title: title, queryVariable: queryVar };
+      },
+    );
 
     const lines: string[] = [];
     let allOptional = true;
@@ -298,10 +342,7 @@ export class Rdf2CsvwConvertor {
         .map((column) => `?${column.queryVariable}`)
         .join(' ')}
 WHERE {
-${
-  !useNamedGraphs
-    ? lines.join('\n')
-    : `  {
+  {
 ${lines.map((line) => `  ${line}`).join('\n')}
   }
   UNION
@@ -309,8 +350,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
     GRAPH ?_graph {
 ${lines.map((line) => `    ${line}`).join('\n')}
     }
-  }`
-}
+  }
 }`,
     ];
   }
@@ -437,7 +477,7 @@ ${lines.join('\n')}
    */
   private createTriplePatterns(
     table: CsvwTableDescriptionWithRequiredColumns,
-    columns: CsvwColumn[],
+    columns: CsvwColumnWithQueryVar[],
     index: number,
     queryVars: Record<string, string>,
   ): string {
@@ -569,158 +609,6 @@ ${lines.map((line) => `  ${line}`).join('\n')}
   }
 
   /**
-   * Creates a new descriptor from the rdf data, used only if no descriptor is provided.
-   */
-  private async createDescriptor(
-    parser: JsonLdParser | RdfXmlParser | StreamParser<any>,
-  ): Promise<DescriptorWrapper> {
-    const tableGroup = new TableGroupSchema();
-
-    let quad: Quad;
-    for await (quad of parser) {
-      this.store.store.put(quad);
-
-      const subject = quad.subject;
-      const predicate = quad.predicate;
-      const object = quad.object;
-
-      // TODO: should we use information from csvw predicates and types to improve quality?
-      if (
-        predicate.value === rdf + 'type' &&
-        !object.value.startsWith('http://www.w3.org/ns/csvw#')
-      ) {
-        // TODO: make sure that tableUrls for different types are different
-        const tableUrl = object.value.split(/\/|#/).pop() + '.csv';
-        let table = tableGroup.getTable(tableUrl);
-
-        if (!table) {
-          table = tableGroup.addTable(tableUrl);
-          // TODO: names beginning with '_' are reserved by specification and MUST NOT appear in metadata,
-          // so I should not use it to ensure unique name of this column
-          const column = table.addColumn('_id');
-          // TODO: should the column be required?
-          column.required = true;
-          column.aboutUrl =
-            subject.termType !== 'BlankNode' ? subject.value : undefined;
-          column.propertyUrl = predicate.value;
-          column.valueUrl =
-            object.termType !== 'BlankNode' ? object.value : undefined;
-        } else {
-          const column = table.getColumn('_id') as ColumnSchema;
-          column.aboutUrl =
-            subject.termType !== 'BlankNode'
-              ? this.getCommonUrlTemplate(column.aboutUrl, subject.value)
-              : undefined;
-        }
-      } else if (!predicate.value.startsWith('http://www.w3.org/ns/csvw#')) {
-        let hasType = false;
-        const stream = await this.engine.queryBindings(
-          `SELECT ?_type WHERE { <${subject.value}> <${rdf}type> ?_type }`,
-          { baseIRI: '.' },
-        );
-
-        for await (const bindings of stream as any) {
-          hasType = true;
-          const type = bindings.get('_type').value;
-
-          if (!type.startsWith('http://www.w3.org/ns/csvw#')) {
-            const tableUrl = type.split(/\/|#/).pop() + '.csv';
-            let table = tableGroup.getTable(tableUrl);
-            if (!table) table = tableGroup.addTable(tableUrl);
-
-            // TODO: make sure that columnNames for different predicates are different
-            const columnName = predicate.value.split(/\/|#/).pop() as string;
-            let column = table.getColumn(columnName);
-            if (!column) {
-              column = table.addColumn(columnName);
-              column.aboutUrl =
-                subject.termType !== 'BlankNode'
-                  ? this.getCommonUrlTemplate(
-                      (table.getColumn('_id') as ColumnSchema).aboutUrl,
-                      subject.value,
-                    )
-                  : undefined;
-              column.propertyUrl = predicate.value;
-              column.valueUrl =
-                object.termType !== 'BlankNode' ? object.value : undefined;
-            } else {
-              column.aboutUrl =
-                subject.termType !== 'BlankNode'
-                  ? this.getCommonUrlTemplate(column.aboutUrl, subject.value)
-                  : undefined;
-              column.valueUrl =
-                object.termType !== 'BlankNode'
-                  ? this.getCommonUrlTemplate(column.valueUrl, object.value)
-                  : undefined;
-            }
-          }
-        }
-
-        // TODO: What if some other tripple is reached before type?
-        // It should be enough to use a few moving buffers:
-        // 1) reading, parsing and putting rdf into quadstore
-        // 2) processing tripples to create metadatada descriptor
-        // 3) convert to csvw using SPARQL
-        if (!hasType) {
-          // TODO: make sure that this tableUrl is unique
-          const tableUrl = 'default.csv';
-          let table = tableGroup.getTable(tableUrl);
-          if (!table) table = tableGroup.addTable(tableUrl);
-
-          const columnName = predicate.value.split(/#|\//).pop() as string;
-          let column = table.getColumn(columnName);
-          if (!column) {
-            column = table.addColumn(columnName);
-            column.aboutUrl =
-              subject.termType !== 'BlankNode' ? subject.value : undefined;
-            column.propertyUrl = predicate.value;
-            column.valueUrl =
-              object.termType !== 'BlankNode' ? object.value : undefined;
-          } else {
-            column.aboutUrl =
-              subject.termType !== 'BlankNode'
-                ? this.getCommonUrlTemplate(column.aboutUrl, subject.value)
-                : undefined;
-            column.valueUrl =
-              object.termType !== 'BlankNode'
-                ? this.getCommonUrlTemplate(column.valueUrl, object.value)
-                : undefined;
-          }
-        }
-      }
-    }
-
-    // TODO: schema normalization
-
-    if (this.options.logLevel >= LogLevel.Debug) {
-      for (const table of tableGroup.tables)
-        console.debug(JSON.stringify(table));
-    }
-
-    return new DescriptorWrapper(tableGroup, new Map());
-  }
-
-  private getCommonUrlTemplate(
-    first: string | undefined,
-    second: string | undefined,
-  ): string | undefined {
-    // _row, _sourceRow and columns references are the only URI template properties that does not depend on the column
-    // TODO: is this implementation sufficient, or should I add common column references to url template (_sourceRow is not needed here)?
-
-    if (!first || !second) return undefined;
-
-    const a = [...first.matchAll(/\d+/g)];
-    if (a.length === 0 || a.some((val) => val !== a[0])) return undefined;
-    const template = first.replaceAll(/\d+/g, '{_row}');
-
-    const b = [...second.matchAll(/\d+/g)];
-    if (b.length === 0 || b.some((val) => val !== b[0])) return undefined;
-    if (second.replaceAll(/\d+/g, '{_row}') !== template) return undefined;
-
-    return template;
-  }
-
-  /**
    * Sets the default options for the options not provided.
    * @param options
    */
@@ -735,7 +623,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       resolveRdfFn: options.resolveRdfFn ?? defaultResolveStreamFn,
       descriptor: options.descriptor,
       windowSize: options.windowSize,
-      cache: options.cache ?? new DefaultFetchCache()
+      cache: options.cache ?? new DefaultFetchCache(),
     };
   }
 
@@ -746,8 +634,8 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       backend,
       dataFactory: DataFactory as unknown as StoreOpts['dataFactory'],
     });
-    this.engine = new Engine(qstore);
     await qstore.open();
+    this.engine = new Engine(qstore);
     this.store = new WindowStore(qstore, stream, this.options?.windowSize);
     await this.store.initStream();
   }

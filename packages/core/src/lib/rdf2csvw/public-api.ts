@@ -1,8 +1,8 @@
 import { Quad, Stream } from '@rdfjs/types';
 import { Rdf2CsvOptions } from '../conversion-options.js';
 import { TableGroupSchema } from './schema/table-group-schema.js';
-import { CsvwTableStreams, Rdf2CsvwConvertor } from './convertor.js';
-import { DescriptorWrapper } from '../descriptor.js';
+import { Rdf2CsvwConvertor } from './convertor.js';
+import { Readable } from 'readable-stream';
 
 /**
  * Converts RDF data to CSVW format, including both table streams and descriptor.
@@ -14,12 +14,10 @@ import { DescriptorWrapper } from '../descriptor.js';
 export async function rdfToCsvw(
   rdf: Stream<Quad>,
   options?: Rdf2CsvOptions,
-): Promise<[CsvwTableStreams, DescriptorWrapper]> {
+): Promise<Readable> {
   options ??= {};
-  if (!options?.descriptor) {
-    options.descriptor = await rdfToTableSchema(rdf, options);
-  }
-  return null as any;
+  const convertor = new Rdf2CsvwConvertor(options);
+  return convertor.convert(rdf);
 }
 
 /**

@@ -36,7 +36,7 @@ export class TableGroupSchema implements CsvwTableGroupDescription {
 
   public clone() {
     const clone = new TableGroupSchema();
-    clone.tables = this.tables.map((table) => table.clone()) as [
+    clone.tables = this.tables?.map((table) => table.clone()) as [
       TableSchema,
       ...TableSchema[],
     ];
@@ -47,6 +47,6 @@ export class TableGroupSchema implements CsvwTableGroupDescription {
    * Locks the current tables, preventing them from being extended.
    */
   public lock() {
-    this.tables.forEach((table) => (table.locked = true));
+    this.tables?.forEach((table) => (table.locked = true));
   }
 }

@@ -4,14 +4,14 @@ import { getSchema } from './interactive/get-schema.js';
 import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
-  CsvwTableStreams,
+  CsvwRow,
+  CsvwTable,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
   DescriptorWrapper,
   LogLevel,
   parseRdf,
   Rdf2CsvOptions,
-  Rdf2CsvwConvertor,
   rdfToCsvw,
 } from '@csvw-rdf-convertor/core';
 
@@ -77,6 +77,9 @@ export const rdf2csvw: CommandModule<
     const options: Rdf2CsvOptions = {
       baseIri: args.baseIri,
       pathOverrides: args.pathOverrides ?? [],
+      descriptor: args.descriptor
+        ? JSON.parse(await readFileOrUrl(args.descriptor))
+        : undefined,
       logLevel:
         args.logLevel === 'debug'
           ? LogLevel.Debug
@@ -96,73 +99,70 @@ export const rdf2csvw: CommandModule<
         }
 
         return await readFile(url, 'utf-8');
-      }
+      },
     };
 
-    let rdfStream = await parseRdf(args.input, {
-		baseIri: args.baseIri, resolveStreamFn(path, base) {
-			const url =
-				URL.parse(path, base)?.href ??
-				URL.parse(path)?.href ??
-				resolve(base, path);
-			if (
-				!isAbsolute(url) &&
-				(URL.canParse(url) || URL.canParse(url, base))
-			) {
-				if (url.startsWith('file:')) {
-					return Promise.resolve(
-						Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8'))
-					);
-				}
-				return defaultResolveStreamFn(url, base);
-			}
-			return Promise.resolve(
-				Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8'))
-			);
-		},
-	});
-    let streams: CsvwTableStreams;
-    let descriptor: DescriptorWrapper;
-    [streams, descriptor] = await rdfToCsvw(rdfStream, options)
-
-    if (args.outDir) await mkdir(args.outDir, { recursive: true });
-
-    for (const [tableName, [columns, stream]] of Object.entries(streams)) {
-      const outputStream = args.outDir
-        ? fs.createWriteStream(resolve(args.outDir, tableName))
-        : process.stdout;
-
-      const normalizedDescriptor = descriptor?.descriptor ?? {};
-      const dialect = normalizedDescriptor.dialect ?? {};
-      const descriptorOptions = {
-        header: dialect.header ?? true,
-        columns: columns.map((column) => ({
-          key: column.queryVariable,
-          header: column.title,
-        })),
-        ...(dialect.delimiter !== undefined && {
-          delimiter: dialect.delimiter,
-        }),
-        ...(dialect.doubleQuote !== undefined && {
-          escape: dialect.doubleQuote ? '"' : '\\',
-        }),
-        ...(dialect.quoteChar !== undefined &&
-          dialect.quoteChar !== null && { quote: dialect.quoteChar }),
-      };
-      const stringifier = csv.stringify(descriptorOptions);
-      stringifier.pipe(outputStream);
-      // TODO: Streams are not consumed in parallel so the tables are not mixed when printing to stdout,
-      // but it would improve performance when saving into multiple files.
-      // TODO: Should the tables be divided by empty line when printing to stdout? Do we even want to support stdout?
-      if (!args.outDir) console.log();
-
-      for await (const bindings of stream as any) {
-        const row = {} as { [key: string]: string };
-        for (const [key, value] of bindings) {
-          row[key.value] = value.value;
+    const rdfStream = await parseRdf(args.input, {
+      baseIri: args.baseIri,
+      resolveStreamFn(path, base) {
+        const url =
+          URL.parse(path, base)?.href ??
+          URL.parse(path)?.href ??
+          resolve(base, path);
+        if (
+          !isAbsolute(url) &&
+          (URL.canParse(url) || URL.canParse(url, base))
+        ) {
+          if (url.startsWith('file:')) {
+            return Promise.resolve(
+              Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
+            );
+          }
+          return defaultResolveStreamFn(url, base);
         }
-        stringifier.write(row);
+        return Promise.resolve(
+          Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
+        );
+      },
+    });
+
+    const stream = await rdfToCsvw(rdfStream, options);
+
+    // TODO: Set some default outDir since printing to stdout makes no sense.
+    if (args.outDir) await mkdir(args.outDir, { recursive: true });
+    const stringifiers: { [table: string]: csv.stringifier.Stringifier } = {};
+
+    let descriptor: DescriptorWrapper;
+    let table: CsvwTable;
+    let row: CsvwRow;
+    for await ([descriptor, table, row] of stream) {
+      if (stringifiers[table.name] === undefined) {
+        const outputStream = fs.createWriteStream(
+          resolve(args.outDir, table.name),
+        );
+
+        const dialect = descriptor.descriptor.dialect ?? {};
+        const descriptorOptions = {
+          header: dialect.header ?? true,
+          columns: table.columns.map((column) => ({
+            key: column.name,
+            header: column.title,
+          })),
+          ...(dialect.delimiter !== undefined && {
+            delimiter: dialect.delimiter,
+          }),
+          ...(dialect.doubleQuote !== undefined && {
+            escape: dialect.doubleQuote ? '"' : '\\',
+          }),
+          ...(dialect.quoteChar !== undefined &&
+            dialect.quoteChar !== null && { quote: dialect.quoteChar }),
+        };
+
+        stringifiers[table.name] = csv.stringify(descriptorOptions);
+        stringifiers[table.name].pipe(outputStream);
       }
+
+      stringifiers[table.name].write(row);
     }
   },
 };

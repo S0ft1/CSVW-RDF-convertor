@@ -1,4 +1,4 @@
-import { CsvwColumn } from './convertor.js';
+import { CsvwColumnWithQueryVar, CsvwRow } from './convertor.js';
 import { formatBoolean, isBooleanColumn } from '../utils/format-boolean.js';
 import { isNumericColumn, formatNumber } from '../utils/format-number.js';
 import { isDateTimeColumn, formatDateTime } from '../utils/format-datetime.js';
@@ -9,20 +9,16 @@ import { expandIri } from '../utils/expand-iri.js';
 import { IssueTracker } from '../utils/issue-tracker.js';
 import { CsvwTableDescriptionWithRequiredColumns } from '../types/descriptor/table.js';
 import { Readable } from 'readable-stream';
-import { DataFactory } from 'rdf-data-factory';
 import { Bindings, ResultStream } from '@rdfjs/types';
-import { Term } from 'n3';
-
-const factory = new DataFactory();
 
 const { rdf } = commonPrefixes;
 
 export function transformStream(
   stream: ResultStream<Bindings>,
   tableDescription: CsvwTableDescriptionWithRequiredColumns,
-  columns: CsvwColumn[],
+  columns: CsvwColumnWithQueryVar[],
   issueTracker: IssueTracker,
-): ResultStream<Bindings> {
+): Readable {
   const transformedStream = new Readable({
     objectMode: true,
     read() {
@@ -31,6 +27,8 @@ export function transformStream(
   });
   //This part is called when the stream is piped to another stream and gets data.
   stream.on('data', (bindings: Bindings) => {
+    const row: CsvwRow = {};
+
     for (
       let i = 0;
       i < tableDescription.tableSchema.columns.length &&
@@ -38,100 +36,59 @@ export function transformStream(
       i++
     ) {
       const columnDescription = tableDescription.tableSchema.columns[i];
-      if (!bindings.get(columns[i].queryVariable)) {
-        if (columnDescription.null) {
-          if (columnDescription.null instanceof Array) {
-            bindings = bindings.set(
-              columns[i].queryVariable,
-              factory.literal(columnDescription.null[0]),
-            );
-          } else {
-            bindings = bindings.set(
-              columns[i].queryVariable,
-              factory.literal(columnDescription.null),
-            );
-          }
+
+      const term = bindings.get(columns[i].queryVariable);
+      if (!term) {
+        if (columnDescription.null === undefined) {
+          row[columns[i].name] = '';
+        } else if (columnDescription.null instanceof Array) {
+          row[columns[i].name] = columnDescription.null[0];
+        } else {
+          row[columns[i].name] = columnDescription.null;
         }
         continue;
       }
 
-      const term = bindings.get(columns[i].queryVariable) as Term;
-      const value = term.value;
-      if (isBooleanColumn(columnDescription)) {
-        const formattedValue = formatBoolean(
-          value,
-          columnDescription,
-          issueTracker,
-        );
-        bindings = bindings.set(
-          columns[i].queryVariable,
-          factory.literal(formattedValue),
-        );
-      } else if (isNumericColumn(columnDescription)) {
-        const formattedValue = formatNumber(
-          value,
-          columnDescription,
-          issueTracker,
-        );
-        bindings = bindings.set(
-          columns[i].queryVariable,
-          factory.literal(formattedValue),
-        );
-      } else if (isDateTimeColumn(columnDescription)) {
-        const formattedValue = formatDateTime(
-          value,
-          columnDescription,
-          issueTracker,
-        );
-        bindings = bindings.set(
-          columns[i].queryVariable,
-          factory.literal(formattedValue),
-        );
-        // TODO: format durations and other types
-      } else {
-        const formattedValue = formatOther(
-          value,
-          columnDescription,
-          issueTracker,
-        );
-        bindings = bindings.set(
-          columns[i].queryVariable,
-          factory.literal(formattedValue),
-        );
-      }
+      let value = term.value;
 
       if (
         columnDescription.propertyUrl &&
         expandIri(columnDescription.propertyUrl) === rdf + 'type'
       ) {
         if (tableDescription.aboutUrl) {
-          const formattedValue = trimUrl(
+          value = trimUrl(
             value,
             tableDescription.aboutUrl,
             columns[i].name,
             issueTracker,
           );
-          bindings = bindings.set(
-            columns[i].queryVariable,
-            factory.literal(formattedValue),
-          );
         }
       } else {
         if (columnDescription.valueUrl) {
-          const formattedValue = trimUrl(
+          value = trimUrl(
             value,
             columnDescription.valueUrl,
             columns[i].name,
             issueTracker,
           );
-          bindings = bindings.set(
-            columns[i].queryVariable,
-            factory.literal(formattedValue),
-          );
         }
       }
+
+      if (isBooleanColumn(columnDescription)) {
+        value = formatBoolean(value, columnDescription, issueTracker);
+      } else if (isNumericColumn(columnDescription)) {
+        value = formatNumber(value, columnDescription, issueTracker);
+      } else if (isDateTimeColumn(columnDescription)) {
+        value = formatDateTime(value, columnDescription, issueTracker);
+        // TODO: format durations and other types
+      } else {
+        value = formatOther(value, columnDescription, issueTracker);
+      }
+
+      row[columns[i].name] = value;
     }
-    transformedStream.push(bindings);
+
+    transformedStream.push(row);
   });
 
   stream.on('end', () => {
