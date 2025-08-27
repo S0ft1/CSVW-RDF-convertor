@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider, loadExistingConversions } from './lib/tree-data-provider.js';
 import { registerCommands } from './lib/command-handlers.js';
+import { handleConversion } from './lib/conversion-logic.js';
 
 export async function activate(context: vscode.ExtensionContext) {
 
@@ -19,22 +20,29 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	registerCommands(context, csvwActionsProvider);
 
-	const changeListener = vscode.workspace.onDidChangeTextDocument(async (event) => {
-		if (event.contentChanges.length === 0) {
-			return;
-		}
-
-		const changedFilePath = event.document.uri.fsPath;
+	const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
+		
+		const changedFilePath = document.uri.fsPath;
 		let conversion = null;
 
-		for (let i = 1; i < csvwActionsProvider.conversionCounter; i++) {
-			const conv = csvwActionsProvider.getConversion(`conversion-${i}`);
-			if (conv && (changedFilePath === conv.descriptorFilePath || changedFilePath === conv.inputFilePath)) {
-				conversion = conv;
-				break;
+		const conversions = csvwActionsProvider.getAllConversions();
+		
+		for (const conv of conversions) {
+			if (conv) {
+				if (changedFilePath === conv.outputFilePath) {
+					return; // Don't do anything for output file changes
+				}
+				if (conv.outputFilePaths && conv.outputFilePaths.includes(changedFilePath)) {
+					return; // Don't do anything for output file changes
+				}
+				
+				// Only process saves to descriptor or input files
+				if (changedFilePath === conv.descriptorFilePath || changedFilePath === conv.inputFilePath) {
+					conversion = conv;
+					break;
+				}
 			}
 		}
-
 		if (!conversion) {
 			return; // Not a conversion file, ignore
 		}
@@ -45,46 +53,62 @@ export async function activate(context: vscode.ExtensionContext) {
 		const inputOpen = vscode.window.visibleTextEditors.some(
 			editor => editor.document.uri.fsPath === conversion.inputFilePath
 		);
-		const outputOpen = vscode.window.visibleTextEditors.some(
-			editor => editor.document.uri.fsPath === conversion.outputFilePath
-		);
-
-		if (descriptorOpen && inputOpen && outputOpen) {
+		
+		// Only require descriptor and input files to be open, output files will be created automatically
+		if (descriptorOpen && inputOpen) {
 			const descriptorEditor = vscode.window.visibleTextEditors.find(
 				editor => editor.document.uri.fsPath === conversion.descriptorFilePath
 			);
 			const inputEditor = vscode.window.visibleTextEditors.find(
 				editor => editor.document.uri.fsPath === conversion.inputFilePath
 			);
-			const outputEditor = vscode.window.visibleTextEditors.find(
-				editor => editor.document.uri.fsPath === conversion.outputFilePath
-			);
 
-			if (descriptorEditor && inputEditor && outputEditor) {
+			if (descriptorEditor && inputEditor) {
 				try {
 					const descriptorContent = descriptorEditor.document.getText();
 					const inputContent = inputEditor.document.getText();
 
 					const templateIRIs = conversion.templateIRIsChecked || false;
 					const minimalMode = conversion.minimalModeChecked || false;
+					
+					const outputFilePaths = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode, conversion);
 
-					const { handleConversion } = await import('./lib/conversion-logic.js');
-					const convertedOutput = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode, conversion);
-
-					await outputEditor.edit(editBuilder => {
-						const firstLine = outputEditor.document.lineAt(0);
-						const lastLine = outputEditor.document.lineAt(outputEditor.document.lineCount - 1);
-						const fullRange = new vscode.Range(firstLine.range.start, lastLine.range.end);
-						editBuilder.replace(fullRange, convertedOutput);
-					});
+					// Update the conversion structure with the actual output file paths
+					if (outputFilePaths.length > 1) {
+						conversion.outputFilePaths = outputFilePaths;
+					}
+					if (outputFilePaths.length >= 1) {
+						conversion.outputFilePath = outputFilePaths[0];
+					}
+					
 				} catch (error) {
-					console.error('Auto-conversion failed:', error);
+					
+					// Write error to output file for user visibility
+					try {
+						const errorMessage = `# Auto-conversion Error\n# ${new Date().toISOString()}\n# Error: ${error instanceof Error ? error.message : String(error)}\n\n# Stack trace:\n# ${error instanceof Error && error.stack ? error.stack.split('\n').map(line => `# ${line}`).join('\n') : 'No stack trace available'}\n`;
+						
+						// Create or update output.ttl with error information
+						const outputPath = conversion.outputFilePath 
+							? vscode.Uri.file(conversion.outputFilePath)
+							: vscode.Uri.file(`${conversion.folderPath}/output.ttl`);
+						
+						await vscode.workspace.fs.writeFile(outputPath, Buffer.from(errorMessage, 'utf8'));
+						
+						// Open the error file to show the user
+						const errorDocument = await vscode.workspace.openTextDocument(outputPath);
+						await vscode.window.showTextDocument(errorDocument, vscode.ViewColumn.Three);
+						
+						// Update conversion structure
+						conversion.outputFilePath = outputPath.fsPath;
+					} catch (writeError) {
+						vscode.window.showErrorMessage(`Auto-conversion failed: ${error instanceof Error ? error.message : String(error)}`);
+					}
 				}
 			}
 		}
 	});
 
-	context.subscriptions.push(changeListener);
+	context.subscriptions.push(saveListener);
 }
 
 export function deactivate() {}

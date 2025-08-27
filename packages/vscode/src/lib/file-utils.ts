@@ -37,9 +37,7 @@ export function getDefaultDescriptorContent(): string {
  * @returns A CSV string with sample data and instructions.
  */
 export function getDefaultInputContent(conversionName: string): string {
-	return `# Input Data for ${conversionName}
-# Paste your CSV data below or replace this file with your CSV
-
+	return `
 id,name,value
 1,"Sample 1",100
 2,"Sample 2",200`;

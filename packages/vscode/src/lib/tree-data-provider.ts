@@ -29,7 +29,9 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 		const conversionName = name || `Conversion ${this.conversionCounter}`;
 		const conversion: ConversionItem = {
 			id: `conversion-${this.conversionCounter}`,
-			name: conversionName
+			name: conversionName,
+			folderPath: '', // Will be set when files are created
+			inputFilePath: '' // Will be set when files are created
 		};
 		this.conversions.push(conversion);
 		this.conversionCounter++;
@@ -53,6 +55,14 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 	 */
 	getConversion(id: string): ConversionItem | undefined {
 		return this.conversions.find(c => c.id === id);
+	}
+
+	/**
+	 * Gets all conversion items.
+	 * @returns Array of all conversion items.
+	 */
+	getAllConversions(): ConversionItem[] {
+		return this.conversions;
 	}
 
 	/**

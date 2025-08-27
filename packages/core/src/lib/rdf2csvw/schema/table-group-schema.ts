@@ -2,7 +2,7 @@ import { CsvwTableGroupDescription } from '../../types/descriptor/table-group.js
 import { TableSchema } from './table-schema.js';
 
 export class TableGroupSchema implements CsvwTableGroupDescription {
-  public tables: [TableSchema, ...TableSchema[]];
+  public tables: [TableSchema, ...TableSchema[]] =[] as unknown as [TableSchema, ...TableSchema[]]
 
   public addTable(url: string, ...columns: string[]): TableSchema {
     if (this.tables?.some((table) => table.url === url))
