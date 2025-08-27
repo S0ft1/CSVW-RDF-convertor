@@ -83,114 +83,117 @@ export class Rdf2CsvwConvertor {
           return;
         }
 
-        let added: Quad[];
+        let dequeued;
+        do {
+          let added: Quad[];
 
-        if (this.store === undefined) {
-          await this.openStore(stream);
-          added = await Array.fromAsync(
-            (this.store as WindowStore).store.match(),
-          );
+          if (this.store === undefined) {
+            await this.openStore(stream);
+            added = await Array.fromAsync(
+              (this.store as WindowStore).store.match(),
+            );
 
-          if (this.options.descriptor) {
-            if (this.options.descriptor instanceof TableGroupSchema) {
-              // TODO: Change normalizeDescriptor API instead of this
-              this.wrapper = new DescriptorWrapper(
-                this.options.descriptor,
-                new Map(),
-              );
+            if (this.options.descriptor) {
+              if (this.options.descriptor instanceof TableGroupSchema) {
+                // TODO: Change normalizeDescriptor API instead of this
+                this.wrapper = new DescriptorWrapper(
+                  this.options.descriptor,
+                  new Map(),
+                );
+              } else {
+                this.wrapper = await normalizeDescriptor(
+                  this.options.descriptor,
+                  this.options,
+                  this.issueTracker,
+                );
+              }
             } else {
-              this.wrapper = await normalizeDescriptor(
-                this.options.descriptor,
+              this.schemaInferrer = new SchemaInferrer(
+                this.store,
                 this.options,
-                this.issueTracker,
               );
             }
           } else {
-            this.schemaInferrer = new SchemaInferrer(this.store, this.options);
-          }
-        } else {
-          if (this.store.done) {
-            console.log('>>>', null);
-            outputStream.push(null);
-            return;
-          }
-          [added] = await this.store.moveWindow();
-        }
-
-        if (this.schemaInferrer) {
-          for (const quad of added) {
-            this.schemaInferrer.addQuadToSchema(quad);
+            if (this.store.done) {
+              outputStream.push(null);
+              return;
+            }
+            [added] = await this.store.moveWindow();
           }
 
-          this.schemaInferrer.lockCurrentSchema();
+          if (this.schemaInferrer) {
+            for (const quad of added) {
+              this.schemaInferrer.addQuadToSchema(quad);
+            }
 
-          this.wrapper = new DescriptorWrapper(
-            this.schemaInferrer.schema,
-            new Map(),
-          );
-        }
+            this.schemaInferrer.lockCurrentSchema();
 
-        const tables = this.wrapper.isTableGroup
-          ? this.wrapper.getTables()
-          : ([this.wrapper.descriptor] as CsvwTableDescription[]);
-
-        for (const table of tables) {
-          // TODO: use IssueTracker
-          if (!table.tableSchema?.columns) {
-            if (this.options.logLevel >= LogLevel.Warn)
-              console.warn(
-                `Skipping table ${table.url.replace(/[?#].*$/, '')}: no columns found`,
-              );
-            continue;
-          }
-          if (table.suppressOutput === true) {
-            if (this.options.logLevel >= LogLevel.Warn)
-              console.warn(
-                `Skipping table ${table.url.replace(/[?#].*$/, '')}: suppressOutput set to true`,
-              );
-            continue;
+            this.wrapper = new DescriptorWrapper(
+              this.schemaInferrer.schema,
+              new Map(),
+            );
           }
 
-          const tableWithRequiredColumns =
-            table as CsvwTableDescriptionWithRequiredColumns;
+          const tables = this.wrapper.isTableGroup
+            ? this.wrapper.getTables()
+            : ([this.wrapper.descriptor] as CsvwTableDescription[]);
 
-          // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
-          // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
+          for (const table of tables) {
+            // TODO: use IssueTracker
+            if (!table.tableSchema?.columns) {
+              if (this.options.logLevel >= LogLevel.Warn)
+                console.warn(
+                  `Skipping table ${table.url.replace(/[?#].*$/, '')}: no columns found`,
+                );
+              continue;
+            }
+            if (table.suppressOutput === true) {
+              if (this.options.logLevel >= LogLevel.Warn)
+                console.warn(
+                  `Skipping table ${table.url.replace(/[?#].*$/, '')}: suppressOutput set to true`,
+                );
+              continue;
+            }
 
-          // TODO: rdf lists
-          // TODO: skip columns
-          // TODO: row number in url templates
-          // TODO: detect cycles
+            const tableWithRequiredColumns =
+              table as CsvwTableDescriptionWithRequiredColumns;
 
-          const [columns, query] = this.createQuery(
-            tableWithRequiredColumns,
-            this.wrapper,
-          );
-          if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
+            // See https://w3c.github.io/csvw/metadata/#tables for jsonld descriptor specification
+            // and https://www.w3.org/TR/csv2rdf/ for conversion in the other direction
 
-          // TODO: add only bindings that contains information from added quads
+            // TODO: rdf lists
+            // TODO: skip columns
+            // TODO: row number in url templates
+            // TODO: detect cycles
 
-          const rowStream = transformStream(
-            // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
-            await this.engine.queryBindings(query, { baseIRI: '.' }),
-            tableWithRequiredColumns,
-            columns,
-            this.issueTracker,
-          );
+            const [columns, query] = this.createQuery(
+              tableWithRequiredColumns,
+              this.wrapper,
+            );
+            if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
-          const csvwTable: CsvwTable = {
-            name: tableWithRequiredColumns.url.replace(/[?#].*$/, ''),
-            columns: columns.filter(
-              (col, i) =>
-                !tableWithRequiredColumns.tableSchema.columns[i].virtual,
-            ),
-          };
-          for await (const row of rowStream) {
-            queue.enqueue([this.wrapper, csvwTable, row]);
+            const rowStream = transformStream(
+              // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
+              await this.engine.queryBindings(query, { baseIRI: '.' }),
+              tableWithRequiredColumns,
+              columns,
+              this.issueTracker,
+            );
+
+            const csvwTable: CsvwTable = {
+              name: tableWithRequiredColumns.url.replace(/[?#].*$/, ''),
+              columns: columns.filter(
+                (col, i) =>
+                  !tableWithRequiredColumns.tableSchema.columns[i].virtual,
+              ),
+            };
+            for await (const row of rowStream) {
+              queue.enqueue([this.wrapper, csvwTable, row]);
+            }
           }
-
-          outputStream.push(queue.dequeue() ?? null);
-        }
+          dequeued = queue.dequeue();
+        } while (dequeued === undefined);
+        outputStream.push(dequeued);
       },
     });
 
