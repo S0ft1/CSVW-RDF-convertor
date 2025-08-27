@@ -35,6 +35,7 @@ import { parseDate } from '../utils/parse-date.js';
 import { NumberParser } from '../utils/parse-number.js';
 import { replaceUrl } from '../utils/replace-url.js';
 import { expandIri } from '../utils/expand-iri.js';
+import { DefaultFetchCache } from '../fetch-cache.js';
 
 const { namedNode, blankNode, literal, defaultGraph, quad } = DataFactory;
 const { rdf, csvw, xsd } = commonPrefixes;
@@ -746,12 +747,12 @@ export class Csvw2RdfConvertor {
       ctx.templates.about[ctx.col.name as string] === undefined
         ? defaultSubj
         : this.templateUri(
-            ctx.templates.about[ctx.col.name as string],
-            colNum + colsOffset,
-            rowNum + rowsOffset,
-            ctx.table.url,
-            ctx,
-          );
+          ctx.templates.about[ctx.col.name as string],
+          colNum + colsOffset,
+          rowNum + rowsOffset,
+          ctx.table.url,
+          ctx,
+        );
     if (!this.options.minimal) {
       //4.6.8.2
       this.emitTriple(rowNode, namedNode(csvw + 'describes'), subject);
@@ -760,12 +761,12 @@ export class Csvw2RdfConvertor {
       ctx.templates.property[ctx.col.name as string] === undefined
         ? namedNode(ctx.table.url + '#' + ctx.col.name)
         : this.templateUri(
-            ctx.templates.property[ctx.col.name as string],
-            colNum + colsOffset,
-            rowNum + rowsOffset,
-            ctx.table.url,
-            ctx,
-          );
+          ctx.templates.property[ctx.col.name as string],
+          colNum + colsOffset,
+          rowNum + rowsOffset,
+          ctx.table.url,
+          ctx,
+        );
     const lang = ctx.col.lang;
 
     if (ctx.templates.value[ctx.col.name as string] === undefined) {
@@ -1184,9 +1185,17 @@ export class Csvw2RdfConvertor {
    */
   private setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
     options ??= {};
+    let cache =  options.cache ?? new DefaultFetchCache();
     return {
       pathOverrides: options.pathOverrides ?? [],
-      resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
+      cache: cache,
+      resolveJsonldFn: (url, base) => {
+        if (cache.inCache(url, base)) return cache.fromCache(url, base);
+        const originalFn = options?.resolveJsonldFn ?? defaultResolveJsonldFn;
+        const result = originalFn(url, base);
+        cache.toCache(url,base, result);
+        return result;
+      },
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
       resolveWkfFn: options.resolveWkfFn ?? defaultResolveTextFn,
       baseIri: options.baseIri ?? '',
@@ -1232,4 +1241,5 @@ export class Csvw2RdfConvertor {
     }
     return namedNode(uri);
   }
+
 }

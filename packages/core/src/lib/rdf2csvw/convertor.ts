@@ -30,6 +30,7 @@ import { RdfXmlParser } from 'rdfxml-streaming-parser';
 import { parseTemplate } from 'url-template';
 import { WindowStore } from './window-store.js';
 import { SchemaInferrer } from './schema-inferrer.js';
+import { DefaultFetchCache } from '../fetch-cache.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
 export type CsvwColumn = { name: string; title: string; queryVariable: string };
@@ -734,6 +735,7 @@ ${lines.map((line) => `  ${line}`).join('\n')}
       resolveRdfFn: options.resolveRdfFn ?? defaultResolveStreamFn,
       descriptor: options.descriptor,
       windowSize: options.windowSize,
+      cache: options.cache ?? new DefaultFetchCache()
     };
   }
 

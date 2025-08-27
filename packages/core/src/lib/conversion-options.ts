@@ -1,3 +1,4 @@
+import { FetchCacheInterface } from './fetch-cache.js';
 import { TableGroupSchema } from './rdf2csvw/schema/table-group-schema.js';
 import {
   ResolveJsonldFn,
@@ -22,6 +23,7 @@ export interface ConversionOptions {
 
   /** Level of information shown to the user during logging. */
   logLevel?: LogLevel;
+  cache?: FetchCacheInterface;
 }
 
 /** Levels of information shown to the user during logging. */
