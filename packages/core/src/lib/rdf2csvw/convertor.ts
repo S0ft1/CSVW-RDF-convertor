@@ -1,3 +1,4 @@
+import { transform } from './bindings-to-row-transformation.js';
 import { LogLevel, Rdf2CsvOptions } from '../conversion-options.js';
 import { createQuery } from './create-query.js';
 import { DescriptorWrapper, normalizeDescriptor } from '../descriptor.js';
@@ -7,7 +8,6 @@ import {
   defaultResolveStreamFn,
 } from '../req-resolve.js';
 import { SchemaInferrer } from './schema-inferrer.js';
-import { transformStream } from './transformation-stream.js';
 import { WindowStore } from './window-store.js';
 
 import { TableGroupSchema } from './schema/table-group-schema.js';
@@ -26,7 +26,9 @@ import { DataFactory } from 'n3';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
 import { Readable } from 'readable-stream';
-import { Stream, Quad } from '@rdfjs/types';
+import { Stream, Quad, ResultStream, Bindings } from '@rdfjs/types';
+import { commonPrefixes } from '../utils/prefix.js';
+import { expandIri } from '../utils/expand-iri.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
 export type CsvwColumn = { name: string; title: string };
@@ -42,6 +44,14 @@ export type OptionsWithDefaults = Required<
   Omit<Rdf2CsvOptions, NullableOptions>
 > &
   Pick<Rdf2CsvOptions, NullableOptions>;
+
+type QueryRecords = {
+  result: ResultStream<Bindings>;
+  table: CsvwTableDescriptionWithRequiredColumns;
+  columns: CsvwColumnWithQueryVar[];
+};
+
+const { rdf } = commonPrefixes;
 
 export class Rdf2CsvwConvertor {
   private options: OptionsWithDefaults;
@@ -61,77 +71,48 @@ export class Rdf2CsvwConvertor {
 
   /**
    * Main conversion function. Converts the rdf data to csvw format.
-   * @param url Url of rdf data to convert
-   * @param descriptor CSVW descriptor to use for the conversion. If not provided, a new descriptor will be created from the rdf data.
+   * @param stream A stream of input rdf quads.
    * @returns A stream of csvw data.
    */
   public async convert(stream: Stream<Quad>): Promise<Readable> {
-    const queue: Queue<[DescriptorWrapper, CsvwTable, CsvwRow]> = new Queue<
-      [DescriptorWrapper, CsvwTable, CsvwRow]
-    >();
+    await this.openStore(stream);
+
+    let previouslyAdded: Quad[] = [];
+    let added: Quad[] = await Array.fromAsync(this.store.store.match());
+    let removed: Quad[] = [];
+
+    if (this.options.descriptor) {
+      if (this.options.descriptor instanceof TableGroupSchema) {
+        // TODO: Change normalizeDescriptor API instead of this
+        this.wrapper = new DescriptorWrapper(
+          this.options.descriptor,
+          new Map(),
+        );
+      } else {
+        this.wrapper = await normalizeDescriptor(
+          this.options.descriptor,
+          this.options,
+          this.issueTracker,
+        );
+      }
+    } else {
+      this.schemaInferrer = new SchemaInferrer(this.store, this.options);
+      await this.updateDescriptor(added);
+    }
+
+    const outputQueue: Queue<null | [DescriptorWrapper, CsvwTable, CsvwRow]> =
+      new Queue<null | [DescriptorWrapper, CsvwTable, CsvwRow]>();
 
     const outputStream = new Readable({
       objectMode: true,
       read: async () => {
-        if (queue.size != 0) {
-          outputStream.push(queue.dequeue());
-          return;
-        }
-
-        let dequeued;
-        do {
-          let added: Quad[];
-
-          if (this.store === undefined) {
-            await this.openStore(stream);
-            added = await Array.fromAsync(
-              (this.store as WindowStore).store.match(),
-            );
-
-            if (this.options.descriptor) {
-              if (this.options.descriptor instanceof TableGroupSchema) {
-                // TODO: Change normalizeDescriptor API instead of this
-                this.wrapper = new DescriptorWrapper(
-                  this.options.descriptor,
-                  new Map(),
-                );
-              } else {
-                this.wrapper = await normalizeDescriptor(
-                  this.options.descriptor,
-                  this.options,
-                  this.issueTracker,
-                );
-              }
-            } else {
-              this.schemaInferrer = new SchemaInferrer(
-                this.store,
-                this.options,
-              );
-            }
-          } else {
-            if (this.store.done) {
-              outputStream.push(null);
-              return;
-            }
-            [added] = await this.store.moveWindow();
-          }
-
-          if (this.schemaInferrer) {
-            for (const quad of added) {
-              this.schemaInferrer.addQuadToSchema(quad);
-            }
-
-            this.schemaInferrer.lockCurrentSchema();
-
-            this.wrapper = new DescriptorWrapper(
-              this.schemaInferrer.schema,
-              new Map(),
-            );
-          }
-
+        while (outputQueue.size == 0) {
+          // create SPARQL query and add new bindings to the queue
           const tables = this.wrapper.isTableGroup
             ? this.wrapper.getTables()
             : ([this.wrapper.descriptor] as CsvwTableDescription[]);
+
+          const queryRecords: QueryRecords[] = [];
 
           for (const table of tables) {
             // TODO: use IssueTracker
@@ -167,34 +148,117 @@ export class Rdf2CsvwConvertor {
             );
             if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
-            const rowStream = transformStream(
-              // XXX: quadstore-comunica does not support unionDefaultGraph option of comunica, so UNION must be used manually in the query.
-              await this.engine.queryBindings(query, { baseIRI: '.' }),
-              tableWithRequiredColumns,
-              columns,
-              this.issueTracker,
-            );
+            const resultStream = await this.engine.queryBindings(query, {
+              baseIRI: '.',
+            });
 
-            const csvwTable: CsvwTable = {
-              name: tableWithRequiredColumns.url.replace(/[?#].*$/, ''),
-              columns: columns.filter(
-                (col, i) =>
-                  !tableWithRequiredColumns.tableSchema.columns[i].virtual,
-              ),
-            };
-            for await (const row of rowStream) {
-              queue.enqueue([this.wrapper, csvwTable, row]);
+            queryRecords.push({
+              result: resultStream,
+              table: tableWithRequiredColumns,
+              columns: columns,
+            });
+          }
+
+          const previouslyDone = this.store.done;
+          previouslyAdded = added;
+          [added, removed] = await this.store.moveWindow();
+
+          for (const record of queryRecords) {
+            for await (const bindings of record.result as any) {
+              if (
+                this.anyBindingInPreviousAndNotInAdded(
+                  bindings,
+                  record.table,
+                  record.columns,
+                  previouslyAdded,
+                  added,
+                  removed,
+                )
+              )
+                outputQueue.enqueue([
+                  this.wrapper,
+                  {
+                    name: record.table.url.replace(/[?#].*$/, ''),
+                    columns: record.columns
+                      .filter(
+                        (col, i) =>
+                          !record.table.tableSchema.columns[i].virtual,
+                      )
+                      .map((col) => {
+                        return { name: col.name, title: col.title };
+                      }),
+                  },
+                  transform(
+                    bindings,
+                    record.table,
+                    record.columns,
+                    this.issueTracker,
+                  ),
+                ]);
             }
           }
-          dequeued = queue.dequeue();
-        } while (dequeued === undefined);
-        outputStream.push(dequeued);
+
+          if (previouslyDone) {
+            outputQueue.enqueue(null);
+          } else if (this.schemaInferrer) {
+            await this.updateDescriptor(added);
+          }
+        }
+
+        outputStream.push(outputQueue.dequeue());
       },
     });
 
     outputStream.once('end', () => this.store.store.close());
 
     return outputStream;
+  }
+
+  private anyBindingInPreviousAndNotInAdded(
+    bindings: Bindings,
+    tableDescription: CsvwTableDescriptionWithRequiredColumns,
+    columns: CsvwColumnWithQueryVar[],
+    previous: Quad[],
+    added: Quad[],
+    removed: Quad[],
+  ): boolean {
+    let inPrevious = false;
+    let inAdded = false;
+    let inRemoved = false;
+
+    for (let i = 0; i < columns.length; i++) {
+      const columnDescription = tableDescription.tableSchema.columns[i];
+      const term = bindings.get(columns[i].queryVariable);
+
+      if (
+        columnDescription.propertyUrl &&
+        expandIri(columnDescription.propertyUrl) === rdf + 'type'
+      ) {
+        inPrevious ||= previous.some((quad) => quad.subject.equals(term));
+        inAdded ||= added.some((quad) => quad.subject.equals(term));
+        inRemoved ||= removed.some((quad) => quad.subject.equals(term));
+      } else {
+        inPrevious ||= previous.some((quad) => quad.object.equals(term));
+        inAdded ||= added.some((quad) => quad.object.equals(term));
+        inRemoved ||= removed.some((quad) => quad.object.equals(term));
+      }
+    }
+
+    return inPrevious && (inRemoved || !inAdded);
+  }
+
+  /**
+   * Updates descriptor.
+   * @param addedQuads new quads added to the store
+   */
+  private async updateDescriptor(addedQuads: Quad[]) {
+    for await (const quad of addedQuads) {
+      this.schemaInferrer.addQuadToSchema(quad);
+    }
+
+    this.schemaInferrer.lockCurrentSchema();
+    // TODO: add conversion function
+    this.wrapper = new DescriptorWrapper(this.schemaInferrer.schema, new Map());
   }
 
   public async inferSchema(rdf: Stream<Quad>) {
