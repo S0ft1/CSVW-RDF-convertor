@@ -1,4 +1,17 @@
-import { csvwDescriptorToRdf, CsvwRow, CsvwTable, defaultResolveJsonldFn, defaultResolveStreamFn, defaultResolveTextFn, DescriptorWrapper, parseRdf, Rdf2CsvOptions, rdfStreamToArray, rdfToCsvw, serializeRdf } from '@csvw-rdf-convertor/core'
+import {
+	csvwDescriptorToRdf,
+	CsvwRow,
+	CsvwTable,
+	defaultResolveJsonldFn,
+	defaultResolveStreamFn,
+	defaultResolveTextFn,
+	DescriptorWrapper,
+	parseRdf,
+	Rdf2CsvOptions,
+	rdfStreamToArray,
+	rdfToCsvw,
+	serializeRdf
+} from '@csvw-rdf-convertor/core'
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core'
 import { ConversionItem, MiniOptions } from './types.js';
 import { isAbsolute, resolve } from 'node:path';
@@ -7,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import * as csv from 'csv';
 import { Readable } from 'node:stream';
 import fs from 'node:fs';
+import { StreamWriter } from 'n3';
 /**
  * Converts RDF data to CSVW format using CSVW metadata.
  * @param descriptorText - The CSVW metadata descriptor content.
@@ -150,22 +164,20 @@ export async function convertCSVW2RDF(descriptorText: string, options: MiniOptio
 	try {
 		if (conversion.descriptorFilePath && conversion.outputFilePath) {
 			const rdfStream = csvwDescriptorToRdf(descriptorText, csvw2RdfOptions);
-			//const result = serializeRdf(rdfStream, { format: 'turtle' });
-			const result = await rdfStreamToArray(rdfStream);
-			console.log("result:", result)
+			const result = await serializeRdf(rdfStream, { format: 'turtle', turtle: { streaming: false} })
+			const typedResult = result as Readable;
 			const outputText = await new Promise<string>((resolve, reject) => {
 				let rdfData = '';
 
-				rdfStream.on('data', (chunk) => {
-					console.log("chunk:", chunk.toString(), typeof chunk)
+				typedResult.on('data', (chunk) => {
 					rdfData += chunk.toString();
 				});
 
-				rdfStream.on('end', () => {
+				typedResult.on('end', () => {
 					resolve(rdfData);
 				});
 
-				rdfStream.on('error', (error) => {
+				typedResult.on('error', (error) => {
 					reject(error);
 				});
 			});

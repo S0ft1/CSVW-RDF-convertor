@@ -129,8 +129,6 @@ async function openAppropriateOutputFiles(conversion: ConversionItem, conversion
 		}
 
 		if (existingOutputFiles.length > 0) {
-			console.log(`Found ${existingOutputFiles.length} existing output files, opening them`);
-			// Open existing output files
 			for (const outputPath of existingOutputFiles) {
 				try {
 					const outputDocument = await vscode.workspace.openTextDocument(outputPath);
@@ -142,8 +140,6 @@ async function openAppropriateOutputFiles(conversion: ConversionItem, conversion
 				}
 			}
 		} else {
-			console.log("No existing output files found, creating default output.ttl");
-			// No existing output files, create default output.ttl
 			const outputPath = vscode.Uri.joinPath(conversionDir, 'output.ttl');
 			conversion.outputFilePath = outputPath.fsPath;
 
