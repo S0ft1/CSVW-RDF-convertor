@@ -31,12 +31,15 @@ import { commonPrefixes } from '../utils/prefix.js';
 import { expandIri } from '../utils/expand-iri.js';
 
 // TODO: Can these types be improved for better readability and ease of use?
-export type CsvwColumn = { name: string; title: string };
-export type CsvwColumnWithQueryVar = CsvwColumn & { queryVariable: string };
+export type CsvwColumn = {
+  name: string;
+  title: string;
+  queryVariable: string;
+};
 export type CsvwRow = { [column: string]: string };
 export type CsvwTable = {
   name: string;
-  columns: CsvwColumn[];
+  columns: string[];
 };
 
 type NullableOptions = 'descriptor' | 'windowSize';
@@ -48,7 +51,7 @@ export type OptionsWithDefaults = Required<
 type QueryRecords = {
   result: ResultStream<Bindings>;
   table: CsvwTableDescriptionWithRequiredColumns;
-  columns: CsvwColumnWithQueryVar[];
+  columns: CsvwColumn[];
 };
 
 const { rdf } = commonPrefixes;
@@ -184,9 +187,7 @@ export class Rdf2CsvwConvertor {
                         (col, i) =>
                           !record.table.tableSchema.columns[i].virtual,
                       )
-                      .map((col) => {
-                        return { name: col.name, title: col.title };
-                      }),
+                      .map((col) => col.title),
                   },
                   transform(
                     bindings,
@@ -217,7 +218,7 @@ export class Rdf2CsvwConvertor {
   private anyBindingInPreviousAndNotInAdded(
     bindings: Bindings,
     tableDescription: CsvwTableDescriptionWithRequiredColumns,
-    columns: CsvwColumnWithQueryVar[],
+    columns: CsvwColumn[],
     previous: Quad[],
     added: Quad[],
     removed: Quad[],
@@ -253,10 +254,10 @@ export class Rdf2CsvwConvertor {
    */
   private async updateDescriptor(addedQuads: Quad[]) {
     for await (const quad of addedQuads) {
-      this.schemaInferrer.addQuadToSchema(quad);
+      await this.schemaInferrer.addQuadToSchema(quad, true);
     }
 
-    this.schemaInferrer.lockCurrentSchema();
+    this.schemaInferrer.lockCurrentSchema(true);
     // TODO: add conversion function
     this.wrapper = new DescriptorWrapper(this.schemaInferrer.schema, new Map());
   }

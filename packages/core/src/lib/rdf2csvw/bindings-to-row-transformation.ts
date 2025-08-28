@@ -1,4 +1,4 @@
-import { CsvwColumnWithQueryVar, CsvwRow } from './convertor.js';
+import { CsvwColumn, CsvwRow } from './convertor.js';
 import { formatBoolean, isBooleanColumn } from '../utils/format-boolean.js';
 import { isNumericColumn, formatNumber } from '../utils/format-number.js';
 import { isDateTimeColumn, formatDateTime } from '../utils/format-datetime.js';
@@ -15,7 +15,7 @@ const { rdf } = commonPrefixes;
 export function transform(
   bindings: Bindings,
   tableDescription: CsvwTableDescriptionWithRequiredColumns,
-  columns: CsvwColumnWithQueryVar[],
+  columns: CsvwColumn[],
   issueTracker: IssueTracker,
 ): CsvwRow {
   const row: CsvwRow = {};
@@ -31,11 +31,11 @@ export function transform(
     const term = bindings.get(columns[i].queryVariable);
     if (!term) {
       if (columnDescription.null === undefined) {
-        row[columns[i].name] = '';
+        row[columns[i].title] = '';
       } else if (columnDescription.null instanceof Array) {
-        row[columns[i].name] = columnDescription.null[0];
+        row[columns[i].title] = columnDescription.null[0];
       } else {
-        row[columns[i].name] = columnDescription.null;
+        row[columns[i].title] = columnDescription.null;
       }
       continue;
     }
@@ -76,7 +76,7 @@ export function transform(
       value = formatOther(value, columnDescription, issueTracker);
     }
 
-    row[columns[i].name] = value;
+    row[columns[i].title] = value;
   }
 
   return row;
