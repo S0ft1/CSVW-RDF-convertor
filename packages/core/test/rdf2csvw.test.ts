@@ -1,8 +1,11 @@
 import { SimpleTest, SimpleTestType } from './types/manifest.js';
 import {
   CsvwColumn,
-  CsvwTableStreams,
+  CsvwRow,
+  CsvwTable,
   defaultResolveJsonldFn,
+  ParseOptions,
+  parseRdf,
   Rdf2CsvOptions,
   Rdf2CsvwConvertor,
 } from '../src/index.js';
@@ -42,7 +45,7 @@ describe('NKOD: RDF -> CSVW with descriptor', () => {
 
 function runTest(testDir: string, entry: SimpleTest) {
   test(`#${entry.id}: ${entry.name}`, async () => {
-    const options: Rdf2CsvOptions = {
+    const convertorOptions: Rdf2CsvOptions = {
       baseIri: resolve(testDir, entry.action, '..'),
       pathOverrides: [
         [
@@ -50,18 +53,24 @@ function runTest(testDir: string, entry: SimpleTest) {
           pathToFileURL(resolve(csvwDir, 'ns/csvw.jsonld')).href,
         ],
       ],
+      descriptor: JSON.parse(
+        await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
+      ),
       resolveJsonldFn: loadJsonLd,
-      resolveRdfStreamFn: loadStringStream,
     };
-    const convertor = new Rdf2CsvwConvertor(options);
+
+    const parseOptions: ParseOptions = {
+      resolveStreamFn: loadStringStream,
+    };
+
+    const convertor = new Rdf2CsvwConvertor(convertorOptions);
     convertor.issueTracker.options.collectIssues = true;
 
     switch (entry.type) {
       case SimpleTestType.Test:
       case SimpleTestType.TestWithWarnings: {
         const result = await convertor.convert(
-          resolve(testDir, entry.action),
-          await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
+          await parseRdf(resolve(testDir, entry.action), parseOptions),
         );
 
         const received = await toReceivedObject(result);
@@ -79,8 +88,7 @@ function runTest(testDir: string, entry: SimpleTest) {
       case SimpleTestType.NegativeTest: {
         await expect(async () => {
           await convertor.convert(
-            resolve(testDir, entry.action),
-            await readFile(resolve(testDir, entry.metadata as string), 'utf-8'),
+            await parseRdf(resolve(testDir, entry.action), parseOptions),
           );
         }).rejects.toThrow();
         break;
@@ -92,31 +100,30 @@ function runTest(testDir: string, entry: SimpleTest) {
   });
 }
 
-async function toReceivedObject(
-  result: CsvwTableStreams,
-): Promise<SimpleTestTables> {
+async function toReceivedObject(result: Readable): Promise<SimpleTestTables> {
   const tables = {} as SimpleTestTables;
 
-  for (const [tableName, [columns, stream]] of Object.entries(result)) {
-    const table = [] as SimpleTestRow[];
-
-    for await (const bindings of stream as any) {
-      const row = {} as SimpleTestRow;
-
-      for (const [key, value] of bindings) {
-        const columnTitle = (
-          columns.find(
-            (column) => column.queryVariable === key.value,
-          ) as CsvwColumn
-        ).title;
-        row[columnTitle] = value.value;
-      }
-
-      table.push(row);
+  let table: CsvwTable;
+  let row: CsvwRow;
+  for await ([, table, row] of result) {
+    if (tables[table.name] === undefined) {
+      tables[table.name] = [];
     }
 
+    const titleRow: CsvwRow = {};
+    for (const name of Object.keys(row)) {
+      const title = (
+        table.columns.find((col) => col.name === name) as CsvwColumn
+      ).title;
+      titleRow[title] = row[name];
+    }
+
+    tables[table.name].push(titleRow);
+  }
+
+  for (const tableName of Object.keys(tables)) {
     // row order is arbitrary
-    tables[tableName] = table.sort(simpleTestRowCompareFn);
+    tables[tableName] = tables[tableName].sort(simpleTestRowCompareFn);
   }
 
   return tables;
@@ -140,7 +147,7 @@ async function loadExpectedObject(
       const row = {} as SimpleTestRow;
 
       for (const columnTitle of Object.keys(line)) {
-        if (line[columnTitle] !== '') row[columnTitle] = line[columnTitle];
+        row[columnTitle] = line[columnTitle];
       }
 
       table.push(row);
