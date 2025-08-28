@@ -215,7 +215,7 @@ export class SchemaInferrer {
     dtype: CsvwDatatype | CsvwBuiltinDatatype,
   ) {
     if (!this.unknownSchema) {
-      this.unknownSchema = new TableSchema('unknown_type.csv');
+      this.unknownSchema = this.schema.addTable('unknown_type.csv');
       this.unknownSchema.addColumn(SUBJ_COL, {
         datatype: 'anyURI',
       });

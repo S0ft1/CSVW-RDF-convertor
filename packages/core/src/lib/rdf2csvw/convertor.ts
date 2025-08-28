@@ -254,10 +254,10 @@ export class Rdf2CsvwConvertor {
    */
   private async updateDescriptor(addedQuads: Quad[]) {
     for await (const quad of addedQuads) {
-      this.schemaInferrer.addQuadToSchema(quad);
+      await this.schemaInferrer.addQuadToSchema(quad, true);
     }
 
-    this.schemaInferrer.lockCurrentSchema();
+    this.schemaInferrer.lockCurrentSchema(true);
     // TODO: add conversion function
     this.wrapper = new DescriptorWrapper(this.schemaInferrer.schema, new Map());
   }
