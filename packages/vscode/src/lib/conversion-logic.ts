@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import {
 	csvwDescriptorToRdf,
 	CsvwRow,
@@ -10,6 +11,7 @@ import {
 	Rdf2CsvOptions,
 	rdfStreamToArray,
 	rdfToCsvw,
+	rdfToTableSchema,
 	serializeRdf
 } from '@csvw-rdf-convertor/core'
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core'
@@ -35,7 +37,7 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 	if (!conversion.folderPath) {
 		throw new Error('Conversion folderPath is undefined - conversion object not properly initialized');
 	}
-	
+
 	const inputsDir = path.join(conversion.folderPath, 'inputs');
 	const options: Rdf2CsvOptions = {
 		baseIri: inputsDir,
@@ -79,17 +81,17 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 	});
 
 	const stream = await rdfToCsvw(rdfStream, options);
+	//const schema = await rdfToTableSchema(rdfStream,options);
+
 	const stringifiers: { [table: string]: csv.stringifier.Stringifier } = {};
 	let descriptor: DescriptorWrapper;
 	let table: CsvwTable;
 	let row: CsvwRow;
 	let tableNames = [];
 	for await ([descriptor, table, row] of stream) {
-		console.log(`Processing table: ${table.name}`);
 		if (stringifiers[table.name] === undefined) {
 			const outputsDir = path.join(conversion.folderPath, 'outputs');
 			const tableFilePath = resolve(outputsDir, table.name);
-			console.log(`Writing CSVW output to ${tableFilePath}`);
 			const outputStream = fs.createWriteStream(
 				tableFilePath
 			);
@@ -125,7 +127,6 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
  */
 export async function convertCSVW2RDF(descriptorText: string, options: MiniOptions, conversion: ConversionItem): Promise<string[]> {
 	const inputsDir = path.join(conversion.folderPath, 'inputs');
-	console.log(inputsDir);
 	const getUrl = (path: string, base: string) =>
 		URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
 	const csvw2RdfOptions: Csvw2RdfOptions = {
@@ -169,22 +170,18 @@ export async function convertCSVW2RDF(descriptorText: string, options: MiniOptio
 	};
 
 	try {
-		
+
 		const outputsDir = path.join(conversion.folderPath, 'outputs');
 		const outputTtlPath = resolve(outputsDir, 'output.ttl');
 		conversion.outputFilePath = outputTtlPath;
-		console.log(`Set conversion.outputFilePath to ${conversion.outputFilePath}`);
 		if (conversion.descriptorFilePath && conversion.outputFilePath) {
-			console.log("in conversion")
-			const rdfStream : Stream<Quad> = csvwDescriptorToRdf(descriptorText, csvw2RdfOptions);
-			console.log("po konverzi"+ rdfStream);
-			const result = await serializeRdf(rdfStream, { format: 'turtle', turtle: { streaming: false} })
+			const rdfStream: Stream<Quad> = csvwDescriptorToRdf(descriptorText, csvw2RdfOptions);
+			const result = await serializeRdf(rdfStream, { format: 'turtle', turtle: { streaming: false } })
 			const typedResult = result as Readable;
 			const outputText = await new Promise<string>((resolve, reject) => {
 				let rdfData = '';
 
 				typedResult.on('data', (chunk) => {
-					console.log(chunk.toString());
 					rdfData += chunk.toString();
 				});
 
@@ -193,13 +190,11 @@ export async function convertCSVW2RDF(descriptorText: string, options: MiniOptio
 				});
 
 				typedResult.on('error', (error) => {
-					console.error('XXError during RDF serialization:', error);
 					reject(error);
 				});
 			});
 
 			// Write the RDF data to the output.ttl file only
-			console.log(`Writing RDF output to ${conversion.outputFilePath}`);
 			await fs.promises.writeFile(conversion.outputFilePath, outputText, 'utf-8');
 			return [conversion.outputFilePath];
 		} else {
@@ -210,38 +205,6 @@ export async function convertCSVW2RDF(descriptorText: string, options: MiniOptio
 	}
 }
 
-/**
- * Main conversion handler that determines input format and routes to appropriate converter.
- * Automatically detects whether input is RDF or CSV and applies the correct conversion.
- * @param descriptorText - The CSVW metadata descriptor content.
- * @param inputText - The input data content to analyze and convert.
- * @param templateIRIs - Whether to enable template IRIs in the conversion.
- * @param minimalMode - Whether to use minimal mode for reduced output.
- * @param conversion - The conversion object containing additional context and file paths.
- * @returns Promise resolving to array of output file paths.
- */
-export async function handleConversion(descriptorText: string, inputText: string, templateIRIs: boolean = false, minimalMode: boolean = false, conversion: ConversionItem): Promise<string[]> {
-	const options: MiniOptions = {
-		templateIris: templateIRIs,
-		minimal: minimalMode
-	};
-
-	const isRdf = isRdfContent(inputText);
-	let outputFilePaths: string[];
-	if (isRdf) {
-		// RDF to CSV conversion
-		console.log(conversion.inputFilePath)
-		outputFilePaths = await convertRDF2CSVW(descriptorText, conversion.inputFilePath, conversion);
-	} else {
-		// CSV to RDF conversion
-		outputFilePaths = await convertCSVW2RDF(descriptorText, options, conversion);
-	}
-
-	// Clear any previous error file since conversion was successful
-	conversion.errorFilePath = undefined;
-
-	return outputFilePaths;
-}
 
 /**
  * Analyzes input text content to determine if it's RDF or CSV format.
@@ -276,4 +239,33 @@ export function isRdfContent(inputText: string): boolean {
 	}
 
 	return false;
+}
+
+export async function findMetadata(csvUrl: string): Promise<string | null> {
+	const csvDir = path.dirname(csvUrl);
+	console.log('csvDir:', csvDir);
+	const csvBasename = path.basename(csvUrl, path.extname(csvUrl));
+	console.log('basename:', csvBasename);
+	try {
+		const dirUri = vscode.Uri.file(csvDir);
+		const files = await vscode.workspace.fs.readDirectory(dirUri);
+
+		const csvMetadataFile = files.find(([name, type]) => name === 'csv-metadata.json');
+		if (csvMetadataFile) {
+			return path.join(csvDir, csvMetadataFile[0]);
+		}
+
+		const metadataFiles = files.filter(([name, type]) =>
+			(name.endsWith('.json') || name.endsWith('.jsonld')) &&
+			name.includes(csvBasename)
+		);
+
+		if (metadataFiles.length > 0) {
+			return path.join(csvDir, metadataFiles[0][0]);
+		}
+
+		return null;
+	} catch (error) {
+		throw new Error(`Error finding metadata for ${csvUrl}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+	}
 }

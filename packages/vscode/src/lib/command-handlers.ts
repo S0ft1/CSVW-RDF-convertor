@@ -3,9 +3,23 @@ import { ConversionItem } from './types.js';
 import { CSVWActionsProvider } from './tree-data-provider.js';
 import { addRedUnderlineToLines, clearRedUnderlines, areInputFieldsOpen } from './editor-utils.js';
 import { ensureFileExists, getDefaultDescriptorContent, getDefaultInputContent, getDefaultOutputContent, getDefaultRdfInputContent } from './file-utils.js';
-import {convertCSVW2RDF,convertRDF2CSVW, isRdfContent} from './conversion-logic.js';
-import { handleConversion } from './conversion-logic.js';
+import { convertCSVW2RDF, convertRDF2CSVW, findMetadata, isRdfContent } from './conversion-logic.js';
 import * as path from 'path';
+
+/**
+ * Sanitizes a conversion name to be safe for use as a folder name.
+ * @param name - The conversion name to sanitize
+ * @returns A safe folder name
+ */
+function sanitizeFolderName(name: string): string {
+	// Remove or replace characters that are invalid for folder names
+	return name
+		.replace(/[<>:"/\\|?*]/g, '-') // Replace invalid characters with dash
+		.replace(/\s+/g, '_') // Replace spaces with underscores
+		.replace(/\.+$/, '') // Remove trailing dots
+		.trim()
+		.substring(0, 255); // Limit length for filesystem compatibility
+}
 
 /**
  * Parses CSVW descriptor to extract table URLs for file naming.
@@ -56,18 +70,21 @@ function parseTableUrls(descriptorText: string): string[] {
  * @param descriptorText - The CSVW descriptor content
  */
 export async function createInputFilesFromDescriptor(inputsDir: vscode.Uri, conversion: ConversionItem, descriptorText: string): Promise<void> {
+	if(descriptorText.trim().length === 0) {
+		return;
+	}
 	const tableUrls = parseTableUrls(descriptorText);
-	
+
 	// Clean up inputs directory first - remove unwanted files
 	await cleanupInputsDirectory(inputsDir, descriptorText);
-	
+
 	// Create files for all table URLs from descriptor
 	conversion.additionalInputFilePaths = conversion.additionalInputFilePaths || [];
-	
+
 	for (let i = 0; i < tableUrls.length; i++) {
 		const fileName = `${tableUrls[i]}.csv`;
 		const inputPath = vscode.Uri.joinPath(inputsDir, fileName);
-		
+
 		// Set the first file as the main input file path
 		if (i === 0) {
 			await ensureFileExists(inputPath, getDefaultInputContent(conversion.name));
@@ -121,46 +138,6 @@ async function cleanupInputsDirectory(inputsDir: vscode.Uri, descriptorText: str
 	}
 }
 
-/**
- * Searches through all conversions to find one that contains the specified file path.
- * Checks descriptor, input, output, and additional input file paths for matches.
- * Also checks both inputs and outputs directories for files.
- * @param filePath - The file path to search for
- * @param provider - The tree data provider containing all conversions
- * @returns The conversion item that contains the file path, or undefined if not found
- */
-function findConversionByFilePath(filePath: string, provider: CSVWActionsProvider): ConversionItem | undefined {
-	for (let i = 1; i < provider.conversionCounter; i++) {
-		const conversion = provider.getConversion(`conversion-${i}`);
-		if (conversion) {
-			if (filePath === conversion.descriptorFilePath || 
-				filePath === conversion.inputFilePath || 
-				filePath === conversion.rdfInputFilePath ||
-				filePath === conversion.outputFilePath) {
-				return conversion;
-			}
-			
-			if (conversion.additionalInputFilePaths) {
-				for (const additionalPath of conversion.additionalInputFilePaths) {
-					if (filePath === additionalPath) {
-						return conversion;
-					}
-				}
-			}
-
-			// Check if file is in the inputs or outputs directories
-			if (conversion.folderPath) {
-				const inputsDir = path.join(conversion.folderPath, 'inputs');
-				const outputsDir = path.join(conversion.folderPath, 'outputs');
-				
-				if (filePath.startsWith(inputsDir) || filePath.startsWith(outputsDir)) {
-					return conversion;
-				}
-			}
-		}
-	}
-	return undefined;
-}
 
 /**
  * Updates input files based on descriptor changes during conversion execution.
@@ -177,19 +154,19 @@ export async function updateInputFilesFromDescriptor(conversion: ConversionItem,
 	console.log(`Updating input files for conversion ${conversion.id} based on descriptor changes`);
 	const inputsDir = vscode.Uri.joinPath(vscode.Uri.file(conversion.folderPath), 'inputs');
 	const tableUrls = parseTableUrls(descriptorText);
-	
+
 	// Clean up inputs directory first - remove unwanted files
 	await cleanupInputsDirectory(inputsDir, descriptorText);
-	
+
 	let newFilesCreated = 0;
-	
+
 	// Create files for all table URLs from descriptor
 	conversion.additionalInputFilePaths = conversion.additionalInputFilePaths || [];
-	
+
 	for (let i = 0; i < tableUrls.length; i++) {
 		const fileName = `${tableUrls[i]}.csv`;
 		const inputPath = vscode.Uri.joinPath(inputsDir, fileName);
-		
+
 		// Set the first file as the main input file path
 		if (i === 0) {
 			if (conversion.inputFilePath !== inputPath.fsPath) {
@@ -207,12 +184,12 @@ export async function updateInputFilesFromDescriptor(conversion: ConversionItem,
 			}
 		}
 	}
-	
+
 	if (newFilesCreated > 0) {
 		vscode.window.showInformationMessage(`✅ Created ${newFilesCreated} new input file(s) based on descriptor table URLs`);
 		// Note: Files will be available for next field opening, avoiding recursion
 	}
-	
+
 	console.log(`Input files update complete. Total additional files: ${conversion.additionalInputFilePaths?.length || 0}`);
 }
 
@@ -231,7 +208,7 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 
 	const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
 	const extensionDir = vscode.Uri.joinPath(vscode.Uri.file(workspaceRoot), 'csvw-rdf-conversions');
-	const conversionDir = vscode.Uri.joinPath(extensionDir, conversion.id);
+	const conversionDir = vscode.Uri.joinPath(extensionDir, sanitizeFolderName(conversion.name));
 	const inputsDir = vscode.Uri.joinPath(conversionDir, 'inputs');
 	const outputsDir = vscode.Uri.joinPath(conversionDir, 'outputs');
 
@@ -255,7 +232,7 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 	// Read descriptor content to create appropriate input files
 	const descriptorDocument = await vscode.workspace.openTextDocument(descriptorPath);
 	const descriptorText = descriptorDocument.getText();
-	
+
 	// Create input files based on descriptor content
 	await createInputFilesFromDescriptor(inputsDir, conversion, descriptorText);
 
@@ -279,7 +256,7 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 				const outputUri = vscode.Uri.file(outputFilePath);
 				const outputDocument = await vscode.workspace.openTextDocument(outputUri);
 				const outputEditor = await vscode.window.showTextDocument(outputDocument, vscode.ViewColumn.Three);
-				
+
 				// Set the conversion output properties
 				if (!conversion.outputEditor) {
 					conversion.outputEditor = outputEditor;
@@ -299,22 +276,22 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 
 			for (const [fileName, fileType] of entries) {
 				if (fileType === vscode.FileType.File) {
-				if (fileName.endsWith('.csv') || fileName === 'output.ttl') {
-					const outputPath = vscode.Uri.joinPath(outputsDir, fileName);
-					
-					try {
-						const outputDocument = await vscode.workspace.openTextDocument(outputPath);
-						const outputEditor = await vscode.window.showTextDocument(outputDocument, vscode.ViewColumn.Three);
-						conversion.outputEditor = outputEditor;
-						conversion.outputFilePath = outputPath.fsPath;
-						foundOutputFile = true;
-						break; // Only open the first found output file
-					} catch (error) {
-						console.warn(`Could not open existing output file: ${outputPath.fsPath}`, error);
+					if (fileName.endsWith('.csv') || fileName === 'output.ttl') {
+						const outputPath = vscode.Uri.joinPath(outputsDir, fileName);
+
+						try {
+							const outputDocument = await vscode.workspace.openTextDocument(outputPath);
+							const outputEditor = await vscode.window.showTextDocument(outputDocument, vscode.ViewColumn.Three);
+							conversion.outputEditor = outputEditor;
+							conversion.outputFilePath = outputPath.fsPath;
+							foundOutputFile = true;
+							break; // Only open the first found output file
+						} catch (error) {
+							console.warn(`Could not open existing output file: ${outputPath.fsPath}`, error);
+						}
 					}
 				}
 			}
-		}
 
 			// If no existing output files found, create default output.ttl
 			if (!foundOutputFile) {
@@ -348,7 +325,7 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 			preserveFocus: true,
 			preview: false
 		});
-		
+
 		// Store the rdf input path for tracking
 		conversion.rdfInputFilePath = rdfInputPath.fsPath;
 	} catch (error) {
@@ -378,11 +355,11 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 		for (const [fileName, fileType] of entries) {
 			if (fileType === vscode.FileType.File && fileName.endsWith('.csv')) {
 				const inputPath = vscode.Uri.joinPath(inputsDir, fileName).fsPath;
-				
+
 				// Only open if not already in our list
-				if (inputPath !== conversion.inputFilePath && 
+				if (inputPath !== conversion.inputFilePath &&
 					(!conversion.additionalInputFilePaths || !conversion.additionalInputFilePaths.includes(inputPath))) {
-					
+
 					try {
 						const additionalInputDocument = await vscode.workspace.openTextDocument(inputPath);
 						await vscode.window.showTextDocument(additionalInputDocument, {
@@ -422,14 +399,14 @@ async function validateDocument(conversion: ConversionItem, provider: CSVWAction
 
 	clearRedUnderlines(descriptorEditor);
 	const content = descriptorEditor.document.getText();
-	
+
 	try {
 		JSON.parse(content);
 		vscode.window.showInformationMessage(`✅ Validation complete for "${conversion.name}". JSON syntax is valid!`);
 	} catch (error) {
 		const errorLines = [0];
 		const errorMessages = [`Invalid JSON syntax: ${error instanceof Error ? error.message : 'Unknown error'}`];
-		
+
 		addRedUnderlineToLines(descriptorEditor, errorLines, errorMessages);
 		vscode.window.showInformationMessage(`🔍 Validation complete for "${conversion.name}". Found JSON syntax issues.`);
 	}
@@ -525,7 +502,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 			try {
 				const outputsDir = path.join(conversion.folderPath, 'outputs');
 				const outputsDirUri = vscode.Uri.file(outputsDir);
-				
+
 				try {
 					const outputFiles = await vscode.workspace.fs.readDirectory(outputsDirUri);
 					for (const [fileName, fileType] of outputFiles) {
@@ -594,7 +571,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 				if (!conversion.inputFilePath) {
 					conversion.inputFilePath = `${conversion.folderPath}/inputs/csvInput.csv`;
 				}
-				
+
 				const descriptorUri = vscode.Uri.file(conversion.descriptorFilePath);
 
 				const descriptorBytes = await vscode.workspace.fs.readFile(descriptorUri);
@@ -611,7 +588,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 				if (outputFilePaths.length === 1) {
 					conversion.outputFilePath = outputFilePaths[0];
 				}
-				
+
 				// Clear any previous error file since conversion was successful
 				conversion.errorFilePath = undefined;
 
@@ -621,18 +598,18 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 				// Open all output files in the third column
 				for (const outputFilePath of outputFilePaths) {
 					const outputUri = vscode.Uri.file(outputFilePath);
-					
+
 					const outputEditor = vscode.window.visibleTextEditors.find(
 						editor => editor.document.uri.fsPath === outputFilePath
 					);
 					if (outputEditor) {
 						await vscode.commands.executeCommand('workbench.action.files.revert', outputUri);
 					}
-					
+
 					// Open the file in the third column
-					await vscode.window.showTextDocument(outputUri, { 
+					await vscode.window.showTextDocument(outputUri, {
 						viewColumn: vscode.ViewColumn.Three,
-						preserveFocus: false 
+						preserveFocus: false
 					});
 				}
 
@@ -653,7 +630,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 
 					// Update conversion structure with error file path
 					conversion.errorFilePath = errorPath.fsPath;
-					
+
 					// Clear output files since there was an error
 					conversion.outputFilePath = undefined;
 					conversion.outputFilePaths = undefined;
@@ -682,7 +659,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 				if (!conversion.rdfInputFilePath) {
 					conversion.rdfInputFilePath = `${conversion.folderPath}/inputs/rdfInput.ttl`;
 				}
-				
+
 				const descriptorUri = vscode.Uri.file(conversion.descriptorFilePath);
 
 				const descriptorBytes = await vscode.workspace.fs.readFile(descriptorUri);
@@ -697,7 +674,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 				if (outputFilePaths.length === 1) {
 					conversion.outputFilePath = outputFilePaths[0];
 				}
-				
+
 				// Clear any previous error file since conversion was successful
 				conversion.errorFilePath = undefined;
 
@@ -707,18 +684,18 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 				// Open all output files in the third column
 				for (const outputFilePath of outputFilePaths) {
 					const outputUri = vscode.Uri.file(outputFilePath);
-					
+
 					const outputEditor = vscode.window.visibleTextEditors.find(
 						editor => editor.document.uri.fsPath === outputFilePath
 					);
 					if (outputEditor) {
 						await vscode.commands.executeCommand('workbench.action.files.revert', outputUri);
 					}
-					
+
 					// Open the file in the third column
-					await vscode.window.showTextDocument(outputUri, { 
+					await vscode.window.showTextDocument(outputUri, {
 						viewColumn: vscode.ViewColumn.Three,
-						preserveFocus: false 
+						preserveFocus: false
 					});
 				}
 
@@ -739,7 +716,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 
 					// Update conversion structure with error file path
 					conversion.errorFilePath = errorPath.fsPath;
-					
+
 					// Clear output files since there was an error
 					conversion.outputFilePath = undefined;
 					conversion.outputFilePaths = undefined;
@@ -985,64 +962,6 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 		}
 	);
 
-	const convert = vscode.commands.registerCommand(
-		'csvwrdfconvertor.convert',
-		async () => {
-			if (!areInputFieldsOpen()) {
-				vscode.window.showWarningMessage('Please open input fields first by clicking "Show Input Fields"');
-				return;
-			}
-			let descriptorEditor: vscode.TextEditor | undefined;
-			let inputEditor: vscode.TextEditor | undefined;
-			let outputEditor: vscode.TextEditor | undefined;
-
-			for (const editor of vscode.window.visibleTextEditors) {
-				const fileName = editor.document.fileName || editor.document.uri.path;
-				if (fileName.includes('Descriptor')) descriptorEditor = editor;
-				if (fileName.includes('Input')) inputEditor = editor;
-				if (fileName.includes('Output')) outputEditor = editor;
-			}
-
-			if (!descriptorEditor || !inputEditor || !outputEditor) {
-				vscode.window.showErrorMessage('❌ Could not find all required editors');
-				return;
-			}
-
-			const descriptorContent = descriptorEditor.document.getText();
-			const inputContent = inputEditor.document.getText();
-
-			const descriptorFilePath = descriptorEditor.document.fileName || descriptorEditor.document.uri.path;
-			const conversion = findConversionByFilePath(descriptorFilePath, csvwActionsProvider);
-			
-			if (!conversion) {
-				vscode.window.showErrorMessage('❌ Could not find conversion configuration');
-				return;
-			}
-			
-			const templateIRIs = conversion.templateIRIsChecked || false;
-			const minimalMode = conversion.minimalModeChecked || false;
-
-			const outputFilePaths = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode, conversion);
-
-			// Update the conversion structure with the actual output file paths
-			conversion.outputFilePaths = outputFilePaths;
-			if (outputFilePaths.length === 1) {
-				conversion.outputFilePath = outputFilePaths[0];
-			}
-
-			// Open all output files in the third column instead of editing the current output editor
-			for (const outputFilePath of outputFilePaths) {
-				const outputUri = vscode.Uri.file(outputFilePath);
-				await vscode.window.showTextDocument(outputUri, { 
-					viewColumn: vscode.ViewColumn.Three,
-					preserveFocus: false 
-				});
-			}
-
-			vscode.window.showInformationMessage('✅ Conversion completed!');
-		}
-	);
-
 	const clearRedUnderlinesCommand = vscode.commands.registerCommand(
 		'csvwrdfconvertor.clearRedUnderlines',
 		async () => {
@@ -1078,12 +997,27 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 			try {
 				const fileName = activeEditor.document.fileName || activeEditor.document.uri.path;
 				const baseName = fileName.split(/[/\\]/).pop()?.replace(/\.[^/.]+$/, "") || "CurrentWindow";
-				const conversion = csvwActionsProvider.addConversion(`${baseName} Conversion`);
+				const defaultName = `${baseName} Conversion`;
+
+				// Prompt user for conversion name
+				const conversionName = await vscode.window.showInputBox({
+					prompt: 'Enter a name for the new conversion',
+					placeHolder: defaultName,
+					value: defaultName
+				});
+
+				// If user cancels the input, return early
+				if (conversionName === undefined) {
+					return;
+				}
+
+				const finalName = conversionName.trim() || defaultName;
+				const conversion = csvwActionsProvider.addConversion(finalName);
 
 				// Create the basic conversion structure first
 				const workspaceRoot = vscode.workspace.workspaceFolders![0].uri.fsPath;
 				const extensionDir = vscode.Uri.joinPath(vscode.Uri.file(workspaceRoot), 'csvw-rdf-conversions');
-				const conversionDir = vscode.Uri.joinPath(extensionDir, conversion.id);
+				const conversionDir = vscode.Uri.joinPath(extensionDir, sanitizeFolderName(conversion.name));
 				const inputsDir = vscode.Uri.joinPath(conversionDir, 'inputs');
 				const outputsDir = vscode.Uri.joinPath(conversionDir, 'outputs');
 
@@ -1096,42 +1030,56 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 				}
 
 				conversion.folderPath = conversionDir.fsPath;
+				const fileExtension = path.extname(fileName).toLowerCase();
+				const isRdf = fileExtension !== '.csv';
+				let foundMetadataAsString: string | null = null;
+				if (!isRdf) {
 
-				// Determine if the content is RDF or CSV
-				const isRdf = isRdfContent(originalContent);
-
-				// Create the descriptor file
-				const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.jsonld');
-				conversion.descriptorFilePath = descriptorPath.fsPath;
-				await ensureFileExists(descriptorPath, getDefaultDescriptorContent());
+					const metadataPath = await findMetadata(activeEditor.document.uri.path);
+					if (metadataPath) {
+						try {
+							const metadataUri = vscode.Uri.file(metadataPath);
+							const metadataBytes = await vscode.workspace.fs.readFile(metadataUri);
+							const decoder = new TextDecoder();
+							foundMetadataAsString = decoder.decode(metadataBytes);
+						} catch (err) {
+							console.warn("Could not read associated metadata file: " + metadataPath, err);
+						}
+					}
+					const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.jsonld');
+					conversion.descriptorFilePath = descriptorPath.fsPath;
+					await ensureFileExists(descriptorPath, foundMetadataAsString ?? getDefaultDescriptorContent());
+				}
+				else{
+					const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.jsonld');
+					conversion.descriptorFilePath = descriptorPath.fsPath;
+					await ensureFileExists(descriptorPath, "");
+				}
 
 				if (isRdf) {
-					// Copy RDF content to rdfInput.ttl
 					const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
 					await vscode.workspace.fs.writeFile(rdfInputPath, new TextEncoder().encode(originalContent));
 					conversion.rdfInputFilePath = rdfInputPath.fsPath;
 
-					// Create default CSV input file as well
 					const csvInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
 					await ensureFileExists(csvInputPath, getDefaultInputContent(conversion.name));
 					conversion.inputFilePath = csvInputPath.fsPath;
 				} else {
-					// Copy CSV content to csvInput.csv
-					const csvInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
+					const csvInputPath = vscode.Uri.joinPath(inputsDir, baseName+".csv");
 					await vscode.workspace.fs.writeFile(csvInputPath, new TextEncoder().encode(originalContent));
 					conversion.inputFilePath = csvInputPath.fsPath;
 
-					// Create default RDF input file as well
 					const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
 					await ensureFileExists(rdfInputPath, getDefaultRdfInputContent(conversion.name));
 					conversion.rdfInputFilePath = rdfInputPath.fsPath;
 				}
-
 				// Now open the fields normally - the files are already correctly set up
 				await openFieldsForConversion(conversion);
 
 				const fileType = isRdf ? 'RDF' : 'CSV';
 				vscode.window.showInformationMessage(`✅ Created conversion "${conversion.name}" from ${fileType} file!`);
+
+
 
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : 'Unknown conversion error';
@@ -1152,24 +1100,7 @@ export function registerCommands(context: vscode.ExtensionContext, csvwActionsPr
 		deleteConversion,
 		toggleTemplateIRIs,
 		toggleMinimalMode,
-		convert,
 		clearRedUnderlinesCommand,
 		convertCurrentWindowCommand
 	);
-
-	return {
-		addNewConversion,
-		openConversionFields,
-		closeConversionFields,
-		convertCsvwToRdf,
-		convertRdfToCsvw,
-		validateSpecific,
-		addAnotherInput,
-		deleteConversion,
-		toggleTemplateIRIs,
-		toggleMinimalMode,
-		convert,
-		clearRedUnderlinesCommand,
-		convertCurrentWindowCommand
-	};
 }
