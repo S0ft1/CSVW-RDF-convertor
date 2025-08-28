@@ -59,6 +59,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const descriptorContent = descriptorEditor.document.getText();
 				await updateInputFilesFromDescriptor(conversion, descriptorContent);
 			}
+			return; // Don't trigger conversion for descriptor saves, only update input files
 		}
 
 		// Determine conversion direction based on which file was saved
@@ -94,16 +95,34 @@ export async function activate(context: vscode.ExtensionContext) {
 					outputFilePaths = await convertCSVW2RDF(descriptorContent, { templateIris: templateIRIs, minimal: minimalMode }, conversion);
 				}
 
-				// Update the conversion structure with the actual output file paths
-				if (outputFilePaths.length > 1) {
-					conversion.outputFilePaths = outputFilePaths;
-				}
-				if (outputFilePaths.length >= 1) {
-					conversion.outputFilePath = outputFilePaths[0];
-				}
-				
-				// Clear any previous error file since conversion was successful
-				conversion.errorFilePath = undefined;
+				   // Update the conversion structure with the actual output file paths
+				   if (outputFilePaths.length > 1) {
+					   conversion.outputFilePaths = outputFilePaths;
+				   }
+				   else if (outputFilePaths.length == 1) {
+					   conversion.outputFilePath = outputFilePaths[0];
+				   }
+
+				   // Clear any previous error file since conversion was successful
+				   conversion.errorFilePath = undefined;
+
+				   // Open all output files in the third column
+				   if (outputFilePaths.length > 0) {
+					   // Store the output files that we're showing to the user
+					   conversion.lastShownOutputFiles = [...outputFilePaths];
+					   
+					   for (const outputFilePath of outputFilePaths) {
+						   const outputUri = vscode.Uri.file(outputFilePath);
+						   // If already open, revert to reload
+						   const outputEditor = vscode.window.visibleTextEditors.find(
+							   editor => editor.document.uri.fsPath === outputFilePath
+						   );
+						   if (outputEditor) {
+							   await vscode.commands.executeCommand('workbench.action.files.revert', outputUri);
+						   }
+						   await vscode.window.showTextDocument(outputUri, { viewColumn: vscode.ViewColumn.Three, preview: false });
+					   }
+				   }
 
 			} catch (error) {
 

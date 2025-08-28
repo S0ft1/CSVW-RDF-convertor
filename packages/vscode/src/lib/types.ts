@@ -41,6 +41,7 @@ export interface ConversionItem {
 	minimalModeChecked?: boolean;
 	errorFilePath?: string; // Path to the error.txt file when conversion fails
 	lastConversionType?: ConversionType; // Track the last conversion direction
+	lastShownOutputFiles?: string[]; // Track the last output files that were shown to user
 }
 
 /**
