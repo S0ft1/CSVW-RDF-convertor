@@ -13,14 +13,15 @@ import {
 	serializeRdf
 } from '@csvw-rdf-convertor/core'
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core'
-import { ConversionItem, MiniOptions } from './types.js';
+import { ConversionItem, MiniOptions, ConversionType } from './types.js';
 import { isAbsolute, resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import * as csv from 'csv';
 import { Readable } from 'node:stream';
 import fs from 'node:fs';
-import { StreamWriter } from 'n3';
+import * as path from 'path';
+import { Quad, Stream } from '@rdfjs/types';
 /**
  * Converts RDF data to CSVW format using CSVW metadata.
  * @param descriptorText - The CSVW metadata descriptor content.
@@ -30,8 +31,14 @@ import { StreamWriter } from 'n3';
  * @returns Promise containing created table file names.
  */
 export async function convertRDF2CSVW(descriptorText: string, inputPath: string, conversion: ConversionItem): Promise<string[]> {
+	// Validate conversion object has required properties
+	if (!conversion.folderPath) {
+		throw new Error('Conversion folderPath is undefined - conversion object not properly initialized');
+	}
+	
+	const inputsDir = path.join(conversion.folderPath, 'inputs');
 	const options: Rdf2CsvOptions = {
-		baseIri: conversion.folderPath,
+		baseIri: inputsDir,
 		descriptor: descriptorText,
 		resolveJsonldFn: async (path, base) => {
 			const url =
@@ -49,7 +56,7 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 	};
 
 	let rdfStream = await parseRdf(inputPath, {
-		baseIri: conversion.folderPath, resolveStreamFn(path, base) {
+		baseIri: inputsDir, resolveStreamFn(path, base) {
 			const url =
 				URL.parse(path, base)?.href ??
 				URL.parse(path)?.href ??
@@ -78,13 +85,14 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 	let row: CsvwRow;
 	let tableNames = [];
 	for await ([descriptor, table, row] of stream) {
+		console.log(`Processing table: ${table.name}`);
 		if (stringifiers[table.name] === undefined) {
-			const tableFilePath = resolve(conversion.folderPath, table.name)
-			console.log("Creating table file:", tableFilePath)
+			const outputsDir = path.join(conversion.folderPath, 'outputs');
+			const tableFilePath = resolve(outputsDir, table.name);
+			console.log(`Writing CSVW output to ${tableFilePath}`);
 			const outputStream = fs.createWriteStream(
 				tableFilePath
 			);
-			//const outputStream = stdout;
 			tableNames.push(tableFilePath);
 			const dialect = descriptor.descriptor.dialect ?? {};
 			const descriptorOptions = {
@@ -106,11 +114,8 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 			stringifiers[table.name] = csv.stringify(descriptorOptions);
 			stringifiers[table.name].pipe(outputStream);
 		}
-		console.log("Writing row to table:", table.name, row);
 		stringifiers[table.name].write(row);
 	}
-	console.log("Finished writing tables.");
-	console.log("tableNames:", tableNames)
 	return Promise.resolve(tableNames);
 }
 
@@ -122,12 +127,14 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
  * @returns Promise resolving to array containing the output file path.
  */
 export async function convertCSVW2RDF(descriptorText: string, options: MiniOptions, conversion: ConversionItem): Promise<string[]> {
+	const inputsDir = path.join(conversion.folderPath, 'inputs');
+	console.log(inputsDir);
 	const getUrl = (path: string, base: string) =>
 		URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
 	const csvw2RdfOptions: Csvw2RdfOptions = {
 		templateIris: options.templateIris,
 		minimal: options.minimal,
-		baseIri: conversion.folderPath,
+		baseIri: inputsDir,
 		resolveJsonldFn: async (path, base) => {
 			const url = getUrl(path, base);
 			if (!isAbsolute(url) && URL.canParse(url)) {
@@ -165,14 +172,22 @@ export async function convertCSVW2RDF(descriptorText: string, options: MiniOptio
 	};
 
 	try {
+		
+		const outputsDir = path.join(conversion.folderPath, 'outputs');
+		const outputTtlPath = resolve(outputsDir, 'output.ttl');
+		conversion.outputFilePath = outputTtlPath;
+		console.log(`Set conversion.outputFilePath to ${conversion.outputFilePath}`);
 		if (conversion.descriptorFilePath && conversion.outputFilePath) {
-			const rdfStream = csvwDescriptorToRdf(descriptorText, csvw2RdfOptions);
+			console.log("in conversion")
+			const rdfStream : Stream<Quad> = csvwDescriptorToRdf(descriptorText, csvw2RdfOptions);
+			console.log("po konverzi"+ rdfStream);
 			const result = await serializeRdf(rdfStream, { format: 'turtle', turtle: { streaming: false} })
 			const typedResult = result as Readable;
 			const outputText = await new Promise<string>((resolve, reject) => {
 				let rdfData = '';
 
 				typedResult.on('data', (chunk) => {
+					console.log(chunk.toString());
 					rdfData += chunk.toString();
 				});
 
@@ -181,11 +196,13 @@ export async function convertCSVW2RDF(descriptorText: string, options: MiniOptio
 				});
 
 				typedResult.on('error', (error) => {
+					console.error('XXError during RDF serialization:', error);
 					reject(error);
 				});
 			});
 
-			// Write the RDF data to the output file
+			// Write the RDF data to the output.ttl file only
+			console.log(`Writing RDF output to ${conversion.outputFilePath}`);
 			await fs.promises.writeFile(conversion.outputFilePath, outputText, 'utf-8');
 			return [conversion.outputFilePath];
 		} else {
@@ -213,13 +230,18 @@ export async function handleConversion(descriptorText: string, inputText: string
 	};
 
 	const isRdf = isRdfContent(inputText);
-	console.log("detection:", isRdf)
 	let outputFilePaths: string[];
 	if (isRdf) {
+		// RDF to CSV conversion
+		console.log(conversion.inputFilePath)
 		outputFilePaths = await convertRDF2CSVW(descriptorText, conversion.inputFilePath, conversion);
 	} else {
+		// CSV to RDF conversion
 		outputFilePaths = await convertCSVW2RDF(descriptorText, options, conversion);
 	}
+
+	// Clear any previous error file since conversion was successful
+	conversion.errorFilePath = undefined;
 
 	return outputFilePaths;
 }

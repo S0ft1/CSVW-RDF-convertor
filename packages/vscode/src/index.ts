@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider, loadExistingConversions } from './lib/tree-data-provider.js';
-import { registerCommands } from './lib/command-handlers.js';
-import { handleConversion } from './lib/conversion-logic.js';
-
+import { registerCommands, updateInputFilesFromDescriptor } from './lib/command-handlers.js';
+import { convertRDF2CSVW, convertCSVW2RDF } from './lib/conversion-logic.js';
 export async function activate(context: vscode.ExtensionContext) {
 
 	const csvwActionsProvider = new CSVWActionsProvider();
@@ -21,12 +20,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	registerCommands(context, csvwActionsProvider);
 
 	const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
-		
+
 		const changedFilePath = document.uri.fsPath;
 		let conversion = null;
 
 		const conversions = csvwActionsProvider.getAllConversions();
-		
+
 		for (const conv of conversions) {
 			if (conv) {
 				if (changedFilePath === conv.outputFilePath) {
@@ -35,9 +34,12 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (conv.outputFilePaths && conv.outputFilePaths.includes(changedFilePath)) {
 					return; // Don't do anything for output file changes
 				}
-				
-				// Only process saves to descriptor or input files
-				if (changedFilePath === conv.descriptorFilePath || changedFilePath === conv.inputFilePath) {
+
+				// Process saves to descriptor, CSV input files, or RDF input file
+				if (changedFilePath === conv.descriptorFilePath ||
+					changedFilePath === conv.inputFilePath ||
+					changedFilePath === conv.rdfInputFilePath ||
+					(conv.additionalInputFilePaths && conv.additionalInputFilePaths.includes(changedFilePath))) {
 					conversion = conv;
 					break;
 				}
@@ -47,68 +49,91 @@ export async function activate(context: vscode.ExtensionContext) {
 			return; // Not a conversion file, ignore
 		}
 
-		const descriptorOpen = vscode.window.visibleTextEditors.some(
-			editor => editor.document.uri.fsPath === conversion.descriptorFilePath
-		);
-		const inputOpen = vscode.window.visibleTextEditors.some(
-			editor => editor.document.uri.fsPath === conversion.inputFilePath
-		);
-		
-		// Only require descriptor and input files to be open, output files will be created automatically
-		if (descriptorOpen && inputOpen) {
+		// If descriptor was saved, update input files based on table URLs
+		if (changedFilePath === conversion.descriptorFilePath) {
 			const descriptorEditor = vscode.window.visibleTextEditors.find(
 				editor => editor.document.uri.fsPath === conversion.descriptorFilePath
 			);
-			const inputEditor = vscode.window.visibleTextEditors.find(
-				editor => editor.document.uri.fsPath === conversion.inputFilePath
-			);
 
-			if (descriptorEditor && inputEditor) {
+			if (descriptorEditor) {
+				const descriptorContent = descriptorEditor.document.getText();
+				await updateInputFilesFromDescriptor(conversion, descriptorContent);
+			}
+		}
+
+		// Determine conversion direction based on which file was saved
+		let isRdfToCSVW = false;
+		if (changedFilePath === conversion.rdfInputFilePath) {
+			isRdfToCSVW = true;
+		}
+		console.log(`Auto-conversion triggered for ${isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF'} on save of ${changedFilePath}`);
+		//vscode.commands.executeCommand('csvwrdfconvertor.openConversionFields');
+
+		// Check which files are open for conversion
+		const descriptorEditor = vscode.window.visibleTextEditors.find(
+			editor => editor.document.uri.fsPath === conversion.descriptorFilePath
+		);
+		console.log("descriptorEditor: " + descriptorEditor);
+		if (descriptorEditor) {
+			try {
+				console.log("in descriptorEditor")
+				const descriptorContent = descriptorEditor.document.getText();
+				console.log(descriptorContent);
+				const templateIRIs = conversion.templateIRIsChecked || false;
+				const minimalMode = conversion.minimalModeChecked || false;
+
+				let outputFilePaths: string[];
+
+				if (isRdfToCSVW) {
+					// Use RDF->CSVW conversion
+					console.log(conversion.rdfInputFilePath);
+					outputFilePaths = await convertRDF2CSVW(descriptorContent, conversion.rdfInputFilePath, conversion);
+				} else {
+					// Use CSVW->RDF conversion
+					console.log(conversion.folderPath);
+					outputFilePaths = await convertCSVW2RDF(descriptorContent, { templateIris: templateIRIs, minimal: minimalMode }, conversion);
+				}
+
+				// Update the conversion structure with the actual output file paths
+				if (outputFilePaths.length > 1) {
+					conversion.outputFilePaths = outputFilePaths;
+				}
+				if (outputFilePaths.length >= 1) {
+					conversion.outputFilePath = outputFilePaths[0];
+				}
+				
+				// Clear any previous error file since conversion was successful
+				conversion.errorFilePath = undefined;
+
+			} catch (error) {
+
+				// Write error to dedicated error file for user visibility
 				try {
-					const descriptorContent = descriptorEditor.document.getText();
-					const inputContent = inputEditor.document.getText();
+					const conversionDirection = isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF';
+					const errorMessage = `# Auto-conversion Error (${conversionDirection})\n# ${new Date().toISOString()}\n# Error: ${error instanceof Error ? error.message : String(error)}\n\n# Stack trace:\n# ${error instanceof Error && error.stack ? error.stack.split('\n').map(line => `# ${line}`).join('\n') : 'No stack trace available'}\n`;
 
-					const templateIRIs = conversion.templateIRIsChecked || false;
-					const minimalMode = conversion.minimalModeChecked || false;
-					
-					const outputFilePaths = await handleConversion(descriptorContent, inputContent, templateIRIs, minimalMode, conversion);
+					// Create error.txt in outputs directory
+					const errorPath = vscode.Uri.file(`${conversion.folderPath}/outputs/error.txt`);
 
-					// Update the conversion structure with the actual output file paths
-					if (outputFilePaths.length > 1) {
-						conversion.outputFilePaths = outputFilePaths;
-					}
-					if (outputFilePaths.length >= 1) {
-						conversion.outputFilePath = outputFilePaths[0];
-					}
+					await vscode.workspace.fs.writeFile(errorPath, Buffer.from(errorMessage, 'utf8'));
+
+					// Open the error file to show the user
+					const errorDocument = await vscode.workspace.openTextDocument(errorPath);
+					await vscode.window.showTextDocument(errorDocument, vscode.ViewColumn.Three);
+
+					// Update conversion structure with error file path
+					conversion.errorFilePath = errorPath.fsPath;
 					
-				} catch (error) {
-					
-					// Write error to output file for user visibility
-					try {
-						const errorMessage = `# Auto-conversion Error\n# ${new Date().toISOString()}\n# Error: ${error instanceof Error ? error.message : String(error)}\n\n# Stack trace:\n# ${error instanceof Error && error.stack ? error.stack.split('\n').map(line => `# ${line}`).join('\n') : 'No stack trace available'}\n`;
-						
-						// Create or update output.ttl with error information
-						const outputPath = conversion.outputFilePath 
-							? vscode.Uri.file(conversion.outputFilePath)
-							: vscode.Uri.file(`${conversion.folderPath}/output.ttl`);
-						
-						await vscode.workspace.fs.writeFile(outputPath, Buffer.from(errorMessage, 'utf8'));
-						
-						// Open the error file to show the user
-						const errorDocument = await vscode.workspace.openTextDocument(outputPath);
-						await vscode.window.showTextDocument(errorDocument, vscode.ViewColumn.Three);
-						
-						// Update conversion structure
-						conversion.outputFilePath = outputPath.fsPath;
-					} catch (writeError) {
-						vscode.window.showErrorMessage(`Auto-conversion failed: ${error instanceof Error ? error.message : String(error)}`);
-					}
+					// Don't set outputFilePath when there's an error - this prevents output.ttl from being shown
+					// The error.txt will be the visible output instead
+				} catch (writeError) {
+					const conversionDirection = isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF';
+					vscode.window.showErrorMessage(`Auto-conversion failed (${conversionDirection}): ${error instanceof Error ? error.message : String(error)}`);
 				}
 			}
 		}
+
+		context.subscriptions.push(saveListener);
 	});
-
-	context.subscriptions.push(saveListener);
 }
-
-export function deactivate() {}
+export function deactivate() { }
