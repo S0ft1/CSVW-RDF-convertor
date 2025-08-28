@@ -275,16 +275,23 @@ export class Rdf2CsvwConvertor {
    */
   private setDefaults(options?: Rdf2CsvOptions): OptionsWithDefaults {
     options ??= {};
+    const cache = options.cache ?? new DefaultFetchCache();
     return {
       pathOverrides: options.pathOverrides ?? [],
       baseIri: options.baseIri ?? '',
       logLevel: options.logLevel ?? LogLevel.Warn,
-      resolveJsonldFn: options.resolveJsonldFn ?? defaultResolveJsonldFn,
+      cache: cache,
+      resolveJsonldFn: (url, base) => {
+        if (cache.inCache(url, base)) return cache.fromCache(url, base);
+        const originalFn = options?.resolveJsonldFn ?? defaultResolveJsonldFn;
+        const result = originalFn(url, base);
+        cache.toCache(url, base, result);
+        return result;
+      },
       useVocabMetadata: true,
       resolveRdfFn: options.resolveRdfFn ?? defaultResolveStreamFn,
       descriptor: options.descriptor,
       windowSize: options.windowSize,
-      cache: options.cache ?? new DefaultFetchCache(),
     };
   }
 

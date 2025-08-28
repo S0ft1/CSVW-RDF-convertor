@@ -17,13 +17,14 @@ export interface MiniOptions {
 export interface ConversionItem {
 	id: string;
 	name: string;
-	folderPath?: string;
+	folderPath: string;
 	descriptorEditor?: vscode.TextEditor;
 	inputEditor?: vscode.TextEditor;
 	outputEditor?: vscode.TextEditor;
 	descriptorFilePath?: string;
-	inputFilePath?: string;
+	inputFilePath: string;
 	outputFilePath?: string;
+	outputFilePaths?: string[]; // For multiple output files (RDF to CSV conversion)
 	additionalInputFilePaths?: string[]; 
 	templateIRIsChecked?: boolean;
 	minimalModeChecked?: boolean;
