@@ -1,4 +1,4 @@
-import { CsvwColumnWithQueryVar, CsvwColumn } from './convertor.js';
+import { CsvwColumn } from './convertor.js';
 import { DescriptorWrapper } from '../descriptor.js';
 
 import { CsvwTableDescriptionWithRequiredColumns } from '../types/descriptor/table.js';
@@ -21,11 +21,11 @@ const { rdf } = commonPrefixes;
 export function createQuery(
   table: CsvwTableDescriptionWithRequiredColumns,
   wrapper: DescriptorWrapper,
-): [CsvwColumnWithQueryVar[], string] {
+): [CsvwColumn[], string] {
   let queryVarCounter = 0;
   const queryVars: Record<string, string> = {};
 
-  const columns: CsvwColumnWithQueryVar[] = table.tableSchema.columns.map(
+  const columns: CsvwColumn[] = table.tableSchema.columns.map(
     (column, i) => {
       const defaultLang =
         (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ?? '@none';
@@ -260,7 +260,7 @@ ${lines.join('\n')}
  */
 function createTriplePatterns(
   table: CsvwTableDescriptionWithRequiredColumns,
-  columns: CsvwColumnWithQueryVar[],
+  columns: CsvwColumn[],
   index: number,
   queryVars: Record<string, string>,
 ): string {

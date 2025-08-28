@@ -144,10 +144,7 @@ export const rdf2csvw: CommandModule<
         const dialect = descriptor.descriptor.dialect ?? {};
         const descriptorOptions = {
           header: dialect.header ?? true,
-          columns: table.columns.map((column) => ({
-            key: column.name,
-            header: column.title,
-          })),
+          columns: table.columns,
           ...(dialect.delimiter !== undefined && {
             delimiter: dialect.delimiter,
           }),

@@ -1,6 +1,5 @@
 import { SimpleTest, SimpleTestType } from './types/manifest.js';
 import {
-  CsvwColumn,
   CsvwRow,
   CsvwTable,
   defaultResolveJsonldFn,
@@ -110,15 +109,7 @@ async function toReceivedObject(result: Readable): Promise<SimpleTestTables> {
       tables[table.name] = [];
     }
 
-    const titleRow: CsvwRow = {};
-    for (const name of Object.keys(row)) {
-      const title = (
-        table.columns.find((col) => col.name === name) as CsvwColumn
-      ).title;
-      titleRow[title] = row[name];
-    }
-
-    tables[table.name].push(titleRow);
+    tables[table.name].push(row);
   }
 
   for (const tableName of Object.keys(tables)) {
