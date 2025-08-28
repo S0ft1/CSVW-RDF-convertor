@@ -20,15 +20,15 @@ export type TurtleOptions = {
   base?: string;
   prefix?: Record<string, string>;
 } & (
-  | {
+    | {
       prefixLookup?: boolean;
       streaming?: false;
     }
-  | {
+    | {
       prefixLookup?: false;
       streaming?: true;
     }
-);
+  );
 
 /**
  * Serializes RDF data to a given format.
@@ -76,11 +76,11 @@ async function nonstreamTurtle(
   const prefixes = options.turtle.prefixLookup
     ? await lookupPrefixes(quads, options.turtle.prefix ?? commonPrefixes)
     : new PrefixMap(
-        Object.entries(options.turtle.prefix ?? commonPrefixes).map(
-          ([k, v]) => [k, namedNode(v)],
-        ),
-        { factory: N3.DataFactory },
-      );
+      Object.entries(options.turtle.prefix ?? commonPrefixes).map(
+        ([k, v]) => [k, namedNode(v)],
+      ),
+      { factory: N3.DataFactory },
+    );
 
   const writer = new TurtleSerializer({
     baseIRI: options.turtle.base,
