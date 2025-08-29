@@ -202,79 +202,155 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 }
 
 /**
- * Loads existing conversions from the workspace and populates the tree view.
- * Scans the csvw-rdf-conversions directory for existing conversion folders.
- * @param provider - The tree data provider to populate with existing conversions.
+ * Validates workspace availability for loading conversions.
+ * @returns The workspace root path or null if no workspace is available
  */
-export async function loadExistingConversions(provider: CSVWActionsProvider) {
+function validateWorkspace(): string | null {
 	if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-		return; 
+		return null;
+	}
+	return vscode.workspace.workspaceFolders[0].uri.fsPath;
+}
+
+/**
+ * Ensures required directories exist for a conversion.
+ * Creates inputs and outputs directories if they don't exist.
+ * @param conversionDir - The main conversion directory URI
+ * @returns Promise resolving to inputs and outputs directory URIs
+ */
+async function ensureConversionDirectories(conversionDir: vscode.Uri): Promise<{
+	inputsDir: vscode.Uri;
+	outputsDir: vscode.Uri;
+}> {
+	const inputsDir = vscode.Uri.joinPath(conversionDir, 'inputs');
+	const outputsDir = vscode.Uri.joinPath(conversionDir, 'outputs');
+
+	try {
+		await vscode.workspace.fs.createDirectory(inputsDir);
+		await vscode.workspace.fs.createDirectory(outputsDir);
+	} catch {
+		// Directories might already exist
 	}
 
-	const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+	return { inputsDir, outputsDir };
+}
+
+/**
+ * Sets up the descriptor file for a conversion.
+ * Ensures the descriptor exists and returns its content.
+ * @param conversionDir - The main conversion directory URI
+ * @param conversion - The conversion item to update with descriptor path
+ * @returns Promise resolving to the descriptor content as text
+ */
+async function setupDescriptorFile(conversionDir: vscode.Uri, conversion: ConversionItem): Promise<string> {
+	const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.jsonld');
+	conversion.descriptorFilePath = descriptorPath.fsPath;
+
+	await ensureFileExists(descriptorPath, getDefaultDescriptorContent());
+
+	const descriptorBytes = await vscode.workspace.fs.readFile(descriptorPath);
+	return new TextDecoder().decode(descriptorBytes);
+}
+
+/**
+ * Creates input files for a conversion based on descriptor content.
+ * Handles both descriptor-based and fallback input file creation.
+ * @param inputsDir - The inputs directory URI
+ * @param conversion - The conversion item to update with input file paths
+ * @param descriptorText - The descriptor content to parse for table URLs
+ * @param conversionName - The name of the conversion for fallback file creation
+ */
+async function createConversionInputFiles(
+	inputsDir: vscode.Uri,
+	conversion: ConversionItem,
+	descriptorText: string,
+	conversionName: string
+): Promise<void> {
+	try {
+		await createInputFilesFromDescriptor(inputsDir, conversion, descriptorText);
+	} catch (error) {
+		console.warn(`Could not create input files from descriptor for ${conversionName}:`, error);
+		const fallbackInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
+		await ensureFileExists(fallbackInputPath, getDefaultInputContent());
+		conversion.inputFilePath = fallbackInputPath.fsPath;
+	}
+
+	const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
+	await ensureFileExists(rdfInputPath, getDefaultRdfInputContent(conversionName));
+	conversion.rdfInputFilePath = rdfInputPath.fsPath;
+}
+
+/**
+ * Sets up output files for a conversion.
+ * Ensures the default output file exists.
+ * @param outputsDir - The outputs directory URI
+ * @param conversion - The conversion item to update with output file path
+ * @param conversionName - The name of the conversion for output file content
+ */
+async function setupOutputFiles(outputsDir: vscode.Uri, conversion: ConversionItem, conversionName: string): Promise<void> {
+	const outputPath = vscode.Uri.joinPath(outputsDir, 'output.ttl');
+	conversion.outputFilePath = outputPath.fsPath;
+	await ensureFileExists(outputPath, getDefaultOutputContent(conversionName));
+}
+
+/**
+ * Processes a single conversion directory and creates a conversion item.
+ * Handles all aspects of conversion setup including directories, files, and configuration.
+ * @param provider - The tree data provider to add the conversion to
+ * @param extensionDir - The main extensions directory URI
+ * @param conversionName - The name of the conversion directory
+ */
+async function processConversionDirectory(
+	provider: CSVWActionsProvider,
+	extensionDir: vscode.Uri,
+	conversionName: string
+): Promise<void> {
+	const conversionDir = vscode.Uri.joinPath(extensionDir, conversionName);
+	const conversion = provider.addConversion(conversionName);
+	conversion.folderPath = conversionDir.fsPath;
+
+	const { inputsDir, outputsDir } = await ensureConversionDirectories(conversionDir);
+	const descriptorText = await setupDescriptorFile(conversionDir, conversion);
+	await createConversionInputFiles(inputsDir, conversion, descriptorText, conversionName);
+	await setupOutputFiles(outputsDir, conversion, conversionName);
+}
+
+/**
+ * Shows success message after loading conversions.
+ * @param directoryCount - Number of conversion directories found
+ */
+function showLoadingResult(directoryCount: number): void {
+	if (directoryCount > 0) {
+		vscode.window.showInformationMessage(`📁 Loaded ${directoryCount} existing conversion(s)`);
+	}
+}
+
+/**
+ * Loads existing conversions from the workspace and populates the tree view.
+ * Scans the csvw-rdf-conversions directory for existing conversion folders and sets up each conversion.
+ * @param provider - The tree data provider to populate with existing conversions
+ */
+export async function loadExistingConversions(provider: CSVWActionsProvider): Promise<void> {
+	const workspaceRoot = validateWorkspace();
+	if (!workspaceRoot) return;
+
 	const extensionDir = vscode.Uri.joinPath(vscode.Uri.file(workspaceRoot), 'csvw-rdf-conversions');
 
 	try {
 		await vscode.workspace.fs.stat(extensionDir);
-
 		const entries = await vscode.workspace.fs.readDirectory(extensionDir);
 
 		for (const [name, type] of entries) {
 			if (type === vscode.FileType.Directory) {
-				const conversionDir = vscode.Uri.joinPath(extensionDir, name);
-				const inputsDir = vscode.Uri.joinPath(conversionDir, 'inputs');
-				const outputsDir = vscode.Uri.joinPath(conversionDir, 'outputs');
-
-				const conversion = provider.addConversion(name);
-				conversion.folderPath = conversionDir.fsPath;
-
-				const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.jsonld');
-
-				conversion.descriptorFilePath = descriptorPath.fsPath;
-
-				// Ensure directories exist
-				try {
-					await vscode.workspace.fs.createDirectory(inputsDir);
-					await vscode.workspace.fs.createDirectory(outputsDir);
-				} catch {
-					// Directories might already exist
-				}
-
-				// Ensure descriptor exists
-				await ensureFileExists(descriptorPath, getDefaultDescriptorContent());
-
-				// Read descriptor to create input files based on table URLs
-				try {
-					const descriptorBytes = await vscode.workspace.fs.readFile(descriptorPath);
-					const descriptorText = new TextDecoder().decode(descriptorBytes);
-					await createInputFilesFromDescriptor(inputsDir, conversion, descriptorText);
-				} catch (error) {
-					console.warn(`Could not create input files from descriptor for ${name}:`, error);
-					// Fallback: create default csvInput.csv if descriptor parsing fails
-					const fallbackInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
-					await ensureFileExists(fallbackInputPath, getDefaultInputContent(name));
-					conversion.inputFilePath = fallbackInputPath.fsPath;
-				}
-
-				// Always ensure rdfInput.ttl exists for potential RDF-to-CSV conversions
-				const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
-				await ensureFileExists(rdfInputPath, getDefaultRdfInputContent(name));
-				conversion.rdfInputFilePath = rdfInputPath.fsPath;
-
-				// Handle output files - check for existing output files
-				const outputPath = vscode.Uri.joinPath(outputsDir, 'output.ttl');
-				conversion.outputFilePath = outputPath.fsPath;
-				await ensureFileExists(outputPath, getDefaultOutputContent(name));
+				await processConversionDirectory(provider, extensionDir, name);
 			}
 		}
 
 		provider.refresh();
-
-		if (entries.length > 0) {
-			vscode.window.showInformationMessage(`📁 Loaded ${entries.filter(([, type]) => type === vscode.FileType.Directory).length} existing conversion(s)`);
-		}
+		const directoryCount = entries.filter(([, type]) => type === vscode.FileType.Directory).length;
+		showLoadingResult(directoryCount);
 
 	} catch (error) {
-		console.log('No existing conversions found');
+		// No existing conversions found - this is expected for new workspaces
 	}
 }

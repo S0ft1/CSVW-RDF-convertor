@@ -1,8 +1,35 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
+import { collectInputFilePaths, closeTabsForPaths } from './conversion-file-utils.js';
 
 /**
- * Deletes a conversion and all its associated files
+ * Collects all file paths that need to be closed before deletion.
+ * Includes input files, output files, and ensures rdfInput.ttl is included.
+ * @param conversion - The conversion item to collect paths for
+ * @returns Array of file paths to close
+ */
+function collectAllFilePaths(conversion: any): string[] {
+	const pathsToClose = collectInputFilePaths(conversion);
+
+	if (conversion.outputFilePath) {
+		pathsToClose.push(conversion.outputFilePath);
+	}
+
+	if (conversion.folderPath) {
+		const rdfInputPath = vscode.Uri.joinPath(vscode.Uri.file(conversion.folderPath), 'inputs', 'rdfInput.ttl');
+		if (!pathsToClose.includes(rdfInputPath.fsPath)) {
+			pathsToClose.push(rdfInputPath.fsPath);
+		}
+	}
+
+	return pathsToClose;
+}
+
+/**
+ * Deletes a conversion and all its associated files.
+ * Closes open tabs, deletes the conversion folder, and removes from tree view.
+ * @param csvwActionsProvider - The tree data provider for conversions
+ * @returns Disposable for the registered command
  */
 export function registerDeleteConversion(csvwActionsProvider: CSVWActionsProvider): vscode.Disposable {
 	return vscode.commands.registerCommand(
@@ -27,56 +54,9 @@ export function registerDeleteConversion(csvwActionsProvider: CSVWActionsProvide
 			}
 
 			try {
-				const pathsToClose: string[] = [];
+				const pathsToClose = collectAllFilePaths(conversion);
 
-				if (conversion.descriptorFilePath) {
-					pathsToClose.push(conversion.descriptorFilePath);
-				}
-
-				if (conversion.inputFilePath) {
-					pathsToClose.push(conversion.inputFilePath);
-				}
-
-				if (conversion.rdfInputFilePath) {
-					pathsToClose.push(conversion.rdfInputFilePath);
-				}
-
-				if (conversion.additionalInputFilePaths) {
-					pathsToClose.push(...conversion.additionalInputFilePaths);
-				}
-
-				if (conversion.outputFilePath) {
-					pathsToClose.push(conversion.outputFilePath);
-				}
-
-				// Also ensure we close rdfInput.ttl even if rdfInputFilePath is not set
-				if (conversion.folderPath) {
-					const rdfInputPath = vscode.Uri.joinPath(vscode.Uri.file(conversion.folderPath), 'inputs', 'rdfInput.ttl');
-					if (!pathsToClose.includes(rdfInputPath.fsPath)) {
-						pathsToClose.push(rdfInputPath.fsPath);
-					}
-				}
-
-				console.log(`Closing ${pathsToClose.length} files for deletion:`, pathsToClose);
-
-				if (pathsToClose.length > 0) {
-					const tabsToClose: vscode.Tab[] = [];
-
-					for (const tabGroup of vscode.window.tabGroups.all) {
-						for (const tab of tabGroup.tabs) {
-							if (tab.input instanceof vscode.TabInputText) {
-								if (pathsToClose.includes(tab.input.uri.fsPath)) {
-									tabsToClose.push(tab);
-								}
-							}
-						}
-					}
-
-					if (tabsToClose.length > 0) {
-						console.log(`Closing ${tabsToClose.length} tabs`);
-						await vscode.window.tabGroups.close(tabsToClose);
-					}
-				}
+				await closeTabsForPaths(pathsToClose);
 
 				if (conversion.folderPath) {
 					const folderUri = vscode.Uri.file(conversion.folderPath);

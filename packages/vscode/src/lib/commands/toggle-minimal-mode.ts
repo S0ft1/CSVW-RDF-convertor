@@ -1,21 +1,22 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
+import { validateConversionExists } from './conversion-utils.js';
 
 /**
- * Toggles the Minimal Mode option for a conversion
+ * Registers the toggle Minimal Mode command
+ * @param csvwActionsProvider - The tree data provider for conversions
+ * @returns Disposable for the registered command
  */
 export function registerToggleMinimalMode(csvwActionsProvider: CSVWActionsProvider): vscode.Disposable {
 	return vscode.commands.registerCommand(
 		'csvwrdfconvertor.toggleMinimalMode',
 		async (conversionId: string) => {
 			const conversion = csvwActionsProvider.getConversion(conversionId);
-			if (!conversion) {
-				vscode.window.showErrorMessage('❌ Conversion not found');
+			if (!validateConversionExists(conversion)) {
 				return;
 			}
 
 			conversion.minimalModeChecked = !conversion.minimalModeChecked;
-
 			csvwActionsProvider.refresh();
 		}
 	);

@@ -47,7 +47,6 @@ function parseTableUrls(descriptorText: string): string[] {
 		if (descriptor.url && !descriptor.tables) {
 			const filename = path.basename(descriptor.url, path.extname(descriptor.url));
 			tableUrls.push(filename);
-			console.log(`Found single table URL: ${descriptor.url} -> ${filename}`);
 		}
 
 		// Handle table group with multiple tables
@@ -56,18 +55,15 @@ function parseTableUrls(descriptorText: string): string[] {
 				if (table.url) {
 					const filename = path.basename(table.url, path.extname(table.url));
 					tableUrls.push(filename);
-					console.log(`Found table URL: ${table.url} -> ${filename}`);
 				}
 			}
 		}
 
 		// If no URLs found, ensure we have at least 'csvInput' as default
 		if (tableUrls.length === 0) {
-			console.log('No table URLs found in descriptor, using default "csvInput"');
 			tableUrls.push('csvInput');
 		}
 
-		console.log(`Parsed table URLs from descriptor: ${tableUrls.join(', ')}`);
 		return tableUrls;
 	} catch (error) {
 		console.warn('Failed to parse descriptor for table URLs:', error);
@@ -99,12 +95,12 @@ export async function createInputFilesFromDescriptor(inputsDir: vscode.Uri, conv
 
 		// Set the first file as the main input file path
 		if (i === 0) {
-			await ensureFileExists(inputPath, getDefaultInputContent(conversion.name));
+			await ensureFileExists(inputPath, getDefaultInputContent());
 			conversion.inputFilePath = inputPath.fsPath;
 		} else {
 			// Additional files
 			if (!conversion.additionalInputFilePaths.includes(inputPath.fsPath)) {
-				await ensureFileExists(inputPath, getDefaultInputContent(`${conversion.name} - ${tableUrls[i]}`));
+				await ensureFileExists(inputPath, getDefaultInputContent());
 				conversion.additionalInputFilePaths.push(inputPath.fsPath);
 			}
 		}
@@ -123,8 +119,6 @@ async function cleanupInputsDirectory(inputsDir: vscode.Uri, descriptorText: str
 		const allowedCsvFiles = new Set(tableUrls.map(url => `${url}.csv`));
 		allowedCsvFiles.add('rdfInput.ttl'); // Always keep the default RDF input file
 
-		console.log(`Cleaning inputs directory. Allowed files: ${Array.from(allowedCsvFiles).join(', ')}`);
-
 		const entries = await vscode.workspace.fs.readDirectory(inputsDir);
 		let deletedCount = 0;
 
@@ -133,7 +127,6 @@ async function cleanupInputsDirectory(inputsDir: vscode.Uri, descriptorText: str
 				try {
 					const filePath = vscode.Uri.joinPath(inputsDir, fileName);
 					await vscode.workspace.fs.delete(filePath);
-					console.log(`Deleted unwanted file: ${fileName}`);
 					deletedCount++;
 				} catch (error) {
 					console.warn(`Could not delete file ${fileName}:`, error);
@@ -142,7 +135,6 @@ async function cleanupInputsDirectory(inputsDir: vscode.Uri, descriptorText: str
 		}
 
 		if (deletedCount > 0) {
-			console.log(`Cleanup complete: Deleted ${deletedCount} unwanted file(s) from inputs directory`);
 			vscode.window.showInformationMessage(`🧹 Cleaned up ${deletedCount} unwanted file(s) from inputs directory`);
 		}
 	} catch (error) {
@@ -165,7 +157,6 @@ export async function updateInputFilesFromDescriptor(conversion: ConversionItem,
 	try {
 		const inputsDir = vscode.Uri.joinPath(vscode.Uri.file(conversion.folderPath), 'inputs');
 		await createInputFilesFromDescriptor(inputsDir, conversion, descriptorText);
-		console.log('Successfully updated input files from descriptor');
 	} catch (error) {
 		console.error('Error updating input files from descriptor:', error);
 	}
@@ -195,7 +186,6 @@ export async function scanAndLoadAdditionalInputs(conversion: ConversionItem): P
 				if (filePath !== conversion.inputFilePath && fileName !== 'rdfInput.ttl') {
 					if (!conversion.additionalInputFilePaths.includes(filePath)) {
 						conversion.additionalInputFilePaths.push(filePath);
-						console.log(`Added additional input file: ${fileName}`);
 					}
 				}
 			}
@@ -259,8 +249,6 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 	// Load any additional input files that already exist (scan the directory)
 	await scanAndLoadAdditionalInputs(conversion);
 
-	console.log(`Opening fields for conversion: ${conversion.name}`);
-
 	// Open ALL input files in the second column (main input + additional inputs + RDF input)
 	// Start with the main input file
 	if (conversion.inputFilePath) {
@@ -269,7 +257,6 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 			preserveFocus: true,
 			preview: false});
 		conversion.inputEditor = inputEditor;
-		console.log(`Opened main input file: ${conversion.inputFilePath}`);
 	}
 
 	// Open the RDF input file
@@ -279,7 +266,6 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 			await vscode.window.showTextDocument(rdfInputDocument, { viewColumn: vscode.ViewColumn.Two,
 			preserveFocus: true,
 			preview: false});
-			console.log(`Opened RDF input file: ${conversion.rdfInputFilePath}`);
 		} catch (error) {
 			console.warn(`Could not open RDF input file ${conversion.rdfInputFilePath}:`, error);
 		}
@@ -295,7 +281,6 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 					preserveFocus: true,
 					preview: false
 				});
-				console.log(`Opened additional input file: ${additionalInputPath}`);
 			} catch (error) {
 				console.warn(`Could not open additional input file ${additionalInputPath}:`, error);
 			}
@@ -304,8 +289,6 @@ export async function openFieldsForConversion(conversion: ConversionItem): Promi
 
 	// Try to open any existing output files if they exist
 	await openExistingOutputFiles(conversion);
-
-	console.log(`Opened fields for conversion: ${conversion.name}`);
 }
 
 /**
@@ -322,16 +305,15 @@ async function openExistingOutputFiles(conversion: ConversionItem): Promise<void
 	try {
 		// First, try to open files from lastShownOutputFiles if available
 		if (conversion.lastShownOutputFiles && conversion.lastShownOutputFiles.length > 0) {
-			console.log(`Opening last shown output files: ${conversion.lastShownOutputFiles.join(', ')}`);
 
 			for (const outputFilePath of conversion.lastShownOutputFiles) {
 				try {
 					await vscode.workspace.fs.stat(vscode.Uri.file(outputFilePath));
 					const outputDocument = await vscode.workspace.openTextDocument(outputFilePath);
 					await vscode.window.showTextDocument(outputDocument, vscode.ViewColumn.Three);
-					console.log(`Opened last shown output file: ${outputFilePath}`);
 				} catch (error) {
-					console.log(`Could not open last shown output file ${outputFilePath}:`, error);
+					// Note: Changed from console.log to console.warn for consistency
+					console.warn(`Could not open last shown output file ${outputFilePath}:`, error);
 				}
 			}
 			return;
@@ -350,7 +332,6 @@ async function openExistingOutputFiles(conversion: ConversionItem): Promise<void
 
 				conversion.outputEditor = outputEditor;
 				conversion.outputFilePath = outputPath.fsPath;
-				console.log(`Opened existing output file: ${fileName}`);
 				foundExistingFile = true;
 				break; // Only open the first output file found
 			}
@@ -366,7 +347,6 @@ async function openExistingOutputFiles(conversion: ConversionItem): Promise<void
 
 			conversion.outputEditor = outputEditor;
 			conversion.outputFilePath = outputPath.fsPath;
-			console.log('Created and opened default output file');
 		}
 	} catch (error) {
 		// Outputs directory doesn't exist or other error, create default output file
@@ -378,7 +358,6 @@ async function openExistingOutputFiles(conversion: ConversionItem): Promise<void
 
 		conversion.outputEditor = outputEditor;
 		conversion.outputFilePath = outputPath.fsPath;
-		console.log('Created and opened default output file');
 	}
 }
 

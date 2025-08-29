@@ -1,9 +1,40 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
+import { ConversionItem } from '../types.js';
+import { collectInputFilePaths, collectOutputFilePaths, findTabsToClose } from './conversion-file-utils.js';
 
 /**
- * Closes all files associated with a conversion
+ * Clears all conversion state after closing files
+ * @param conversion - The conversion item to reset
+ */
+function clearConversionState(conversion: ConversionItem): void {
+	conversion.descriptorEditor = undefined;
+	conversion.inputEditor = undefined;
+	conversion.outputEditor = undefined;
+	conversion.additionalInputFilePaths = [];
+	conversion.errorFilePath = undefined;
+	conversion.outputFilePath = undefined;
+	conversion.outputFilePaths = undefined;
+}
+
+/**
+ * Shows appropriate success message based on number of files closed
+ * @param conversion - The conversion item being processed
+ * @param fileCount - Number of files that were closed
+ */
+function showSuccessMessage(conversion: ConversionItem, fileCount: number): void {
+	if (fileCount === 0) {
+		vscode.window.showInformationMessage(`📝 Fields for "${conversion.name}" are already closed`);
+	} else {
+		const fileText = fileCount === 1 ? 'file' : 'files';
+		vscode.window.showInformationMessage(`✅ Closed ${fileCount} ${fileText} for conversion: ${conversion.name}`);
+	}
+}
+
+/**
+ * Registers the close conversion fields command
+ * @param csvwActionsProvider - The tree data provider for conversions
+ * @returns Disposable for the registered command
  */
 export function registerCloseConversionFields(csvwActionsProvider: CSVWActionsProvider): vscode.Disposable {
 	return vscode.commands.registerCommand(
@@ -15,78 +46,23 @@ export function registerCloseConversionFields(csvwActionsProvider: CSVWActionsPr
 				return;
 			}
 
-			const pathsToClose: string[] = [];
+			const inputPaths = collectInputFilePaths(conversion);
+			const outputPaths = await collectOutputFilePaths(conversion);
+			const allPathsToClose = [...inputPaths, ...outputPaths];
 
-			// Add input files to close
-			if (conversion.descriptorFilePath) {
-				pathsToClose.push(conversion.descriptorFilePath);
-			}
-
-			if (conversion.inputFilePath) {
-				pathsToClose.push(conversion.inputFilePath);
-			}
-
-			if (conversion.rdfInputFilePath) {
-				pathsToClose.push(conversion.rdfInputFilePath);
-			}
-
-			if (conversion.additionalInputFilePaths) {
-				pathsToClose.push(...conversion.additionalInputFilePaths);
-			}
-
-			// Find and add ALL files from the outputs directory
-			try {
-				const outputsDir = path.join(conversion.folderPath, 'outputs');
-				const outputsDirUri = vscode.Uri.file(outputsDir);
-
-				try {
-					const outputFiles = await vscode.workspace.fs.readDirectory(outputsDirUri);
-					for (const [fileName, fileType] of outputFiles) {
-						if (fileType === vscode.FileType.File) {
-							const filePath = path.join(outputsDir, fileName);
-							pathsToClose.push(filePath);
-						}
-					}
-				} catch (dirError) {
-					// Outputs directory might not exist, that's okay
-					console.log('Outputs directory not found or empty:', dirError);
-				}
-			} catch (error) {
-				console.log('Error reading outputs directory:', error);
-			}
-
-			if (pathsToClose.length === 0) {
-				vscode.window.showInformationMessage(`📝 Fields for "${conversion.name}" are already closed`);
+			if (allPathsToClose.length === 0) {
+				showSuccessMessage(conversion, 0);
 				return;
 			}
 
-			const tabsToClose: vscode.Tab[] = [];
-
-			for (const tabGroup of vscode.window.tabGroups.all) {
-				for (const tab of tabGroup.tabs) {
-					if (tab.input instanceof vscode.TabInputText) {
-						if (pathsToClose.includes(tab.input.uri.fsPath)) {
-							tabsToClose.push(tab);
-						}
-					}
-				}
-			}
-
+			const tabsToClose = findTabsToClose(allPathsToClose);
 			if (tabsToClose.length > 0) {
 				await vscode.window.tabGroups.close(tabsToClose);
 			}
 
-			conversion.descriptorEditor = undefined;
-			conversion.inputEditor = undefined;
-			conversion.outputEditor = undefined;
-			conversion.additionalInputFilePaths = [];
-			conversion.errorFilePath = undefined;
-			conversion.outputFilePath = undefined;
-			conversion.outputFilePaths = undefined;
+			clearConversionState(conversion);
 
-			const fileCount = pathsToClose.length;
-			const fileText = fileCount === 1 ? 'file' : 'files';
-			vscode.window.showInformationMessage(`✅ Closed ${fileCount} ${fileText} for conversion: ${conversion.name}`);
+			showSuccessMessage(conversion, allPathsToClose.length);
 		}
 	);
 }

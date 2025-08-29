@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { areInputFieldsOpen, clearRedUnderlines } from '../editor-utils.js';
 
 /**
- * Clears red underlines from the active editor
+ * Registers the clear red underlines command
+ * @returns Disposable for the registered command
  */
 export function registerClearRedUnderlines(): vscode.Disposable {
 	return vscode.commands.registerCommand(
