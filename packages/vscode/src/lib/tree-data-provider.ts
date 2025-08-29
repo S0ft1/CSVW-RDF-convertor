@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { ConversionItem, TreeItem } from './types.js';
-import { ensureFileExists, getDefaultDescriptorContent, getDefaultInputContent, getDefaultOutputContent } from './file-utils.js';
+import { ConversionItem, TreeItem, ConversionType } from './types.js';
+import { ensureFileExists, getDefaultDescriptorContent, getDefaultInputContent, getDefaultOutputContent, getDefaultRdfInputContent } from './file-utils.js';
+import { createInputFilesFromDescriptor } from './command-handlers.js';
 
 /**
  * Tree data provider for the CSVW Actions view in VS Code.
@@ -30,8 +31,9 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 		const conversion: ConversionItem = {
 			id: `conversion-${this.conversionCounter}`,
 			name: conversionName,
-			folderPath: '', // Will be set when files are created
-			inputFilePath: '' // Will be set when files are created
+			folderPath: '', 
+			inputFilePath: '',
+			rdfInputFilePath: '',
 		};
 		this.conversions.push(conversion);
 		this.conversionCounter++;
@@ -112,7 +114,8 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 			const conversionActions = [
 				`${element.id}:Open Fields`,
 				`${element.id}:Close Fields`,
-				`${element.id}:Convert`,
+				`${element.id}:Convert CSVW->RDF`,
+				`${element.id}:Convert RDF->CSVW`,
 				`${element.id}:Add another input`,
 				`${element.id}:Validate`,
 				`${element.id}:Template IRIs`,
@@ -154,9 +157,13 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 				item.command = { command: 'csvwrdfconvertor.closeConversionFields', title: 'Close Fields', arguments: [conversionId] };
 				item.iconPath = new vscode.ThemeIcon('close-all');
 				break;
-			case 'Convert':
-				item.command = { command: 'csvwrdfconvertor.convertSpecific', title: 'Convert', arguments: [conversionId] };
-				item.iconPath = new vscode.ThemeIcon('gear');
+			case 'Convert CSVW->RDF':
+				item.command = { command: 'csvwrdfconvertor.convertCsvwToRdf', title: 'Convert CSVW->RDF', arguments: [conversionId] };
+				item.iconPath = new vscode.ThemeIcon('arrow-right');
+				break;
+			case 'Convert RDF->CSVW':
+				item.command = { command: 'csvwrdfconvertor.convertRdfToCsvw', title: 'Convert RDF->CSVW', arguments: [conversionId] };
+				item.iconPath = new vscode.ThemeIcon('arrow-left');
 				break;
 			case 'Add another input':
 				item.command = { command: 'csvwrdfconvertor.addAnotherInput', title: 'Add another input', arguments: [conversionId] };
@@ -215,20 +222,48 @@ export async function loadExistingConversions(provider: CSVWActionsProvider) {
 		for (const [name, type] of entries) {
 			if (type === vscode.FileType.Directory) {
 				const conversionDir = vscode.Uri.joinPath(extensionDir, name);
+				const inputsDir = vscode.Uri.joinPath(conversionDir, 'inputs');
+				const outputsDir = vscode.Uri.joinPath(conversionDir, 'outputs');
 
 				const conversion = provider.addConversion(name);
 				conversion.folderPath = conversionDir.fsPath;
 
 				const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.jsonld');
-				const inputPath = vscode.Uri.joinPath(conversionDir, 'input.csv');
-				const outputPath = vscode.Uri.joinPath(conversionDir, 'output.ttl');
 
 				conversion.descriptorFilePath = descriptorPath.fsPath;
-				conversion.inputFilePath = inputPath.fsPath;
-				conversion.outputFilePath = outputPath.fsPath;
 
+				// Ensure directories exist
+				try {
+					await vscode.workspace.fs.createDirectory(inputsDir);
+					await vscode.workspace.fs.createDirectory(outputsDir);
+				} catch {
+					// Directories might already exist
+				}
+
+				// Ensure descriptor exists
 				await ensureFileExists(descriptorPath, getDefaultDescriptorContent());
-				await ensureFileExists(inputPath, getDefaultInputContent(name));
+
+				// Read descriptor to create input files based on table URLs
+				try {
+					const descriptorBytes = await vscode.workspace.fs.readFile(descriptorPath);
+					const descriptorText = new TextDecoder().decode(descriptorBytes);
+					await createInputFilesFromDescriptor(inputsDir, conversion, descriptorText);
+				} catch (error) {
+					console.warn(`Could not create input files from descriptor for ${name}:`, error);
+					// Fallback: create default csvInput.csv if descriptor parsing fails
+					const fallbackInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
+					await ensureFileExists(fallbackInputPath, getDefaultInputContent(name));
+					conversion.inputFilePath = fallbackInputPath.fsPath;
+				}
+
+				// Always ensure rdfInput.ttl exists for potential RDF-to-CSV conversions
+				const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
+				await ensureFileExists(rdfInputPath, getDefaultRdfInputContent(name));
+				conversion.rdfInputFilePath = rdfInputPath.fsPath;
+
+				// Handle output files - check for existing output files
+				const outputPath = vscode.Uri.joinPath(outputsDir, 'output.ttl');
+				conversion.outputFilePath = outputPath.fsPath;
 				await ensureFileExists(outputPath, getDefaultOutputContent(name));
 			}
 		}

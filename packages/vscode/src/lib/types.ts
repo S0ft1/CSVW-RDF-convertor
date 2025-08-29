@@ -1,6 +1,16 @@
 import * as vscode from 'vscode';
 
 /**
+ * Enum representing the types of conversions supported.
+ */
+export enum ConversionType {
+	/** CSV with metadata to RDF conversion */
+	CSVW_TO_RDF = 'csvw2rdf',
+	/** RDF to CSV with metadata conversion */
+	RDF_TO_CSVW = 'rdf2csvw'
+}
+
+/**
  * Configuration options for minimal CSVW to RDF conversion.
  */
 export interface MiniOptions {
@@ -23,11 +33,15 @@ export interface ConversionItem {
 	outputEditor?: vscode.TextEditor;
 	descriptorFilePath?: string;
 	inputFilePath: string;
+	rdfInputFilePath: string; // Path to the rdfInput.ttl file
 	outputFilePath?: string;
-	outputFilePaths?: string[]; // For multiple output files (RDF to CSV conversion)
+	outputFilePaths?: string[];
 	additionalInputFilePaths?: string[]; 
 	templateIRIsChecked?: boolean;
 	minimalModeChecked?: boolean;
+	errorFilePath?: string; // Path to the error.txt file when conversion fails
+	lastConversionType?: ConversionType; // Track the last conversion direction
+	lastShownOutputFiles?: string[]; // Track the last output files that were shown to user
 }
 
 /**

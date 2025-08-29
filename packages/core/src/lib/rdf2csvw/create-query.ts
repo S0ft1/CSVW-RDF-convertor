@@ -8,6 +8,7 @@ import { expandIri } from '../utils/expand-iri.js';
 import { commonPrefixes } from '../utils/prefix.js';
 
 import { parseTemplate } from 'url-template';
+import { SUBJ_COL, UNKOWN_TYPE_TABLE } from './schema-inferrer.js';
 
 const { rdf } = commonPrefixes;
 
@@ -25,62 +26,61 @@ export function createQuery(
   let queryVarCounter = 0;
   const queryVars: Record<string, string> = {};
 
-  const columns: CsvwColumn[] = table.tableSchema.columns.map(
-    (column, i) => {
-      const defaultLang =
-        (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ?? '@none';
+  const columns: CsvwColumn[] = table.tableSchema.columns.map((column, i) => {
+    const defaultLang =
+      (wrapper.descriptor['@context']?.[1] as any)?.['@language'] ?? '@none';
 
-      let name = `_col.${i + 1}`;
-      if (column.name !== undefined) {
-        name = encodeURIComponent(column.name);
-      } else if (column.titles !== undefined) {
-        if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
-          name = encodeURIComponent(coerceArray(column.titles)[0]);
-        } else {
-          // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
-          if (defaultLang in column.titles) {
-            name = encodeURIComponent(
-              coerceArray(column.titles[defaultLang])[0],
-            );
-          }
-        }
-      }
-
-      let title = undefined;
-      if (column.titles !== undefined) {
-        if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
-          title = coerceArray(column.titles)[0];
-        } else {
-          // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
-          if (defaultLang in column.titles) {
-            title = coerceArray(column.titles[defaultLang])[0];
-          }
-        }
-      }
-      if (title === undefined && column.name !== undefined) {
-        title = column.name;
-      }
-      if (title === undefined) title = `_col.${i + 1}`;
-
-      const aboutUrl = column.aboutUrl;
-      const propertyUrl = column.propertyUrl;
-      const valueUrl = column.valueUrl;
-
-      if (queryVars[aboutUrl ?? ''] === undefined)
-        queryVars[aboutUrl ?? ''] = `_${queryVarCounter++}`;
-      if (valueUrl && queryVars[valueUrl] === undefined)
-        queryVars[valueUrl] = `_${queryVarCounter++}`;
-
-      let queryVar: string;
-      if (propertyUrl && expandIri(propertyUrl) === rdf + 'type') {
-        queryVar = queryVars[aboutUrl ?? ''];
+    let name = `_col.${i + 1}`;
+    if (column.name !== undefined) {
+      name = encodeURIComponent(column.name);
+    } else if (column.titles !== undefined) {
+      if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
+        name = encodeURIComponent(coerceArray(column.titles)[0]);
       } else {
-        queryVar = valueUrl ? queryVars[valueUrl] : `_${queryVarCounter++}`;
+        // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+        if (defaultLang in column.titles) {
+          name = encodeURIComponent(coerceArray(column.titles[defaultLang])[0]);
+        }
       }
+    }
 
-      return { name: name, title: title, queryVariable: queryVar };
-    },
-  );
+    let title = undefined;
+    if (column.titles !== undefined) {
+      if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
+        title = coerceArray(column.titles)[0];
+      } else {
+        // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
+        if (defaultLang in column.titles) {
+          title = coerceArray(column.titles[defaultLang])[0];
+        }
+      }
+    }
+    if (title === undefined && column.name !== undefined) {
+      title = column.name;
+    }
+    if (title === undefined) title = `_col.${i + 1}`;
+
+    const aboutUrl = column.aboutUrl;
+    const propertyUrl = column.propertyUrl;
+    const valueUrl = column.valueUrl;
+
+    if (queryVars[aboutUrl ?? ''] === undefined)
+      queryVars[aboutUrl ?? ''] = `_${queryVarCounter++}`;
+    if (valueUrl && queryVars[valueUrl] === undefined)
+      queryVars[valueUrl] = `_${queryVarCounter++}`;
+
+    let queryVar: string;
+    if (
+      (propertyUrl && expandIri(propertyUrl) === rdf + 'type') ||
+      name === SUBJ_COL
+    ) {
+      queryVar = queryVars[aboutUrl ?? ''];
+    } else {
+      queryVar = valueUrl ? queryVars[valueUrl] : `_${queryVarCounter++}`;
+    }
+
+    return { name: name, title: title, queryVariable: queryVar };
+  });
 
   const lines: string[] = [];
   let allOptional = true;
@@ -193,6 +193,7 @@ function createSelectOfOptionalSubjects(
       else object = `"${object}"`;
     }
 
+    if (predicate === `<${UNKOWN_TYPE_TABLE}#${SUBJ_COL}>`) continue;
     const lines = [`        ${subject} ${predicate} ${object} .`];
 
     const lang = column.lang;
@@ -297,6 +298,7 @@ function createTriplePatterns(
     else object = `"${object}"`;
   }
 
+  if (predicate === `<${UNKOWN_TYPE_TABLE}#${SUBJ_COL}>`) return '';
   const lines = [`  ${subject} ${predicate} ${object} .`];
 
   const lang = column.lang;

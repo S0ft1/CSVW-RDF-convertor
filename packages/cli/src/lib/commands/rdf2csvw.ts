@@ -4,8 +4,6 @@ import { getSchema } from './interactive/get-schema.js';
 import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
-  CsvwRow,
-  CsvwTable,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
   DescriptorWrapper,
@@ -132,10 +130,8 @@ export const rdf2csvw: CommandModule<
     if (args.outDir) await mkdir(args.outDir, { recursive: true });
     const stringifiers: { [table: string]: csv.stringifier.Stringifier } = {};
 
-    let descriptor: DescriptorWrapper;
-    let table: CsvwTable;
-    let row: CsvwRow;
-    for await ([descriptor, table, row] of stream) {
+    let latestDescriptor: DescriptorWrapper | undefined;
+    for await (const [descriptor, table, row] of stream) {
       if (stringifiers[table.name] === undefined) {
         const outputStream = fs.createWriteStream(
           resolve(args.outDir, table.name),
@@ -160,6 +156,14 @@ export const rdf2csvw: CommandModule<
       }
 
       stringifiers[table.name].write(row);
+      latestDescriptor = descriptor;
+    }
+
+    if (latestDescriptor) {
+      fs.writeFileSync(
+        resolve(args.outDir, 'csv-metadata.json'),
+        JSON.stringify(latestDescriptor.descriptor, null, '  '),
+      );
     }
   },
 };

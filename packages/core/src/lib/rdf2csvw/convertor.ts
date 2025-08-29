@@ -12,10 +12,7 @@ import { WindowStore } from './window-store.js';
 
 import { TableGroupSchema } from './schema/table-group-schema.js';
 
-import {
-  CsvwTableDescription,
-  CsvwTableDescriptionWithRequiredColumns,
-} from '../types/descriptor/table.js';
+import { CsvwTableDescriptionWithRequiredColumns } from '../types/descriptor/table.js';
 
 import { CsvLocationTracker } from '../utils/code-location.js';
 import { IssueTracker } from '../utils/issue-tracker.js';
@@ -49,9 +46,9 @@ export type OptionsWithDefaults = Required<
   Pick<Rdf2CsvOptions, NullableOptions>;
 
 type QueryRecords = {
-  result: ResultStream<Bindings>;
   table: CsvwTableDescriptionWithRequiredColumns;
   columns: CsvwColumn[];
+  result: ResultStream<Bindings>;
 };
 
 const { rdf } = commonPrefixes;
@@ -111,9 +108,7 @@ export class Rdf2CsvwConvertor {
       read: async () => {
         while (outputQueue.size == 0) {
           // create SPARQL query and add new bindings to the queue
-          const tables = this.wrapper.isTableGroup
-            ? this.wrapper.getTables()
-            : ([this.wrapper.descriptor] as CsvwTableDescription[]);
+          const tables = this.wrapper.getTables();
 
           const queryRecords: QueryRecords[] = [];
 
@@ -156,9 +151,9 @@ export class Rdf2CsvwConvertor {
             });
 
             queryRecords.push({
-              result: resultStream,
               table: tableWithRequiredColumns,
               columns: columns,
+              result: resultStream,
             });
           }
 
@@ -260,6 +255,9 @@ export class Rdf2CsvwConvertor {
     this.schemaInferrer.lockCurrentSchema(true);
     // TODO: add conversion function
     this.wrapper = new DescriptorWrapper(this.schemaInferrer.schema, new Map());
+
+    if (this.options.logLevel >= LogLevel.Debug)
+      console.debug(JSON.stringify(this.wrapper, null, '  '));
   }
 
   public async inferSchema(rdf: Stream<Quad>) {
