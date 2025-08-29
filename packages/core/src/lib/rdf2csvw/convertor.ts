@@ -85,7 +85,10 @@ export class Rdf2CsvwConvertor {
       if (this.options.descriptor instanceof TableGroupSchema) {
         // TODO: Change normalizeDescriptor API instead of this
         this.wrapper = new DescriptorWrapper(
-          this.options.descriptor,
+          {
+            '@context': 'http://www.w3.org/ns/csvw',
+            ...this.options.descriptor,
+          },
           new Map(),
         );
       } else {
@@ -254,7 +257,13 @@ export class Rdf2CsvwConvertor {
 
     this.schemaInferrer.lockCurrentSchema(true);
     // TODO: add conversion function
-    this.wrapper = new DescriptorWrapper(this.schemaInferrer.schema, new Map());
+    this.wrapper = new DescriptorWrapper(
+      {
+        '@context': 'http://www.w3.org/ns/csvw',
+        ...this.schemaInferrer.schema,
+      },
+      new Map(),
+    );
 
     if (this.options.logLevel >= LogLevel.Debug)
       console.debug(JSON.stringify(this.wrapper, null, '  '));
