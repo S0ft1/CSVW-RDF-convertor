@@ -17,11 +17,13 @@ const { rdf, skos } = commonPrefixes;
 const { namedNode } = DataFactory;
 
 export const SUBJ_COL = 'subject_id';
+export const SUBJ_COL_TITLE = 'Subject ID';
 
 export class SchemaInferrer {
   public schema = new TableGroupSchema();
   public unknownSchema: TableSchema;
   private loadedVocabs: string[] = [];
+  private colIds: Record<string, number> = {};
 
   constructor(
     private store: WindowStore,
@@ -154,12 +156,26 @@ export class SchemaInferrer {
           `${table.url.slice(0, -4)}_${colnamePrefix}${this.schema.tables.length}.csv`,
         );
         relTable.addColumn(SUBJ_COL, {
-          titles: 'Subject ID',
+          titles: SUBJ_COL_TITLE,
           propertyUrl: rdf + 'type',
           valueUrl: table.tableSchema.columns[0].valueUrl,
           datatype: 'anyURI',
         });
         relTable.tableSchema.primaryKey = [SUBJ_COL, colnamePrefix + '1'];
+
+        if (table !== this.unknownSchema) {
+          relTable.tableSchema.foreignKeys = [
+            {
+              reference: { resource: table.url, columnReference: SUBJ_COL },
+              columnReference: SUBJ_COL,
+            },
+          ];
+        }
+        if (!table.locked) {
+          table.tableSchema.columns = table.tableSchema.columns.filter(
+            (col) => col.propertyUrl !== quad.predicate.value,
+          );
+        }
       } else {
         relTable = table;
       }
@@ -217,6 +233,7 @@ export class SchemaInferrer {
     if (!this.unknownSchema) {
       this.unknownSchema = this.schema.addTable('unknown_type.csv');
       this.unknownSchema.addColumn(SUBJ_COL, {
+        titles: SUBJ_COL_TITLE,
         datatype: 'anyURI',
       });
       this.unknownSchema.addPrimaryKey(SUBJ_COL);
@@ -243,7 +260,8 @@ export class SchemaInferrer {
       (col) => col.propertyUrl === iri,
     );
     if (colIndex === -1) {
-      colIndex = table.tableSchema.columns.length;
+      const curId = this.colIds[table.url] || 0;
+      colIndex = this.colIds[table.url] = curId + 1;
     }
     return colnamePrefix + colIndex;
   }
@@ -265,9 +283,10 @@ export class SchemaInferrer {
       if (!table) {
         table = this.schema.addTable(encoded + '.csv');
         table.addColumn(SUBJ_COL, {
+          titles: SUBJ_COL_TITLE,
           datatype: 'anyURI',
           propertyUrl: rdf + 'type',
-          valueUrl: quad.object.value,
+          valueUrl: typeQuad.object.value,
         });
         table.addPrimaryKey(SUBJ_COL);
       }

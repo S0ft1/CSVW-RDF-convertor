@@ -1,5 +1,5 @@
-import { TableSchema } from '@csvw-rdf-convertor/core';
+import { TableGroupSchema, TableSchema } from '@csvw-rdf-convertor/core';
 
-export function getSchema(tables: TableSchema[]) {
+export function getSchema(tables: TableGroupSchema) {
   return tables;
 }

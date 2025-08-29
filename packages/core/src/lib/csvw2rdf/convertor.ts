@@ -747,12 +747,12 @@ export class Csvw2RdfConvertor {
       ctx.templates.about[ctx.col.name as string] === undefined
         ? defaultSubj
         : this.templateUri(
-          ctx.templates.about[ctx.col.name as string],
-          colNum + colsOffset,
-          rowNum + rowsOffset,
-          ctx.table.url,
-          ctx,
-        );
+            ctx.templates.about[ctx.col.name as string],
+            colNum + colsOffset,
+            rowNum + rowsOffset,
+            ctx.table.url,
+            ctx,
+          );
     if (!this.options.minimal) {
       //4.6.8.2
       this.emitTriple(rowNode, namedNode(csvw + 'describes'), subject);
@@ -761,12 +761,12 @@ export class Csvw2RdfConvertor {
       ctx.templates.property[ctx.col.name as string] === undefined
         ? namedNode(ctx.table.url + '#' + ctx.col.name)
         : this.templateUri(
-          ctx.templates.property[ctx.col.name as string],
-          colNum + colsOffset,
-          rowNum + rowsOffset,
-          ctx.table.url,
-          ctx,
-        );
+            ctx.templates.property[ctx.col.name as string],
+            colNum + colsOffset,
+            rowNum + rowsOffset,
+            ctx.table.url,
+            ctx,
+          );
     const lang = ctx.col.lang;
 
     if (ctx.templates.value[ctx.col.name as string] === undefined) {
@@ -1185,7 +1185,7 @@ export class Csvw2RdfConvertor {
    */
   private setDefaults(options?: Csvw2RdfOptions): Required<Csvw2RdfOptions> {
     options ??= {};
-    let cache =  options.cache ?? new DefaultFetchCache();
+    const cache = options.cache ?? new DefaultFetchCache();
     return {
       pathOverrides: options.pathOverrides ?? [],
       cache: cache,
@@ -1193,7 +1193,7 @@ export class Csvw2RdfConvertor {
         if (cache.inCache(url, base)) return cache.fromCache(url, base);
         const originalFn = options?.resolveJsonldFn ?? defaultResolveJsonldFn;
         const result = originalFn(url, base);
-        cache.toCache(url,base, result);
+        cache.toCache(url, base, result);
         return result;
       },
       resolveCsvStreamFn: options.resolveCsvStreamFn ?? defaultResolveStreamFn,
@@ -1241,5 +1241,4 @@ export class Csvw2RdfConvertor {
     }
     return namedNode(uri);
   }
-
 }

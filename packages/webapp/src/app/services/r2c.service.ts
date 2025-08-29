@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { ConversionService } from './conversion.service';
 import { Issue, TableGroupSchema } from '@csvw-rdf-convertor/core';
+import { dataTtl } from './data.ttl';
 
 export interface InitR2CParams {
   files: {
@@ -12,8 +13,7 @@ export interface InitR2CParams {
   options: {
     baseIri?: string;
     pathOverrides: [string | RegExp, string][];
-    templateIris: boolean;
-    minimal: boolean;
+    useVocabMetadata?: boolean;
   };
 }
 
@@ -48,6 +48,15 @@ export type WorkerRequest = ConvertRequest | SchemaRequest;
 })
 export class R2CService extends ConversionService<InitR2CParams> {
   public detectedSchema = signal<TableGroupSchema>(null);
+
+  constructor() {
+    super();
+    const file = new File([dataTtl], 'data.ttl', { type: 'text/turtle' });
+    this.inferSchema({
+      files: { mainFile: file, otherFiles: [] },
+      options: { pathOverrides: [], useVocabMetadata: true },
+    });
+  }
 
   public override initConversion(params: InitR2CParams): boolean {
     if (!super.initConversion(params)) return false;
@@ -95,8 +104,7 @@ export class R2CService extends ConversionService<InitR2CParams> {
       options: {
         baseIri: config.options.baseIri,
         pathOverrides: config.options.pathOverrides ?? [],
-        templateIris: config.options.templateIris ?? true,
-        minimal: config.options.minimal ?? false,
+        useVocabMetadata: config.options.useVocabMetadata ?? true,
       },
     };
   }

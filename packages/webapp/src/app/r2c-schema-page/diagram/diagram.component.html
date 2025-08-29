@@ -1,0 +1,31 @@
+<div class="zoom-container">
+  <div class="svg-container">
+    @let graphLayout = layout()?.graph();
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      id="svg-output-{{ id }}"
+      #svg
+      [attr.width]="graphLayout?.width"
+      [attr.height]="graphLayout?.height"
+      [attr.viewBox]="'0 0 ' + graphLayout?.width + ' ' + graphLayout?.height"
+    >
+      @for (e of layout()?.edges(); track e) {
+        @let edge = layout().edge(e);
+        @if (!edge.invisible) {
+          <path [attr.d]="getEdgePath(edge)"></path>
+        }
+      }
+      @for (table of schema()?.tables; track table.url) {
+        @let tableLayout = layout()?.node(table.url);
+        <foreignObject
+          [attr.x]="tableLayout?.x - tableLayout?.width / 2"
+          [attr.y]="tableLayout?.y - tableLayout?.height / 2"
+          [attr.width]="tableLayout?.width || 1000"
+          [attr.height]="tableLayout?.height || 1000"
+        >
+          <app-table-schema [data]="table"></app-table-schema>
+        </foreignObject>
+      }
+    </svg>
+  </div>
+</div>

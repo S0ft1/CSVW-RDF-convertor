@@ -1,0 +1,30 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 20px;
+}
+
+svg {
+  display: block;
+  margin: 10px auto;
+  max-width: 100%;
+
+  foreignObject {
+    overflow: visible;
+    transform-origin: center;
+  }
+  path {
+    fill: none;
+    stroke: var(--mat-sys-primary);
+    stroke-width: 2;
+  }
+}
+.svg-container {
+  transform-origin: 0 0;
+}
+.zoom-container {
+  overflow: hidden;
+  max-width: 100%;
+  flex-grow: 1;
+}

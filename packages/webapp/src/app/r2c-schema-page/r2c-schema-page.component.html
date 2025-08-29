@@ -1,1 +1,7 @@
-<p>r2c-schema-page works!</p>
+@if (service.converting()) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  <header>Detecting schema</header>
+} @else {
+  <header>Schema detected</header>
+}
+<app-diagram [schema]="service.detectedSchema()" />

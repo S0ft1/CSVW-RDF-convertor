@@ -1,0 +1,19 @@
+<header>{{ data().url }}</header>
+<ul>
+  @for (col of data().tableSchema.columns; track col.name) {
+    <li>
+      <span
+        class="name"
+        [class.primary-key]="data().tableSchema.primaryKey.includes(col.name)"
+        [class.foreign-key]="col.name in foreignKeys()"
+        [attr.title]="
+          col.name in foreignKeys()
+            ? 'Foreign key to ' + foreignKeys()[col.name]
+            : null
+        "
+        >{{ col.titles }}</span
+      >
+      <span class="iri">{{ col.propertyUrl }}</span>
+    </li>
+  }
+</ul>

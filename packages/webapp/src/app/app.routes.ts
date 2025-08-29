@@ -94,7 +94,7 @@ export const appRoutes: Route[] = [
       import('./r2c-schema-page/r2c-schema-page.component').then(
         (m) => m.R2cSchemaPageComponent,
       ),
-    canMatch: [conversionExistsGuard(R2CService, '/r2c')],
+    // canMatch: [conversionExistsGuard(R2CService, '/r2c')],
     title: 'RDF → CSVW',
   },
 ];

@@ -1,0 +1,49 @@
+:host {
+  display: block;
+  width: fit-content;
+  border: 2px solid var(--mat-sys-primary);
+  border-radius: 8px;
+  overflow: hidden;
+
+  header {
+    text-align: center;
+    padding: 5px;
+    background-color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+
+    li {
+      padding: 5px;
+      background-color: var(--mat-sys-surface);
+      color: var(--mat-sys-on-surface);
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+
+      &:nth-of-type(even) {
+        background-color: var(--mat-sys-surface-variant);
+      }
+
+      .iri {
+        font-style: italic;
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 0.9em;
+        margin-left: 10px;
+        text-align: right;
+      }
+
+      .primary-key {
+        font-weight: bold;
+        color: var(--mat-sys-primary);
+      }
+      .foreign-key {
+        text-decoration: dashed underline;
+      }
+    }
+  }
+}

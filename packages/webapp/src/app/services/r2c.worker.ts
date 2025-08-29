@@ -6,7 +6,7 @@ import {
   parseRdf,
   defaultResolveStreamFn,
 } from '@csvw-rdf-convertor/core';
-import { InitR2CParams, WorkerRequest } from './r2c.service';
+import { InitR2CParams, SchemaMessage, WorkerRequest } from './r2c.service';
 import { Quad, Stream } from '@rdfjs/types';
 
 addEventListener('message', async ({ data }: { data: WorkerRequest }) => {
@@ -16,7 +16,7 @@ addEventListener('message', async ({ data }: { data: WorkerRequest }) => {
   if (data.type === 'schema') {
     const schema = await rdfToTableSchema(stream, options);
     console.log(schema);
-    postMessage({ type: 'schema', schema });
+    postMessage({ type: 'schema', data: schema } satisfies SchemaMessage);
     return;
   }
 });
@@ -41,7 +41,6 @@ function getOptions(params: InitR2CParams): Rdf2CsvOptions {
   };
   return {
     ...params.options,
-    windowSize: 5,
     baseIri,
     resolveJsonldFn: (url, base) => {
       url = getUrl(url, base);
@@ -62,7 +61,6 @@ async function createRdfStream(
   params: InitR2CParams,
   options: Rdf2CsvOptions,
 ): Promise<Stream<Quad>> {
-  let stream: Stream<Quad>;
   if (params.files.mainFileUrl) {
     return parseRdf(params.files.mainFileUrl, {
       baseIri: options.baseIri,
@@ -74,5 +72,4 @@ async function createRdfStream(
       resolveStreamFn: options.resolveRdfFn,
     });
   }
-  return stream;
 }
