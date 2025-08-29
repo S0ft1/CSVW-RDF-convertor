@@ -9,13 +9,11 @@ import {
 	DescriptorWrapper,
 	parseRdf,
 	Rdf2CsvOptions,
-	rdfStreamToArray,
 	rdfToCsvw,
-	rdfToTableSchema,
 	serializeRdf
 } from '@csvw-rdf-convertor/core'
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core'
-import { ConversionItem, MiniOptions, ConversionType } from './types.js';
+import { ConversionItem, MiniOptions } from './types.js';
 import { isAbsolute, resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -37,7 +35,10 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 	if (!conversion.folderPath) {
 		throw new Error('Conversion folderPath is undefined - conversion object not properly initialized');
 	}
-
+	let hasDescriptor = true;
+	if (descriptorText.trim().length === 0) {
+		hasDescriptor = false;
+	}
 	const inputsDir = path.join(conversion.folderPath, 'inputs');
 	const options: Rdf2CsvOptions = {
 		baseIri: inputsDir,
@@ -81,8 +82,7 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 	});
 
 	const stream = await rdfToCsvw(rdfStream, options);
-	//const schema = await rdfToTableSchema(rdfStream,options);
-
+	let latestDescriptor: DescriptorWrapper | undefined;
 	const stringifiers: { [table: string]: csv.stringifier.Stringifier } = {};
 	let descriptor: DescriptorWrapper;
 	let table: CsvwTable;
@@ -114,6 +114,20 @@ export async function convertRDF2CSVW(descriptorText: string, inputPath: string,
 			stringifiers[table.name].pipe(outputStream);
 		}
 		stringifiers[table.name].write(row);
+		latestDescriptor = descriptor;
+
+	}
+	if (latestDescriptor && !hasDescriptor) {
+		let descriptorText: string = JSON.stringify(latestDescriptor.descriptor, null, '  ');
+
+		if (conversion.descriptorFilePath) {
+			try {
+				const descriptorUri = vscode.Uri.file(conversion.descriptorFilePath);
+				await vscode.workspace.fs.writeFile(descriptorUri, Buffer.from(descriptorText, 'utf8'));
+			} catch (error) {
+				console.warn(`Failed to write descriptor file: ${error}`);
+			}
+		}
 	}
 	return Promise.resolve(tableNames);
 }
