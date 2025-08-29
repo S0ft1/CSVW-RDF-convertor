@@ -52,14 +52,39 @@
   "contributes": {
     "commands": [
       {
-        "command": "csvwrdfconvertor.showInputFields",
+        "command": "csvwrdfconvertor.addNewConversion",
         "title": "Add Conversion",
         "icon": "$(add)"
       },
       {
-        "command": "csvwrdfconvertor.convert",
-        "title": "Convert",
-        "icon": "$(gear)"
+        "command": "csvwrdfconvertor.openConversionFields",
+        "title": "Open Conversion Fields",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "csvwrdfconvertor.closeConversionFields",
+        "title": "Close Conversion Fields",
+        "icon": "$(close)"
+      },
+      {
+        "command": "csvwrdfconvertor.convertCsvwToRdf",
+        "title": "Convert CSVW to RDF",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "csvwrdfconvertor.convertRdfToCsvw",
+        "title": "Convert RDF to CSVW",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "csvwrdfconvertor.validateSpecific",
+        "title": "Validate Specific",
+        "icon": "$(check)"
+      },
+      {
+        "command": "csvwrdfconvertor.addAnotherInput",
+        "title": "Add Another Input",
+        "icon": "$(add)"
       },
       {
         "command": "csvwrdfconvertor.deleteConversion",
@@ -67,14 +92,29 @@
         "icon": "$(trash)"
       },
       {
-        "command": "csvwrdfconvertor.addAnotherInput",
-        "title": "Add another input",
-        "icon": "$(add)"
+        "command": "csvwrdfconvertor.toggleTemplateIRIs",
+        "title": "Toggle Template IRIs",
+        "icon": "$(link)"
+      },
+      {
+        "command": "csvwrdfconvertor.toggleMinimalMode",
+        "title": "Toggle Minimal Mode",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "csvwrdfconvertor.clearRedUnderlines",
+        "title": "Clear Red Underlines",
+        "icon": "$(clear-all)"
       },
       {
         "command": "csvwrdfconvertor.convertCurrentWindow",
         "title": "Convert Current Window",
         "icon": "$(gear)"
+      },
+      {
+        "command": "csvwrdfconvertor.refreshActions",
+        "title": "Refresh Actions",
+        "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {

@@ -1,0 +1,14 @@
+// Commands exports
+export { registerAddNewConversion } from './add-new-conversion.js';
+export { registerOpenConversionFields } from './open-conversion-fields.js';
+export { registerCloseConversionFields } from './close-conversion-fields.js';
+export { registerConvertCsvwToRdf } from './convert-csvw-to-rdf.js';
+export { registerConvertRdfToCsvw } from './convert-rdf-to-csvw.js';
+export { registerValidateSpecific } from './validate-specific.js';
+export { registerAddAnotherInput } from './add-another-input.js';
+export { registerDeleteConversion } from './delete-conversion.js';
+export { registerToggleTemplateIRIs } from './toggle-template-iris.js';
+export { registerToggleMinimalMode } from './toggle-minimal-mode.js';
+export { registerClearRedUnderlines } from './clear-red-underlines.js';
+export { registerConvertCurrentWindow } from './convert-current-window.js';
+export { registerSaveListener } from './save-listener.js';

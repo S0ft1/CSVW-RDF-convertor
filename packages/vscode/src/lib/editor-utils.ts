@@ -15,27 +15,31 @@ const redUnderlineDecorationType = vscode.window.createTextEditorDecorationType(
 });
 
 /**
- * Adds red wavy underlines to specified lines in an editor to indicate errors.
+ * Adds red wavy underlines to the first line in an editor to indicate errors.
+ * Shows all error messages on the first line.
  * @param editor - The text editor to add decorations to.
- * @param lineNumbers - Array of line numbers (0-based) to underline.
- * @param errorMessages - Optional array of error messages to display on hover.
+ * @param errorMessages - Array of error messages to display on hover.
  */
-export function addRedUnderlineToLines(editor: vscode.TextEditor, lineNumbers: number[], errorMessages?: string[]) {
+export function addRedUnderlineToLines(editor: vscode.TextEditor, errorMessages: string[]) {
 	const decorations: vscode.DecorationOptions[] = [];
 	
-	for (let i = 0; i < lineNumbers.length; i++) {
-		const lineNumber = lineNumbers[i];
-		if (lineNumber >= 0 && lineNumber < editor.document.lineCount) {
-			const line = editor.document.lineAt(lineNumber);
-			const errorMessage = errorMessages && errorMessages[i] ? errorMessages[i] : `Error on line ${lineNumber + 1}`;
-			const decoration: vscode.DecorationOptions = {
-				range: line.range,
-				hoverMessage: errorMessage
-			};
-			decorations.push(decoration);
-		}
+	if (errorMessages.length === 0 || editor.document.lineCount === 0) {
+		return;
 	}
+	const firstLine = editor.document.lineAt(0);
+
+	let combinedErrorMessage = 'Validation Errors/Warnings:\n';
+	const cleanedMessages = errorMessages.map(msg => {
+		const cleanMsg = String(msg).trim();
+		return cleanMsg.endsWith('}') ? cleanMsg.slice(0, -1).trim() : cleanMsg;
+	});
+	combinedErrorMessage += cleanedMessages.map(msg => `\n• ${msg}`).join('\n');
+	const decoration: vscode.DecorationOptions = {
+		range: firstLine.range,
+		hoverMessage: combinedErrorMessage
+	};
 	
+	decorations.push(decoration);
 	editor.setDecorations(redUnderlineDecorationType, decorations);
 }
 

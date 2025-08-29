@@ -45,7 +45,7 @@ export function getDefaultDescriptorContent(): string {
  * @param conversionName - The name of the conversion to include in the header comment.
  * @returns A CSV string with sample data and instructions.
  */
-export function getDefaultInputContent(conversionName: string): string {
+export function getDefaultInputContent(): string {
 	return `id,name,value
 1,"Sample 1",100
 2,"Sample 2",200`;
