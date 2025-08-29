@@ -23,9 +23,28 @@
           [attr.width]="tableLayout?.width || 1000"
           [attr.height]="tableLayout?.height || 1000"
         >
-          <app-table-schema [data]="table"></app-table-schema>
+          <app-table-schema
+            [data]="table"
+            [allTables]="schema().tables"
+            (deleteCol)="deleteColumn(table.url, $event.name, $event.titles)"
+            (deleteTable)="deleteTable(table.url)"
+            (moveCol)="
+              moveColumn(
+                table.url,
+                $event.column,
+                $event.columnTitles,
+                $event.toTable
+              )
+            "
+            (renameCol)="renameColumn(table.url, $event.name, $event.titles)"
+            (renameTable)="renameTable(table.url)"
+          ></app-table-schema>
         </foreignObject>
       }
     </svg>
   </div>
 </div>
+
+<button matFab (click)="addTable()" aria-label="Add Table">
+  <mat-icon>add</mat-icon>
+</button>

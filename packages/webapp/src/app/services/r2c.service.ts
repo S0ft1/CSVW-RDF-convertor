@@ -1,6 +1,11 @@
 import { Injectable, signal } from '@angular/core';
 import { ConversionService } from './conversion.service';
-import { Issue, TableGroupSchema } from '@csvw-rdf-convertor/core';
+import {
+  ColumnSchema,
+  Issue,
+  TableGroupSchema,
+  TableSchema,
+} from '@csvw-rdf-convertor/core';
 import { dataTtl } from './data.ttl';
 
 export interface InitR2CParams {
@@ -127,7 +132,7 @@ export class R2CService extends ConversionService<InitR2CParams> {
         });
       } else if (data.type === 'schema') {
         this.converting.set(false);
-        this.detectedSchema.set(data.data);
+        this.detectedSchema.set(this.toSchemaClasses(data.data));
       }
     };
     worker.onerror = (error) => {
@@ -143,5 +148,24 @@ export class R2CService extends ConversionService<InitR2CParams> {
     };
     worker.postMessage({ params, type: 'schema' });
     return true;
+  }
+
+  /**
+   * The object that comes back from the worker is stripped of the class prototypes.
+   */
+  private toSchemaClasses(schema: TableGroupSchema): TableGroupSchema {
+    const newSchema = new TableGroupSchema();
+    Object.assign(newSchema, schema);
+    newSchema.tables = schema.tables.map((table) => {
+      const newTable = new TableSchema(table.url);
+      Object.assign(newTable, table);
+      newTable.tableSchema.columns = table.tableSchema.columns.map((column) => {
+        const newColumn = new ColumnSchema(column.name);
+        Object.assign(newColumn, column);
+        return newColumn;
+      });
+      return newTable;
+    }) as [TableSchema, ...TableSchema[]];
+    return newSchema;
   }
 }

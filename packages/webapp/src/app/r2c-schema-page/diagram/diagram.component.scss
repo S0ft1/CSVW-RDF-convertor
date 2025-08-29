@@ -28,3 +28,9 @@ svg {
   max-width: 100%;
   flex-grow: 1;
 }
+
+button[matFab] {
+  position: fixed;
+  bottom: 100px;
+  right: 50px;
+}

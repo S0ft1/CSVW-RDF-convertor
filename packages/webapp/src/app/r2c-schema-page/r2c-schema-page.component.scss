@@ -11,8 +11,11 @@ app-diagram {
 .buttons {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin: 20px 0;
+  padding: 15px;
   width: 100%;
-  flex-wrap: wrap;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  background: var(--mat-sys-surface);
+  position: fixed;
+  bottom: 0;
+  left: 0;
 }

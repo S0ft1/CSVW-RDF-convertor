@@ -1,0 +1,9 @@
+@use '@angular/material' as mat;
+
+.warn {
+  @include mat.button-overrides(
+    (
+      text-label-text-color: var(--mat-sys-error),
+    )
+  );
+}

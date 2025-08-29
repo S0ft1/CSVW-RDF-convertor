@@ -20,10 +20,6 @@ export class ColumnSchema implements CsvwColumnDescription {
     this.name = name;
   }
 
-  public renameColumn(name: string) {
-    this.name = name;
-  }
-
   public clone() {
     const clone = new ColumnSchema(this.name);
     clone.required = this.required;

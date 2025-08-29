@@ -1,0 +1,13 @@
+<h2 mat-dialog-title>Add table</h2>
+<mat-dialog-content>
+  <mat-form-field>
+    <mat-label>Table URL</mat-label>
+    <input matInput [formControl]="ctrl" />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button matButton mat-dialog-close>Cancel</button>
+  <button matButton [mat-dialog-close]="ctrl.value" [disabled]="ctrl.invalid">
+    Add
+  </button>
+</mat-dialog-actions>
