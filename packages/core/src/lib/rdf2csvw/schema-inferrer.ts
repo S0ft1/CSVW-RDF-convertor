@@ -16,6 +16,7 @@ import { ColumnSchema } from './schema/column-schema.js';
 const { rdf, skos } = commonPrefixes;
 const { namedNode } = DataFactory;
 
+export const UNKOWN_TYPE_TABLE = `unknown_type.csv`;
 export const SUBJ_COL = 'subject_id';
 
 export class SchemaInferrer {
@@ -215,7 +216,7 @@ export class SchemaInferrer {
     dtype: CsvwDatatype | CsvwBuiltinDatatype,
   ) {
     if (!this.unknownSchema) {
-      this.unknownSchema = this.schema.addTable('unknown_type.csv');
+      this.unknownSchema = this.schema.addTable(UNKOWN_TYPE_TABLE);
       this.unknownSchema.addColumn(SUBJ_COL, {
         datatype: 'anyURI',
       });
