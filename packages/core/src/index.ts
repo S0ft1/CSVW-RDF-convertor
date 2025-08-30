@@ -19,3 +19,13 @@ export * from './lib/loaders/prefix-lookup.js';
 export * from './lib/loaders/rdf-serialization.js';
 
 export * from './lib/types/descriptor/descriptor.js';
+export * from './lib/types/descriptor/table-group.js';
+export * from './lib/types/descriptor/column-description.js';
+export * from './lib/types/descriptor/datatype.js';
+export * from './lib/types/descriptor/dialect-description.js';
+export * from './lib/types/descriptor/inherited-properties.js';
+export * from './lib/types/descriptor/namespace.js';
+export * from './lib/types/descriptor/schema-description.js';
+export * from './lib/types/descriptor/top-level-props.js';
+export * from './lib/types/descriptor/transformation-definition.js';
+export * from './lib/types/descriptor/table.js';

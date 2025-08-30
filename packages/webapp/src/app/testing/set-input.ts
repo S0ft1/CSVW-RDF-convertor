@@ -9,6 +9,12 @@ type SignalInputsOf<Comp> = {
   [K in keyof Comp]: Comp[K] extends InputSignal<infer Val> ? Val : never;
 };
 
+/**
+ * Sets the input value of a component fixture.
+ * @param fixture The component fixture.
+ * @param key The key of the input to set.
+ * @param value The value to set the input to.
+ */
 export function setInput<
   Component,
   Key extends Extract<keyof SignalInputsOf<Component>, string>,

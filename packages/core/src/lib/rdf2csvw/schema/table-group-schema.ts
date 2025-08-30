@@ -122,4 +122,39 @@ export class TableGroupSchema implements CsvwTableGroupDescription {
     (copy as any)['@context'] = csvwNs;
     return copy;
   }
+
+  public static fromDescriptor(
+    schema: CompactedCsvwDescriptor,
+  ): TableGroupSchema {
+    const newSchema = new TableGroupSchema();
+    if ('tables' in schema) {
+      Object.assign(newSchema, schema);
+    }
+    newSchema.tables = ('tables' in schema ? schema.tables : [schema]).map(
+      (table) => {
+        const newTable = new TableSchema(table.url);
+        Object.assign(newTable, table);
+        newTable.tableSchema.columns =
+          table.tableSchema?.columns?.map((column, i) => {
+            const newColumn = new ColumnSchema(column.name || '_col.' + i);
+            Object.assign(newColumn, column);
+            if (Array.isArray(newColumn.titles)) {
+              newColumn.titles = newColumn.titles[0];
+            } else if (
+              newColumn.titles &&
+              typeof newColumn.titles === 'object'
+            ) {
+              newColumn.titles =
+                newColumn.titles['@en'] ??
+                newColumn.titles['@none'] ??
+                Object.values(newColumn.titles)[0];
+            }
+            newColumn.titles ??= newColumn.name;
+            return newColumn;
+          }) ?? [];
+        return newTable;
+      },
+    ) as [TableSchema, ...TableSchema[]];
+    return newSchema;
+  }
 }

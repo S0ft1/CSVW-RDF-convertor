@@ -201,7 +201,7 @@ export function getCSVWOptions(
     templateIris: optionsFromVS.templateIris,
     minimal: optionsFromVS.minimal,
     baseIri: inputsDirPath,
-    resolveJsonldFn: async (path, base) => {
+    resolveJsonldFn: async (path:string, base:string) => {
       const url = getUrl(path, base);
       if (!isAbsolute(url) && URL.canParse(url)) {
         if (url.startsWith('file:')) {
@@ -211,7 +211,7 @@ export function getCSVWOptions(
       }
       return await readFile(url, 'utf-8');
     },
-    resolveWkfFn: async (path, base) => {
+    resolveWkfFn: async (path:string, base:string) => {
       const url = getUrl(path, base);
       if (!isAbsolute(url) && URL.canParse(url)) {
         if (url.startsWith('file:')) {
@@ -221,7 +221,7 @@ export function getCSVWOptions(
       }
       return await readFile(url, 'utf-8');
     },
-    resolveCsvStreamFn: (path, base) => {
+    resolveCsvStreamFn: (path:string, base:string) => {
       const url = getUrl(path, base);
       if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
         if (url.startsWith('file:')) {
@@ -244,7 +244,7 @@ function getRDFOptions(
   return {
     baseIri: inputsDirPath,
     descriptor: descriptorText,
-    resolveJsonldFn: async (path, base) => {
+    resolveJsonldFn: async (path:string, base:string) => {
       const url =
         URL.parse(path, base)?.href ??
         URL.parse(path)?.href ??
@@ -266,7 +266,7 @@ async function createRDFStreamInput(
 ): Promise<Stream<Quad>> {
   return await parseRdf(inputPath, {
     baseIri: inputsDir,
-    resolveStreamFn(path, base) {
+    resolveStreamFn(path:string, base:string) {
       const url =
         URL.parse(path, base)?.href ??
         URL.parse(path)?.href ??

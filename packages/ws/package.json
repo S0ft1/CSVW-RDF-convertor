@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "main": "main.js",
   "nx": {
     "targets": {
       "build": {
@@ -15,7 +16,14 @@
           "main": "packages/ws/src/index.ts",
           "tsConfig": "packages/ws/tsconfig.app.json",
           "skipTypeCheck": true,
-          "stripLeadingPaths": true
+          "stripLeadingPaths": true,
+          "assets": [
+            {
+              "glob": "package.json",
+              "input": "{workspaceRoot}/packages/ws",
+              "output": ""
+            }
+          ]
         },
         "configurations": {
           "development": {},
@@ -51,23 +59,29 @@
         "dependsOn": [
           "build"
         ],
-        "command": "docker build -f packages/ws/Dockerfile . -t @csvw-rdf-convertor/ws"
+        "command": "docker build -f packages/ws/Dockerfile . -t csvw-rdf-convertor-ws"
       }
     }
   },
   "dependencies": {
     "@csvw-rdf-convertor/core": "0.5.0",
+    "@fastify/autoload": "~6.0.3",
     "@fastify/multipart": "^9.0.3",
+    "@fastify/sensible": "~6.0.2",
+    "fastify-plugin": "~5.0.1",
     "@rdfjs/prefix-map": "^0.1.2",
     "@rdfjs/serializer-turtle": "^1.1.5",
     "@rdfjs/types": "^2.0.1",
     "@swc/helpers": "^0.5.17",
+    "archiver": "^7.0.1",
+    "csv-stringify": "^6.6.0",
     "fastify": "^5.3.3",
     "minimatch": "^10.0.1",
     "n3": "^1.25.2",
     "tmp-promise": "^3.0.3"
   },
   "devDependencies": {
+    "@types/archiver": "^6.0.3",
     "@types/node": "^22.15.18",
     "@types/rdfjs__serializer-turtle": "^1.1.0"
   }
