@@ -20,16 +20,16 @@ export function getOtherFilter(
         );
       }
       if (column.datatype.length !== undefined) {
-        constraints.push(`STRLEN(STR(${value}) = ${column.datatype.length})`);
+        constraints.push(`STRLEN(STR(${value})) = ${column.datatype.length}`);
       }
       if (column.datatype.minLength !== undefined) {
         constraints.push(
-          `STRLEN(STR(${value}) >= ${column.datatype.minLength})`,
+          `STRLEN(STR(${value})) >= ${column.datatype.minLength}`,
         );
       }
       if (column.datatype.maxLength !== undefined) {
         constraints.push(
-          `STRLEN(STR(${value}) <= ${column.datatype.maxLength})`,
+          `STRLEN(STR(${value})) <= ${column.datatype.maxLength}`,
         );
       }
 
