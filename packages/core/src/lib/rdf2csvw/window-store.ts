@@ -56,35 +56,27 @@ export class WindowStore {
 
   /**
    * Initializes the stream and populates the window store.
-   * @returns array of quads added to store
    */
-  public async initStream(): Promise<Quad[]> {
-    let added: Quad[] = [];
-
+  public async initStream() {
     if (!this.queue) {
       await this.store.putStream(this.stream);
       this._done = true;
       console.log('Stream fully loaded into store');
-      added = await Array.fromAsync(this.store.match());
     } else {
       const iterable =
         Symbol.asyncIterator in this.stream
           ? (this.stream as AsyncIterable<Quad>)
           : eventEmitterToAsyncIterable<Quad>(this.stream);
       this.streamIter = iterable[Symbol.asyncIterator]();
-
       for (let i = 0; i < (this.windowSize as number) && !this._done; i++) {
         const nextQuad = await this.streamIter.next();
         if (nextQuad.value) {
           this.queue.push(nextQuad.value);
-          added.push(nextQuad.value);
           await this.store.put(nextQuad.value);
         }
         this._done = !!nextQuad.done;
       }
     }
-
     this.streamInitialized = true;
-    return added;
   }
 }
