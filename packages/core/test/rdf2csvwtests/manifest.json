@@ -1018,39 +1018,6 @@
     ]
   },
   {
-    "id": "196",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "values with wrong length",
-    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
-    "action": "196/input.ttl",
-    "metadata": "196/csv-metadata.json",
-    "result": [
-      "196/test196.csv"
-    ]
-  },
-  {
-    "id": "197",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "values with wrong maxLength",
-    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
-    "action": "197/input.ttl",
-    "metadata": "197/csv-metadata.json",
-    "result": [
-      "197/test197.csv"
-    ]
-  },
-  {
-    "id": "198",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "values with wrong minLength",
-    "comment": "validate the value based on the length constraints described in section 4.6.1 Length Constraints, the value constraints described in section 4.6.2 Value Constraints and the datatype format annotation if one is specified, as described below. If there are any errors, add them to the list of errors for the cell.",
-    "action": "198/input.ttl",
-    "metadata": "198/csv-metadata.json",
-    "result": [
-      "198/test198.csv"
-    ]
-  },
-  {
     "id": "202",
     "type": "ToCsvwTest",
     "name": "float matching constraints",
