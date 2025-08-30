@@ -88,17 +88,6 @@
     ]
   },
   {
-    "id": "023",
-    "type": "ToCsvwTest",
-    "name": "dialect: header=false",
-    "comment": "If `true`, sets the `header row count` flag to 1, and if `false` to 0, unless `headerRowCount` is provided, in which case the value provided for the `header` property is ignored.",
-    "action": "023/input.ttl",
-    "metadata": "023/csv-metadata.json",
-    "result": [
-      "023/tree-ops.csv"
-    ]
-  },
-  {
     "id": "027",
     "type": "ToCsvwTest",
     "name": "tree-ops minimal output",
@@ -177,28 +166,6 @@
     "result": [
       "035/senior-roles.csv",
       "035/junior-roles.csv"
-    ]
-  },
-  {
-    "id": "036",
-    "type": "ToCsvwTest",
-    "name": "tree-ops-ext example",
-    "comment": "tree-ops extended example",
-    "action": "036/input.ttl",
-    "metadata": "036/csv-metadata.json",
-    "result": [
-      "036/tree-ops-ext.csv"
-    ]
-  },
-  {
-    "id": "037",
-    "type": "ToCsvwTest",
-    "name": "tree-ops-ext minimal",
-    "comment": "tree-ops extended example; minimal output",
-    "action": "037/input.ttl",
-    "metadata": "037/csv-metadata.json",
-    "result": [
-      "037/tree-ops-ext.csv"
     ]
   },
   {
@@ -309,17 +276,6 @@
     "metadata": "047/csv-metadata.json",
     "result": [
       "047/test047.csv"
-    ]
-  },
-  {
-    "id": "048",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid propertyUrl",
-    "comment": "If a property has a value that is not permitted by this specification, then if a default value is provided for that property, compliant applications MUST use that default value and MUST generate a warning. If no default value is provided for that property, compliant applications MUST generate a warning and behave as if the property had not been specified.",
-    "action": "048/input.ttl",
-    "metadata": "048/csv-metadata.json",
-    "result": [
-      "048/test048.csv"
     ]
   },
   {
@@ -555,17 +511,6 @@
     ]
   },
   {
-    "id": "100",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "inconsistent array values: columns",
-    "comment": "If the supplied value of an array property is not an array (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been supplied with an empty array",
-    "action": "100/input.ttl",
-    "metadata": "100/csv-metadata.json",
-    "result": [
-      "100/tree-ops.csv"
-    ]
-  },
-  {
     "id": "101",
     "type": "ToCsvwTestWithWarnings",
     "name": "inconsistent array values: foreignKeys",
@@ -608,17 +553,6 @@
     "metadata": "106/csv-metadata.json",
     "result": [
       "106/tree-ops.csv"
-    ]
-  },
-  {
-    "id": "107",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid tableSchema",
-    "comment": "If the supplied value of an object property is not a string or object (eg if it is an integer), compliant applications MUST issue a warning and proceed as if the property had been specified as an object with no properties.",
-    "action": "107/input.ttl",
-    "metadata": "107/csv-metadata.json",
-    "result": [
-      "107/tree-ops.csv"
     ]
   },
   {
@@ -696,17 +630,6 @@
     "metadata": "115/csv-metadata.json",
     "result": [
       "115/tree-ops.csv"
-    ]
-  },
-  {
-    "id": "116",
-    "type": "ToCsvwTest",
-    "name": "file-metadata with query component not found",
-    "comment": "processors MUST attempt to locate a metadata documents through site-wide configuration.",
-    "action": "116/input.ttl",
-    "metadata": "116/csv-metadata.json",
-    "result": [
-      "116/test116.csv"
     ]
   },
   {
@@ -919,17 +842,6 @@
     ]
   },
   {
-    "id": "154",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "string format (value not matching format)",
-    "comment": "If the datatype base is not numeric, boolean, a date/time type, or a duration type, the datatype format annotation provides a regular expression for the string values",
-    "action": "154/input.ttl",
-    "metadata": "154/csv-metadata.json",
-    "result": [
-      "154/test154.csv"
-    ]
-  },
-  {
     "id": "155",
     "type": "ToCsvwTest",
     "name": "number format (valid combinations)",
@@ -949,17 +861,6 @@
     "metadata": "156/csv-metadata.json",
     "result": [
       "156/test156.csv"
-    ]
-  },
-  {
-    "id": "157",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "number format (value not matching format)",
-    "comment": "If the datatype format annotation is a single string, this is interpreted in the same way as if it were an object with a pattern property whose value is that string",
-    "action": "157/input.ttl",
-    "metadata": "157/csv-metadata.json",
-    "result": [
-      "157/test157.csv"
     ]
   },
   {
@@ -985,94 +886,6 @@
     ]
   },
   {
-    "id": "160",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "number format (not matching values with pattern)",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
-    "action": "160/input.ttl",
-    "metadata": "160/csv-metadata.json",
-    "result": [
-      "160/test160.csv"
-    ]
-  },
-  {
-    "id": "161",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "number format (not matching values without pattern)",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
-    "action": "161/input.ttl",
-    "metadata": "161/csv-metadata.json",
-    "result": [
-      "161/test161.csv"
-    ]
-  },
-  {
-    "id": "162",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "numeric format (consecutive groupChar)",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains two consecutive groupChar strings",
-    "action": "162/input.ttl",
-    "metadata": "162/csv-metadata.json",
-    "result": [
-      "162/test162.csv"
-    ]
-  },
-  {
-    "id": "163",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "integer datatype with decimalChar",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed contains the decimalChar, if the datatype base is integer or one of its sub-values",
-    "action": "163/input.ttl",
-    "metadata": "163/csv-metadata.json",
-    "result": [
-      "163/test163.csv"
-    ]
-  },
-  {
-    "id": "164",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "decimal datatype with exponent",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, if the datatype base is decimal or one of its sub-values",
-    "action": "164/input.ttl",
-    "metadata": "164/csv-metadata.json",
-    "result": [
-      "164/test164.csv"
-    ]
-  },
-  {
-    "id": "165",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "decimal type with NaN",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
-    "action": "165/input.ttl",
-    "metadata": "165/csv-metadata.json",
-    "result": [
-      "165/test165.csv"
-    ]
-  },
-  {
-    "id": "166",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "decimal type with INF",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
-    "action": "166/input.ttl",
-    "metadata": "166/csv-metadata.json",
-    "result": [
-      "166/test166.csv"
-    ]
-  },
-  {
-    "id": "167",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "decimal type with -INF",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, is one of the special values NaN, INF, or -INF, if the datatype base is decimal or one of its sub-values",
-    "action": "167/input.ttl",
-    "metadata": "167/csv-metadata.json",
-    "result": [
-      "167/test167.csv"
-    ]
-  },
-  {
     "id": "168",
     "type": "ToCsvwTest",
     "name": "decimal with implicit groupChar",
@@ -1081,17 +894,6 @@
     "metadata": "168/csv-metadata.json",
     "result": [
       "168/test168.csv"
-    ]
-  },
-  {
-    "id": "169",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid decimal",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "169/input.ttl",
-    "metadata": "169/csv-metadata.json",
-    "result": [
-      "169/test169.csv"
     ]
   },
   {
@@ -1117,127 +919,6 @@
     ]
   },
   {
-    "id": "172",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid byte",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "172/input.ttl",
-    "metadata": "172/csv-metadata.json",
-    "result": [
-      "172/test172.csv"
-    ]
-  },
-  {
-    "id": "173",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid unsignedLong",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "173/input.ttl",
-    "metadata": "173/csv-metadata.json",
-    "result": [
-      "173/test173.csv"
-    ]
-  },
-  {
-    "id": "174",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid unsignedShort",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "174/input.ttl",
-    "metadata": "174/csv-metadata.json",
-    "result": [
-      "174/test174.csv"
-    ]
-  },
-  {
-    "id": "175",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid unsignedByte",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "175/input.ttl",
-    "metadata": "175/csv-metadata.json",
-    "result": [
-      "175/test175.csv"
-    ]
-  },
-  {
-    "id": "176",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid positiveInteger",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "176/input.ttl",
-    "metadata": "176/csv-metadata.json",
-    "result": [
-      "176/test176.csv"
-    ]
-  },
-  {
-    "id": "177",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid negativeInteger",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "177/input.ttl",
-    "metadata": "177/csv-metadata.json",
-    "result": [
-      "177/test177.csv"
-    ]
-  },
-  {
-    "id": "178",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid nonPositiveInteger",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "178/input.ttl",
-    "metadata": "178/csv-metadata.json",
-    "result": [
-      "178/test178.csv"
-    ]
-  },
-  {
-    "id": "179",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid nonNegativeInteger",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "179/input.ttl",
-    "metadata": "179/csv-metadata.json",
-    "result": [
-      "179/test179.csv"
-    ]
-  },
-  {
-    "id": "180",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid double",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "180/input.ttl",
-    "metadata": "180/csv-metadata.json",
-    "result": [
-      "180/test180.csv"
-    ]
-  },
-  {
-    "id": "181",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid number",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "181/input.ttl",
-    "metadata": "181/csv-metadata.json",
-    "result": [
-      "181/test181.csv"
-    ]
-  },
-  {
-    "id": "182",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid float",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell contains an exponent, does not meet the numeric format defined above",
-    "action": "182/input.ttl",
-    "metadata": "182/csv-metadata.json",
-    "result": [
-      "182/test182.csv"
-    ]
-  },
-  {
     "id": "183",
     "type": "ToCsvwTest",
     "name": "boolean format (valid combinations)",
@@ -1257,28 +938,6 @@
     "metadata": "184/csv-metadata.json",
     "result": [
       "184/test184.csv"
-    ]
-  },
-  {
-    "id": "185",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "boolean format (value not matching format)",
-    "comment": "If the datatype base for a cell is boolean, the datatype format annotation provides the true and false values expected, separated by `|`.",
-    "action": "185/input.ttl",
-    "metadata": "185/csv-metadata.json",
-    "result": [
-      "185/test185.csv"
-    ]
-  },
-  {
-    "id": "186",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "boolean format (not matching datatype)",
-    "comment": "Implementations MUST add a validation error to the errors annotation for the cell if the string being parsed",
-    "action": "186/input.ttl",
-    "metadata": "186/csv-metadata.json",
-    "result": [
-      "186/test186.csv"
     ]
   },
   {
@@ -1323,28 +982,6 @@
     "metadata": "190/csv-metadata.json",
     "result": [
       "190/test190.csv"
-    ]
-  },
-  {
-    "id": "191",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "date format (bad format string)",
-    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
-    "action": "191/input.ttl",
-    "metadata": "191/csv-metadata.json",
-    "result": [
-      "191/test191.csv"
-    ]
-  },
-  {
-    "id": "192",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "date format (value not matching format)",
-    "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
-    "action": "192/input.ttl",
-    "metadata": "192/csv-metadata.json",
-    "result": [
-      "192/test192.csv"
     ]
   },
   {
@@ -1912,17 +1549,6 @@
     ]
   },
   {
-    "id": "281",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "yearMonthDuration not matching xsd pattern",
-    "comment": "Value MUST be a valid xsd:yearMonthDuration.",
-    "action": "281/input.ttl",
-    "metadata": "281/csv-metadata.json",
-    "result": [
-      "281/test281.csv"
-    ]
-  },
-  {
     "id": "282",
     "type": "ToCsvwTest",
     "name": "valid number patterns",
@@ -1964,215 +1590,6 @@
     "metadata": "285/csv-metadata.json",
     "result": [
       "285/test285.csv"
-    ]
-  },
-  {
-    "id": "286",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid ##0 1,234",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "286/input.ttl",
-    "metadata": "286/csv-metadata.json",
-    "result": [
-      "286/test286.csv"
-    ]
-  },
-  {
-    "id": "287",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid ##0 123.4",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "287/input.ttl",
-    "metadata": "287/csv-metadata.json",
-    "result": [
-      "287/test287.csv"
-    ]
-  },
-  {
-    "id": "288",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,#00 1",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "288/input.ttl",
-    "metadata": "288/csv-metadata.json",
-    "result": [
-      "288/test288.csv"
-    ]
-  },
-  {
-    "id": "289",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,#00 1234",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "289/input.ttl",
-    "metadata": "289/csv-metadata.json",
-    "result": [
-      "289/test289.csv"
-    ]
-  },
-  {
-    "id": "290",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,#00 12,34",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "290/input.ttl",
-    "metadata": "290/csv-metadata.json",
-    "result": [
-      "290/test290.csv"
-    ]
-  },
-  {
-    "id": "291",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,#00 12,34,567",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "291/input.ttl",
-    "metadata": "291/csv-metadata.json",
-    "result": [
-      "291/test291.csv"
-    ]
-  },
-  {
-    "id": "292",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,##,#00 1",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "292/input.ttl",
-    "metadata": "292/csv-metadata.json",
-    "result": [
-      "292/test292.csv"
-    ]
-  },
-  {
-    "id": "293",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,##,#00 1234",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "293/input.ttl",
-    "metadata": "293/csv-metadata.json",
-    "result": [
-      "293/test293.csv"
-    ]
-  },
-  {
-    "id": "294",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,##,#00 12,34",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "294/input.ttl",
-    "metadata": "294/csv-metadata.json",
-    "result": [
-      "294/test294.csv"
-    ]
-  },
-  {
-    "id": "295",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #,##,#00 1,234,567",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "295/input.ttl",
-    "metadata": "295/csv-metadata.json",
-    "result": [
-      "295/test295.csv"
-    ]
-  },
-  {
-    "id": "296",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.# 12.34",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "296/input.ttl",
-    "metadata": "296/csv-metadata.json",
-    "result": [
-      "296/test296.csv"
-    ]
-  },
-  {
-    "id": "297",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.# 1,234.5",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "297/input.ttl",
-    "metadata": "297/csv-metadata.json",
-    "result": [
-      "297/test297.csv"
-    ]
-  },
-  {
-    "id": "298",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.0 1",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "298/input.ttl",
-    "metadata": "298/csv-metadata.json",
-    "result": [
-      "298/test298.csv"
-    ]
-  },
-  {
-    "id": "299",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.0 12.34",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "299/input.ttl",
-    "metadata": "299/csv-metadata.json",
-    "result": [
-      "299/test299.csv"
-    ]
-  },
-  {
-    "id": "300",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.0# 1",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "300/input.ttl",
-    "metadata": "300/csv-metadata.json",
-    "result": [
-      "300/test300.csv"
-    ]
-  },
-  {
-    "id": "301",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.0# 12.345",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "301/input.ttl",
-    "metadata": "301/csv-metadata.json",
-    "result": [
-      "301/test301.csv"
-    ]
-  },
-  {
-    "id": "302",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.0#,# 1",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "302/input.ttl",
-    "metadata": "302/csv-metadata.json",
-    "result": [
-      "302/test302.csv"
-    ]
-  },
-  {
-    "id": "303",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.0#,# 12.345",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "303/input.ttl",
-    "metadata": "303/csv-metadata.json",
-    "result": [
-      "303/test303.csv"
-    ]
-  },
-  {
-    "id": "304",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "invalid #0.0#,# 12.34,567",
-    "comment": "A number format pattern as defined in [UAX35]. Implementations MUST recognise number format patterns containing the symbols `0`, `#`, the specified decimalChar (or `.` if unspecified), the specified groupChar (or `,` if unspecified), `E`, `+`, `%` and `&permil;`.",
-    "action": "304/input.ttl",
-    "metadata": "304/csv-metadata.json",
-    "result": [
-      "304/test304.csv"
     ]
   },
   {
