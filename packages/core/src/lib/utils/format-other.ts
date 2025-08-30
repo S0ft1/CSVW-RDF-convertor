@@ -1,6 +1,45 @@
 import { IssueTracker } from './issue-tracker.js';
 import { CsvwColumnDescription } from '../types/descriptor/column-description.js';
 
+export function getOtherFilter(
+  value: string,
+  column: CsvwColumnDescription,
+): string | undefined {
+  if (column.datatype !== undefined && typeof column.datatype !== 'string') {
+    if (
+      column.datatype.format !== undefined ||
+      column.datatype.length !== undefined ||
+      column.datatype.minLength !== undefined ||
+      column.datatype.maxLength !== undefined
+    ) {
+      const constraints = [];
+
+      if (column.datatype.format !== undefined) {
+        constraints.push(
+          `REGEX(STR(${value}), "${typeof column.datatype.format === 'string' ? column.datatype.format : (column.datatype.format as RegExp).source}")`,
+        );
+      }
+      if (column.datatype.length !== undefined) {
+        constraints.push(`STRLEN(STR(${value}) = ${column.datatype.length})`);
+      }
+      if (column.datatype.minLength !== undefined) {
+        constraints.push(
+          `STRLEN(STR(${value}) >= ${column.datatype.minLength})`,
+        );
+      }
+      if (column.datatype.maxLength !== undefined) {
+        constraints.push(
+          `STRLEN(STR(${value}) <= ${column.datatype.maxLength})`,
+        );
+      }
+
+      return `FILTER (${constraints.join(' && ')})`;
+    }
+  }
+
+  return undefined;
+}
+
 export function formatOther(
   value: string,
   column: CsvwColumnDescription,
@@ -9,7 +48,7 @@ export function formatOther(
   if (column.datatype !== undefined && typeof column.datatype !== 'string') {
     if (
       column.datatype.format !== undefined &&
-      !(column.datatype.format as RegExp).test(value)
+      !new RegExp(column.datatype.format as string | RegExp).test(value)
     ) {
       issueTracker.addWarning(
         `The value "${value}" does not match the format "${column.datatype.format}".`,

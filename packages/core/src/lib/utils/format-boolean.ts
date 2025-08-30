@@ -18,6 +18,13 @@ export function isBooleanColumn(
   }
 }
 
+export function getBooleanFilter(
+  value: string,
+  column: CsvwColumnDescriptionWithBooleanDatatype,
+): string | undefined {
+  return undefined;
+}
+
 export function formatBoolean(
   value: string,
   column: CsvwColumnDescriptionWithBooleanDatatype,

@@ -8,6 +8,7 @@ import {
   CsvwDatatype,
 } from '../types/descriptor/datatype.js';
 import { IssueTracker } from './issue-tracker.js';
+import { dtUris } from './prefix.js';
 
 type DateTimeDatatypeValidation = {
   regex: RegExp;
@@ -45,6 +46,16 @@ const dateTimeDatatypePatterns: {
   time: /^(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$/,
 };
 
+function constraintToDateTime(
+  value: number | string | Date | undefined,
+): Date | undefined {
+  if (typeof value === 'number' || typeof value === 'string') {
+    // TODO: date and time parsing
+    return new Date(value);
+  }
+  return value;
+}
+
 export function isDateTimeColumn(
   column: CsvwColumnDescription,
 ): column is CsvwColumnDescriptionWithDateTimeDatatype {
@@ -63,6 +74,52 @@ export function isDateTimeColumn(
   }
 }
 
+export function getDateTimeFilter(
+  value: string,
+  column: CsvwColumnDescriptionWithDateTimeDatatype,
+): string | undefined {
+  if (column.datatype !== undefined && typeof column.datatype !== 'string') {
+    if (
+      column.datatype.minimum !== undefined ||
+      column.datatype.maximum !== undefined ||
+      column.datatype.minInclusive !== undefined ||
+      column.datatype.maxInclusive !== undefined ||
+      column.datatype.minExclusive !== undefined ||
+      column.datatype.maxExclusive !== undefined
+    ) {
+      const constraints = [];
+
+      if (column.datatype.minimum !== undefined)
+        constraints.push(
+          `${value} >= "${column.datatype.minimum}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.maximum !== undefined)
+        constraints.push(
+          `${value} <= "${column.datatype.maximum}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.minInclusive !== undefined)
+        constraints.push(
+          `${value} >= "${column.datatype.minInclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.maxInclusive !== undefined)
+        constraints.push(
+          `${value} <= "${column.datatype.maxInclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.minExclusive !== undefined)
+        constraints.push(
+          `${value} > "${column.datatype.minExclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.maxExclusive !== undefined)
+        constraints.push(
+          `${value} < "${column.datatype.maxExclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+
+      return `FILTER (${constraints.join(' && ')})`;
+    }
+  }
+  return undefined;
+}
+
 export function formatDateTime(
   value: string,
   column: CsvwColumnDescriptionWithDateTimeDatatype,
@@ -74,8 +131,24 @@ export function formatDateTime(
   if (typeof column.datatype === 'string') {
     validation = { regex: dateTimeDatatypePatterns[column.datatype] };
   } else {
-    validation = { regex: dateTimeDatatypePatterns[column.datatype.base] };
-    // TODO: set minimum, minInclusive, maximum, maxInclusive, minExclusive and maxExclusive
+    validation = {
+      regex: dateTimeDatatypePatterns[column.datatype.base],
+    };
+
+    validation.minInclusive =
+      constraintToDateTime(
+        column.datatype.minimum ?? column.datatype.minInclusive,
+      ) ?? validation.minInclusive;
+    validation.maxInclusive =
+      constraintToDateTime(
+        column.datatype.maximum ?? column.datatype.maxInclusive,
+      ) ?? validation.maxInclusive;
+    validation.minExclusive =
+      constraintToDateTime(column.datatype.minExclusive) ??
+      validation.minExclusive;
+    validation.maxExclusive =
+      constraintToDateTime(column.datatype.maxExclusive) ??
+      validation.maxExclusive;
   }
 
   if (!validation.regex.test(value)) {
