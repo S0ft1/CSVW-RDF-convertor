@@ -173,6 +173,10 @@ The extension automatically converts when you save:
 
 ## 🆘 Support and Resources
 
+## Documentation
+
+Full API documentation is available online: https://s0ft1.github.io/CSVW-RDF-convertor/
+
 ### W3C CSVW Specification
 - [CSVW Primer](https://www.w3.org/TR/tabular-data-primer/)
 - [Metadata Vocabulary](https://www.w3.org/TR/tabular-metadata/)
