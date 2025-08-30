@@ -11,15 +11,15 @@
       rdfs:comment "`format` for a boolean datatype is a string but in the wrong form (eg YN).";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test269.csv#boolean> "Y"];
+        csvw:describes [ <test269.csv#boolean> "Y"];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test269.csv#row=2>
+        csvw:url <test269.csv#row=2>
       ],  [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test269.csv#boolean> "N"];
+        csvw:describes [ <test269.csv#boolean> "N"];
         csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test269.csv#row=3>
+        csvw:url <test269.csv#row=3>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test269.csv>
+      csvw:url <test269.csv>
     ]
  ] .

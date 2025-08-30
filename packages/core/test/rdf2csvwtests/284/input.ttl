@@ -12,64 +12,64 @@
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.%23%23%23%23%23> "1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.0000%23> "1.2345"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%23%230> "1"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%2300> "12"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C000> "123"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%230%2C000> "1234"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#00000.0000> "12345.6789"^^xsd:decimal
+          <test284.csv#%23%23%230.%23%23%23%23%23> "1"^^xsd:decimal;
+          <test284.csv#%23%23%230.0000%23> "1.2345"^^xsd:decimal;
+          <test284.csv#%23%2C%23%23%2C%23%230> "1"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C%2300> "12"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C000> "123"^^xsd:integer;
+          <test284.csv#%23%2C%230%2C000> "1234"^^xsd:integer;
+          <test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
+          <test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
+          <test284.csv#00000.0000> "12345.6789"^^xsd:decimal
         ];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test284.csv#row=2>
+        csvw:url <test284.csv#row=2>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.%23%23%23%23%23> "12.3"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.0000%23> "12.34567"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%23%230> "123"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%2300> "123"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C000> "123"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%230%2C000> "1234"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#00000.0000> "12345.6789"^^xsd:decimal
+          <test284.csv#%23%23%230.%23%23%23%23%23> "12.3"^^xsd:decimal;
+          <test284.csv#%23%23%230.0000%23> "12.34567"^^xsd:decimal;
+          <test284.csv#%23%2C%23%23%2C%23%230> "123"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C%2300> "123"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C000> "123"^^xsd:integer;
+          <test284.csv#%23%2C%230%2C000> "1234"^^xsd:integer;
+          <test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
+          <test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
+          <test284.csv#00000.0000> "12345.6789"^^xsd:decimal
         ];
         csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test284.csv#row=3>
+        csvw:url <test284.csv#row=3>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.%23%23%23%23%23> "123.45"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.0000%23> "12.34567"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%23%230> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%2300> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C000> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%230%2C000> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#00000.0000> "12345.6789"^^xsd:decimal
+          <test284.csv#%23%23%230.%23%23%23%23%23> "123.45"^^xsd:decimal;
+          <test284.csv#%23%23%230.0000%23> "12.34567"^^xsd:decimal;
+          <test284.csv#%23%2C%23%23%2C%23%230> "12345"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C%2300> "12345"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C000> "12345"^^xsd:integer;
+          <test284.csv#%23%2C%230%2C000> "12345"^^xsd:integer;
+          <test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
+          <test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
+          <test284.csv#00000.0000> "12345.6789"^^xsd:decimal
         ];
         csvw:rownum "3"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test284.csv#row=4>
+        csvw:url <test284.csv#row=4>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.%23%23%23%23%23> "1.23456"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%23%230.0000%23> "12.34567"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%23%230> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C%2300> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%23%23%2C000> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C%230%2C000> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
-          <http://www.w3.org/2013/csvw/tests/test284.csv#00000.0000> "12345.6789"^^xsd:decimal
+          <test284.csv#%23%23%230.%23%23%23%23%23> "1.23456"^^xsd:decimal;
+          <test284.csv#%23%23%230.0000%23> "12.34567"^^xsd:decimal;
+          <test284.csv#%23%2C%23%23%2C%23%230> "123456"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C%2300> "123456"^^xsd:integer;
+          <test284.csv#%23%2C%23%23%2C000> "123456"^^xsd:integer;
+          <test284.csv#%23%2C%230%2C000> "123456"^^xsd:integer;
+          <test284.csv#%23%2C00%2C000> "12345"^^xsd:integer;
+          <test284.csv#0%2C00%2C000> "123456"^^xsd:integer;
+          <test284.csv#00000.0000> "12345.6789"^^xsd:decimal
         ];
         csvw:rownum "4"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test284.csv#row=5>
+        csvw:url <test284.csv#row=5>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test284.csv>
+      csvw:url <test284.csv>
     ]
  ] .

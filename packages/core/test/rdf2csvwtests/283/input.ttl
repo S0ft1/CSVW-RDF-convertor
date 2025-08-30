@@ -12,43 +12,43 @@
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%25000> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2B0> "+1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2D0> "-1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%E2%80%B0000> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%25> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%E2%80%B0> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000.0%25> "1.234"^^xsd:decimal
+          <test283.csv#%25000> "1.23"^^xsd:decimal;
+          <test283.csv#%2B0> "+1"^^xsd:decimal;
+          <test283.csv#%2D0> "-1"^^xsd:decimal;
+          <test283.csv#%E2%80%B0000> "0.123"^^xsd:decimal;
+          <test283.csv#000%25> "1.23"^^xsd:decimal;
+          <test283.csv#000%E2%80%B0> "0.123"^^xsd:decimal;
+          <test283.csv#000.0%25> "1.234"^^xsd:decimal
         ];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv#row=2>
+        csvw:url <test283.csv#row=2>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%25000> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2B0> "+1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2D0> "-1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%E2%80%B0000> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%25> "1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%E2%80%B0> "0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000.0%25> "1.234"^^xsd:decimal
+          <test283.csv#%25000> "1.23"^^xsd:decimal;
+          <test283.csv#%2B0> "+1"^^xsd:decimal;
+          <test283.csv#%2D0> "-1"^^xsd:decimal;
+          <test283.csv#%E2%80%B0000> "0.123"^^xsd:decimal;
+          <test283.csv#000%25> "1.23"^^xsd:decimal;
+          <test283.csv#000%E2%80%B0> "0.123"^^xsd:decimal;
+          <test283.csv#000.0%25> "1.234"^^xsd:decimal
         ];
         csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv#row=3>
+        csvw:url <test283.csv#row=3>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%25000> "-1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2B0> "+1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%2D0> "-1"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#%E2%80%B0000> "-0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%25> "-1.23"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000%E2%80%B0> "-0.123"^^xsd:decimal;
-          <http://www.w3.org/2013/csvw/tests/test283.csv#000.0%25> "-1.234"^^xsd:decimal
+          <test283.csv#%25000> "-1.23"^^xsd:decimal;
+          <test283.csv#%2B0> "+1"^^xsd:decimal;
+          <test283.csv#%2D0> "-1"^^xsd:decimal;
+          <test283.csv#%E2%80%B0000> "-0.123"^^xsd:decimal;
+          <test283.csv#000%25> "-1.23"^^xsd:decimal;
+          <test283.csv#000%E2%80%B0> "-0.123"^^xsd:decimal;
+          <test283.csv#000.0%25> "-1.234"^^xsd:decimal
         ];
         csvw:rownum "3"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv#row=4>
+        csvw:url <test283.csv#row=4>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test283.csv>
+      csvw:url <test283.csv>
     ]
  ] .
