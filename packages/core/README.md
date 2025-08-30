@@ -161,7 +161,6 @@ interface ConversionOptions {
 
 - **Streaming**: Use streaming APIs for large datasets to minimize memory usage
 - **Window Size**: Adjust `windowSize` for RDF to CSVW conversion based on available memory
-- **Caching**: Implement caching for frequently accessed remote resources
 - **Minimal Mode**: Use `minimal: true` for faster conversion when metadata richness isn't required
 
 ## TypeScript Support
