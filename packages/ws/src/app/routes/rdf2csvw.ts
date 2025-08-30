@@ -8,6 +8,7 @@ import {
   rdfToCsvw,
   CsvwResultItem,
   CompactedCsvwDescriptor,
+  CsvwTableGroupDescription,
 } from '@csvw-rdf-convertor/core';
 import { makeRe, MMRegExp } from 'minimatch';
 import { join, resolve } from 'node:path';
@@ -17,7 +18,7 @@ import { Readable } from 'node:stream';
 import { readFile, writeFile } from 'node:fs/promises';
 import { once } from 'node:events';
 import { DirectoryResult, dir as tmpDir } from 'tmp-promise';
-import { Stringifier, stringify } from 'csv-stringify';
+import { Options, Stringifier, stringify } from 'csv-stringify';
 import archiver from 'archiver';
 
 export default async function (fastify: FastifyInstance) {
@@ -109,15 +110,19 @@ async function saveToTemp(
   tmp: DirectoryResult,
 ) {
   const outStreams: Record<string, Stringifier> = {};
+  const tableOptions: Record<string, Options> = {};
   let latestDescriptor: CompactedCsvwDescriptor;
   for await (const { descriptor, table, row } of stream) {
     latestDescriptor = descriptor;
     let outStream = outStreams[table.name];
     if (!outStream) {
       const filePath = join(tmp.path, table.name.replace(/\/\\:/g, '_'));
-      outStreams[table.name] = outStream = stringify();
+      const [hasHeader, options] = getDialect(descriptor, table.name);
+      tableOptions[table.name] = options;
+      outStreams[table.name] = outStream = stringify(options);
       outStream.pipe(createWriteStream(filePath, 'utf-8'));
-      outStream.write(table.columns);
+
+      if (hasHeader) outStream.write(table.columns);
     }
     outStream.write(table.columns.map((c) => row[c] ?? ''));
   }
@@ -176,4 +181,30 @@ async function getOptions(req: FastifyRequest): Promise<Rdf2CsvOptions> {
   }
 
   return result;
+}
+
+function getDialect(
+  descriptor: CompactedCsvwDescriptor,
+  table: string,
+): [boolean, Options] {
+  const dialect = descriptor.dialect ?? {};
+  const tableDialect =
+    (descriptor as CsvwTableGroupDescription).tables.find(
+      (t) => t.url === table,
+    )?.dialect ?? {};
+
+  const hasHeader = tableDialect.header ?? dialect.header ?? true;
+  const toArr = (val: any) => (Array.isArray(val) ? val : [val]);
+
+  return [
+    hasHeader,
+    {
+      delimiter: dialect.delimiter ?? ',',
+      escape: (dialect.doubleQuote ?? true) ? '"' : '\\',
+      record_delimiter: dialect.lineTerminators
+        ? toArr(dialect.lineTerminators)[0]
+        : '\n',
+      quote: dialect.quoteChar ?? '"',
+    },
+  ];
 }
