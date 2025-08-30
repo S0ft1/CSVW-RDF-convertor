@@ -20,7 +20,7 @@ type SimpleTestTables = Record<string, SimpleTestRow[]>;
 
 const csvwDir = resolve(fileURLToPath(import.meta.url), '../../../../csvw');
 
-describe('RDF -> CSVW with descriptor', () => {
+describe('RDF -> CSVW with descriptor: Reversed official tests', () => {
   const testDir = resolve(fileURLToPath(import.meta.url), '../rdf2csvwtests');
   const tests = JSON.parse(
     readFileSync(resolve(testDir, 'manifest.json'), 'utf-8'),
@@ -31,7 +31,7 @@ describe('RDF -> CSVW with descriptor', () => {
   }
 });
 
-describe('NKOD: RDF -> CSVW with descriptor', () => {
+describe('RDF -> CSVW with descriptor: NKOD', () => {
   const testDir = resolve(fileURLToPath(import.meta.url), '../nkod');
   const tests = JSON.parse(
     readFileSync(resolve(testDir, 'manifest-nkod.json'), 'utf-8'),
