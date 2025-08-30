@@ -153,6 +153,10 @@ Control output verbosity with the `--log-level` option:
 - `info` - Informational messages (default)
 - `debug` - Detailed debugging information
 
+## Documentation
+
+Full API documentation is available online: https://s0ft1.github.io/CSVW-RDF-convertor/
+
 ## Support
 
 - 📖 [W3C CSVW Specification](https://www.w3.org/TR/tabular-data-primer/)
