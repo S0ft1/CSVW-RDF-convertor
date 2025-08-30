@@ -1450,17 +1450,6 @@
     ]
   },
   {
-    "id": "269",
-    "type": "ToCsvwTestWithWarnings",
-    "name": "`format` for a boolean datatype is a string but in the wrong form (eg YN)",
-    "comment": "If the datatype base for a cell is `boolean`, the datatype format annotation provides the true value followed by the false value, separated by `|`. If the format does not follow this syntax, implementations MUST issue a warning and proceed as if no format had been provided.",
-    "action": "269/input.ttl",
-    "metadata": "269/csv-metadata.json",
-    "result": [
-      "269/test269.csv"
-    ]
-  },
-  {
     "id": "270",
     "type": "ToCsvwTestWithWarnings",
     "name": "transformation includes an invalid property (eg foo)",
@@ -1517,7 +1506,7 @@
   },
   {
     "id": "278",
-    "type": "ToCsvwTestWithWarnings",
+    "type": "ToCsvwTest",
     "name": "CSV has more headers than there are columns in the metadata",
     "comment": "Two schemas are compatible if they have the same number of non-virtual column descriptions, and the non-virtual column descriptions at the same index within each are compatible with each other.",
     "action": "278/input.ttl",

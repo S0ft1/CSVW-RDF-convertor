@@ -146,9 +146,9 @@ async function loadExpectedObject(
 
     // row order is arbitrary
     // trim the test id from path
-    tables[tableName.split('/', 2).pop() as string] = table.sort(
-      simpleTestRowCompareFn,
-    );
+    const split = tableName.split('/');
+    split.shift();
+    tables[split.join('/')] = table.sort(simpleTestRowCompareFn);
   }
 
   return tables;

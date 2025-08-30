@@ -11,10 +11,10 @@
       rdfs:comment "Value MUST be a valid xsd:dayTimeDuration.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test280.csv#dayTimeDuration> "Foo"];
+        csvw:describes [ <test280.csv#dayTimeDuration> "Foo"];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test280.csv#row=2>
+        csvw:url <test280.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test280.csv>
+      csvw:url <test280.csv>
     ]
  ] .
