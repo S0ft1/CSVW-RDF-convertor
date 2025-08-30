@@ -8,6 +8,7 @@ import {
 } from '../types/descriptor/datatype.js';
 import { IssueTracker } from './issue-tracker.js';
 import ldmlnum from 'ldml-number';
+import { dtUris } from './prefix.js';
 
 type NumericDatatypeValidation = {
   regex: RegExp;
@@ -125,7 +126,62 @@ export function isNumericColumn(
   }
 }
 
-export function formatNumber(
+export function getNumericFilter(
+  value: string,
+  column: CsvwColumnDescriptionWithNumericDatatype,
+): string | undefined {
+  if (column.datatype !== undefined && typeof column.datatype !== 'string') {
+    if (
+      column.datatype.minimum !== undefined ||
+      column.datatype.maximum !== undefined ||
+      column.datatype.minInclusive !== undefined ||
+      column.datatype.maxInclusive !== undefined ||
+      column.datatype.minExclusive !== undefined ||
+      column.datatype.maxExclusive !== undefined
+    ) {
+      const constraints = [];
+
+      if (column.datatype.minimum !== undefined)
+        constraints.push(
+          `${value} >= "${column.datatype.minimum}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.maximum !== undefined)
+        constraints.push(
+          `${value} <= "${column.datatype.maximum}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.minInclusive !== undefined)
+        constraints.push(
+          `${value} >= "${column.datatype.minInclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.maxInclusive !== undefined)
+        constraints.push(
+          `${value} <= "${column.datatype.maxInclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.minExclusive !== undefined)
+        constraints.push(
+          `${value} > "${column.datatype.minExclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+      if (column.datatype.maxExclusive !== undefined)
+        constraints.push(
+          `${value} < "${column.datatype.maxExclusive}"^^<${dtUris[column.datatype.base]}>`,
+        );
+
+      if (
+        column.datatype.base === 'double' ||
+        column.datatype.base === 'number' ||
+        column.datatype.base === 'float'
+      ) {
+        return `FILTER (${value} = "NaN"^^<${dtUris[column.datatype.base]}> || (${constraints.join(' && ')}))`;
+      } else {
+        return `FILTER (${constraints.join(' && ')})`;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+export function formatNumeric(
   value: string,
   column: CsvwColumnDescriptionWithNumericDatatype,
   issueTracker: IssueTracker,
