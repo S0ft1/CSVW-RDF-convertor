@@ -7,6 +7,6 @@
 <app-diagram [schema]="service.detectedSchema()" />
 @if (!service.converting()) {
   <section class="buttons">
-    <button matButton="filled">Convert!</button>
+    <button matButton="filled" (click)="submit()">Convert!</button>
   </section>
 }

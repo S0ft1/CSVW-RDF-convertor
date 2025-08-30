@@ -1,17 +1,14 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { ConversionService } from '../services/conversion.service';
+import { R2CService } from '../services/r2c.service';
 
-export function conversionExistsGuard(
-  service: new (...args: any[]) => ConversionService<any, any>,
-  defaultRoute: string,
-): CanActivateFn {
+export function inferringSchemaGuard(defaultRoute: string): CanActivateFn {
   return () => {
-    const conversionService = inject(service);
+    const conversionService = inject(R2CService);
     const router = inject(Router);
     if (
       !conversionService.converting() &&
-      conversionService.result() === null &&
+      conversionService.detectedSchema() === null &&
       !conversionService.issues().length
     ) {
       if (router.lastSuccessfulNavigation) {

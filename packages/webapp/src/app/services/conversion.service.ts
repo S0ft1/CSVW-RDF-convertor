@@ -1,9 +1,9 @@
 import { signal } from '@angular/core';
 import { Issue } from '@csvw-rdf-convertor/core';
 
-export abstract class ConversionService<Params> {
+export abstract class ConversionService<Params, Result = string> {
   converting = signal(false);
-  result = signal<string>(null);
+  result = signal<Result>(null);
   issues = signal<Issue[]>([], {
     equal: (a, b) => a === b && a.length === b.length,
   });

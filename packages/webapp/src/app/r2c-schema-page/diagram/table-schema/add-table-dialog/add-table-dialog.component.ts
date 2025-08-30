@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
 
 @Component({
@@ -20,4 +20,5 @@ import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
 })
 export class AddTableDialogComponent {
   ctrl = new FormControl('', Validators.required);
+  dref = inject(MatDialogRef);
 }

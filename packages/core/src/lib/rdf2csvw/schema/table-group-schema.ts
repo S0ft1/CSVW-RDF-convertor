@@ -1,3 +1,5 @@
+import { csvwNs } from '../../types/descriptor/namespace.js';
+import { CompactedCsvwDescriptor } from '../../types/descriptor/descriptor.js';
 import { CsvwTableGroupDescription } from '../../types/descriptor/table-group.js';
 import { ColumnSchema } from './column-schema.js';
 import { TableSchema } from './table-schema.js';
@@ -30,6 +32,13 @@ export class TableGroupSchema implements CsvwTableGroupDescription {
     if (!table) throw new Error('Table not found: ' + oldUrl);
 
     table.url = newUrl;
+    for (const table of this.tables) {
+      for (const fk of table.tableSchema.foreignKeys) {
+        if (fk.reference.resource === oldUrl) {
+          fk.reference.resource = newUrl;
+        }
+      }
+    }
   }
   public removeTable(url: string) {
     if (this.tables.length === 1) {
@@ -103,5 +112,14 @@ export class TableGroupSchema implements CsvwTableGroupDescription {
    */
   public lock() {
     this.tables?.forEach((table) => (table.locked = true));
+  }
+
+  public toDescriptor(): CompactedCsvwDescriptor {
+    const copy = structuredClone(this);
+    for (const table of copy.tables) {
+      delete (table as any).locked;
+    }
+    (copy as any)['@context'] = csvwNs;
+    return copy;
   }
 }

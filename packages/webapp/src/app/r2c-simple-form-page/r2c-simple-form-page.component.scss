@@ -1,0 +1,47 @@
+:host {
+  display: block;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 0 20px;
+}
+
+header {
+  font-size: 1.6em;
+  text-align: center;
+  margin: 20px 0 50px;
+}
+
+section header {
+  font-size: 1.3em;
+  margin: 20px 0;
+}
+
+mat-tab-group {
+  mat-form-field {
+    margin: 20px 0;
+    width: 400px;
+    max-width: 100%;
+  }
+}
+
+.buttons {
+  text-align: right;
+  padding: 20px;
+
+  button {
+    margin-left: 10px;
+  }
+}
+mat-slide-toggle {
+  width: 100%;
+  text-align: left;
+
+  & ::ng-deep .mat-internal-form-field {
+    width: 100%;
+
+    label {
+      flex-grow: 1;
+    }
+  }
+}

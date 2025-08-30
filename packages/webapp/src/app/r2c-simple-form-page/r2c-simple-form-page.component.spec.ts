@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { R2cSimpleFormPageComponent } from './r2c-simple-form-page.component';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('R2cSimpleFormPageComponent', () => {
   let component: R2cSimpleFormPageComponent;
@@ -8,7 +9,11 @@ describe('R2cSimpleFormPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [R2cSimpleFormPageComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(R2cSimpleFormPageComponent, {
+        set: { imports: [], schemas: [NO_ERRORS_SCHEMA] },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(R2cSimpleFormPageComponent);
     component = fixture.componentInstance;

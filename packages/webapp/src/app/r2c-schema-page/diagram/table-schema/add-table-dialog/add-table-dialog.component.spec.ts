@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AddTableDialogComponent } from './add-table-dialog.component';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 
 describe('AddTableDialogComponent', () => {
   let component: AddTableDialogComponent;
@@ -8,7 +10,12 @@ describe('AddTableDialogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AddTableDialogComponent],
-    }).compileComponents();
+      providers: [{ provide: MatDialogRef, useValue: {} }],
+    })
+      .overrideComponent(AddTableDialogComponent, {
+        set: { imports: [], schemas: [NO_ERRORS_SCHEMA] },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(AddTableDialogComponent);
     component = fixture.componentInstance;

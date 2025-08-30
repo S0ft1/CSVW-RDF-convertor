@@ -1,1 +1,43 @@
-<p>r2c-simple-form-page works!</p>
+<header>Convert RDF to CSVW</header>
+<form [formGroup]="form">
+  <section class="main-input" formGroupName="files">
+    <header>Main file input</header>
+    <mat-tab-group
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="center"
+      (selectedTabChange)="onMFTabChange($event)"
+      dynamicHeight
+    >
+      <mat-tab label="Local file">
+        <app-file-upload
+          formControlName="mainFile"
+          label="RDF file"
+          accept=".ttl,.trig,.nq,.nt,.rdf"
+        />
+      </mat-tab>
+      <mat-tab label="URL">
+        <mat-form-field>
+          <mat-label>RDF url</mat-label>
+          <input matInput type="url" formControlName="mainFileUrl" />
+        </mat-form-field>
+      </mat-tab>
+    </mat-tab-group>
+  </section>
+  <section formGroupName="options">
+    <p>
+      <mat-slide-toggle formControlName="interactiveSchema"
+        ><strong>Interactive schema.</strong>
+        <div class="explanation">
+          The convertor will infer the relational schema from the data and
+          present it for review. This allows you to make adjustments before the
+          conversion. Not available when a CSVW descriptor is provided.
+        </div></mat-slide-toggle
+      >
+    </p>
+  </section>
+  <section class="buttons">
+    <button matButton="filled" [disabled]="!form.valid" (click)="submit()">
+      Convert!
+    </button>
+  </section>
+</form>

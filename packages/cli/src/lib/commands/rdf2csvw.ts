@@ -1,12 +1,12 @@
 import { CommonArgs } from '../common.js';
 import { getPathOverrides } from './interactive/get-path-overrides.js';
-import { getSchema } from './interactive/get-schema.js';
+// import { getSchema } from './interactive/get-schema.js';
 import { readFileOrUrl } from '../utils/read-file-or-url.js';
 
 import {
+  CompactedCsvwDescriptor,
   defaultResolveJsonldFn,
   defaultResolveStreamFn,
-  DescriptorWrapper,
   LogLevel,
   parseRdf,
   Rdf2CsvOptions,
@@ -66,7 +66,7 @@ export const rdf2csvw: CommandModule<
       if (!args.pathOverrides) {
         args.pathOverrides = await getPathOverrides(descriptor);
       }
-      getSchema([]);
+      // getSchema(null);
     }
 
     if (args.input === undefined)
@@ -130,14 +130,14 @@ export const rdf2csvw: CommandModule<
     if (args.outDir) await mkdir(args.outDir, { recursive: true });
     const stringifiers: { [table: string]: csv.stringifier.Stringifier } = {};
 
-    let latestDescriptor: DescriptorWrapper | undefined;
-    for await (const [descriptor, table, row] of stream) {
+    let latestDescriptor: CompactedCsvwDescriptor | undefined;
+    for await (const { descriptor, table, row } of stream) {
       if (stringifiers[table.name] === undefined) {
         const outputStream = fs.createWriteStream(
           resolve(args.outDir, table.name),
         );
 
-        const dialect = descriptor.descriptor.dialect ?? {};
+        const dialect = descriptor.dialect ?? {};
         const descriptorOptions = {
           header: dialect.header ?? true,
           columns: table.columns,
@@ -162,7 +162,7 @@ export const rdf2csvw: CommandModule<
     if (latestDescriptor) {
       fs.writeFileSync(
         resolve(args.outDir, 'csv-metadata.json'),
-        JSON.stringify(latestDescriptor.descriptor, null, '  '),
+        JSON.stringify(latestDescriptor, null, '  '),
       );
     }
   },

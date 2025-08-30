@@ -2,7 +2,11 @@
 <mat-dialog-content>
   <mat-form-field>
     <mat-label>Table URL</mat-label>
-    <input matInput [formControl]="ctrl" />
+    <input
+      matInput
+      [formControl]="ctrl"
+      (keydown.enter)="ctrl.invalid ? null : dref.close(ctrl.value)"
+    />
   </mat-form-field>
 </mat-dialog-content>
 <mat-dialog-actions>

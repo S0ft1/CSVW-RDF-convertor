@@ -12,10 +12,9 @@ import { MatButton } from '@angular/material/button';
 import { R2cFilesFormComponent } from './r2c-files-form/r2c-files-form.component';
 import { R2cOptionsFormComponent } from './r2c-options-form/r2c-options-form.component';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { startWith, filter, switchMap } from 'rxjs/operators';
+import { startWith, filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { InitR2CParams, R2CService } from '../services/r2c.service';
-import { of } from 'rxjs';
 
 @Component({
   selector: 'app-r2c-form-page',
@@ -45,6 +44,7 @@ export class R2cFormPageComponent {
       interactiveSchema: new FormControl<boolean>(true, { nonNullable: true }),
       useVocabMetadata: new FormControl<boolean>(true, { nonNullable: true }),
     }),
+    descriptor: new FormControl<any>(null), // only for keeping descriptor from a config file
   });
   service = inject(R2CService);
   router = inject(Router);
@@ -53,20 +53,9 @@ export class R2cFormPageComponent {
   optionsFG = this.form.get('options') as FormGroup;
 
   descriptor = toSignal(
-    this.filesFG.get('configFile').valueChanges.pipe(
-      startWith(this.filesFG.get('configFile').value),
-      switchMap((file: File) =>
-        file
-          ? file.text().then((x) => {
-              const parsed = JSON.parse(x);
-              if (!('@context' in parsed) && 'descriptor' in parsed) {
-                return parsed.descriptor;
-              }
-              return parsed;
-            })
-          : of(null),
-      ),
-    ),
+    this.form
+      .get('descriptor')
+      .valueChanges.pipe(startWith(this.form.get('descriptor').value)),
   );
 
   constructor() {
@@ -79,8 +68,7 @@ export class R2cFormPageComponent {
       )
       .subscribe(async (file: File) => {
         const content = await file.text().then((x) => JSON.parse(x));
-        content.a = 11;
-        // this.form.patchValue(this.service.configToParams(content));
+        this.form.patchValue(this.service.configToParams(content));
       });
   }
 
