@@ -6,12 +6,11 @@ This document provides comprehensive technical documentation for developers work
 
 1. [Architecture Overview](#architecture-overview)
 2. [Key Concepts](#key-concepts)
-3. [File Structure](#file-structure)
-4. [Core Components](#core-components)
-5. [Available Commands](#available-commands)
-6. [Behaviour of non-trivial commands/listeners](#Behaviour-of-non-trivial-commands-and-listeners)
-7. [Extension Activation](#extension-activation)
-8. [Modules Documentation](#modules-documentation)
+3. [Core Components](#core-components)
+4. [Available Commands](#available-commands)
+5. [Behaviour of non-trivial commands/listeners](#Behaviour-of-non-trivial-commands-and-listeners)
+6. [Extension Activation](#extension-activation)
+7. [Modules Documentation](#modules-documentation)
 
 ## Architecture Overview
 
