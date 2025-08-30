@@ -68,7 +68,7 @@
     "jsonld": "^8.3.3",
     "jsonld-streaming-parser": "^5.0.0",
     "jsonld-streaming-serializer": "^4.0.0",
-    "ldml-number": "^1.1.0",
+    "ldml-number": "github:d-kral/ldml-number",
     "memory-level": "^3.0.0",
     "mnemonist": "^0.40.2",
     "n3": "^1.23.1",
