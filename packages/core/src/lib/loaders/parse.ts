@@ -23,7 +23,7 @@ export async function parseRdf(
   url: string,
   options: ParseOptions,
 ): Promise<Stream<Quad>> {
-  let baseIri = options.baseIri ?? '';
+  const baseIri = options.baseIri ?? '';
   const readableStream = await options.resolveStreamFn(url, baseIri);
   let parser: StreamParser | JsonLdParser | RdfXmlParser;
   if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
