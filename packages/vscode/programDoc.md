@@ -11,7 +11,7 @@ This document provides comprehensive technical documentation for developers work
 5. [Available Commands](#available-commands)
 6. [Behaviour of non-trivial commands/listeners](#Behaviour-of-non-trivial-commands-and-listeners)
 7. [Extension Activation](#extension-activation)
-8. [Modules Documentation](#api-documentation)
+8. [Modules Documentation](#modules-documentation)
 
 ## Architecture Overview
 
