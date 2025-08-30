@@ -9,7 +9,7 @@ This document provides comprehensive technical documentation for developers work
 3. [File Structure](#file-structure)
 4. [Core Components](#core-components)
 5. [Available Commands](#available-commands)
-6. [Behaviour of non-trivial commands/listeners](#Behaviour-of-non-trivial-commands/listeners)
+6. [Behaviour of non-trivial commands/listeners](#Behaviour-of-non-trivial-commands-and-listeners)
 7. [Extension Activation](#extension-activation)
 8. [HTML Documentation](#api-documentation)
 
@@ -146,7 +146,7 @@ Interfaces with the core conversion library and manages the conversion process.
 | `add-red-underlines` | Adds validation errors animation | Command pallet |
 | `clear-red-underlines` | Removes validation errors animation | Command pallet |
 
-## Behaviour of non-trivial commands/listeners
+## Behaviour of non-trivial commands and listeners
 
 ### Save listener
 This listener triggers on saving any conversion files (descriptor, inputs).
