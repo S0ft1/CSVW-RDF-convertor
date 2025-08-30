@@ -11,7 +11,7 @@ This document provides comprehensive technical documentation for developers work
 5. [Available Commands](#available-commands)
 6. [Behaviour of non-trivial commands/listeners](#Behaviour-of-non-trivial-commands-and-listeners)
 7. [Extension Activation](#extension-activation)
-8. [HTML Documentation](#api-documentation)
+8. [Modules Documentation](#api-documentation)
 
 ## Architecture Overview
 
@@ -69,8 +69,7 @@ export interface ConversionItem {
 ### 2. Tree Data Provider Pattern
 **Purpose**: Provides hierarchical data structure for VS Code's Tree View API.
 
-**Implementation**: `TreeDataProvider` class manages conversion items and their display in the sidebar.
-
+ `vscode.TreeDataProvider` inteface implementation, class that manages conversion items and their display in the sidebar.
 **Responsibilities**:
 - Load existing conversions from workspace
 - Provide tree structure for VS Code
@@ -172,8 +171,7 @@ The extension activates when:
 
 ## Modules Documentation
 
-
-*[Space reserved for HTML documentation link]*
+*[HTML documentation](https://s0ft1.github.io/CSVW-RDF-convertor/)*
 
 
 ### Development Tools
