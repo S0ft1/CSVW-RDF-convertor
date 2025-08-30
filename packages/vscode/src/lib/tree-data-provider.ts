@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ConversionItem, TreeItem, ConversionType } from './types.js';
+import { ConversionItem, TreeItem } from './types.js';
 import { ensureFileExists, getDefaultDescriptorContent, getDefaultInputContent, getDefaultOutputContent, getDefaultRdfInputContent } from './file-utils.js';
 import { createInputFilesFromDescriptor } from './command-handlers.js';
 
