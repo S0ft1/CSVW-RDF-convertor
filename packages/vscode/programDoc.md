@@ -9,12 +9,9 @@ This document provides comprehensive technical documentation for developers work
 3. [File Structure](#file-structure)
 4. [Core Components](#core-components)
 5. [Available Commands](#available-commands)
-6. [Behaviour of non-trivial commands/listeners](#Behaviour of non-trivial commands/listeners)
-10. [Extension Activation](#extension activation)
-11. [API Documentation](#api-documentation)
-12. [Development Guidelines](#development-guidelines)
-13. [Testing](#testing)
-14. [Debugging](#debugging)
+6. [Behaviour of non-trivial commands/listeners](#Behaviour-of-non-trivial-commands/listeners)
+7. [Extension Activation](#extension-activation)
+8. [HTML Documentation](#api-documentation)
 
 ## Architecture Overview
 
