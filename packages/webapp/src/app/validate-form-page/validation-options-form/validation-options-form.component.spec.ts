@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ValidationOptionsFormComponent } from './validation-options-form.component';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { setInput } from '../../testing/set-input';
 
 describe('ValidationOptionsFormComponent', () => {
   let component: ValidationOptionsFormComponent;
@@ -20,6 +21,9 @@ describe('ValidationOptionsFormComponent', () => {
 
     fixture = TestBed.createComponent(ValidationOptionsFormComponent);
     component = fixture.componentInstance;
+    setInput(fixture, 'form', {
+      get: vi.fn().mockReturnValue({ controls: [] }),
+    });
     fixture.detectChanges();
   });
 

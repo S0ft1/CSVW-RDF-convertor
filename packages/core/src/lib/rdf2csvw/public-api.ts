@@ -1,23 +1,37 @@
 import { Quad, Stream } from '@rdfjs/types';
 import { Rdf2CsvOptions } from '../conversion-options.js';
 import { TableGroupSchema } from './schema/table-group-schema.js';
-import { Rdf2CsvwConvertor } from './convertor.js';
-import { Readable } from 'readable-stream';
+import { CsvwRow, CsvwTable, Rdf2CsvwConvertor } from './convertor.js';
+import { CompactedCsvwDescriptor } from '../types/descriptor/descriptor.js';
+import { DescriptorWrapper } from '../descriptor.js';
+
+export type CsvwResultItem = {
+  descriptor: CompactedCsvwDescriptor;
+  table: CsvwTable;
+  row: CsvwRow;
+};
 
 /**
  * Converts RDF data to CSVW format, including both table streams and descriptor.
  * This is the main entry point for RDF to CSVW conversion operations.
  * @param rdf - A stream of RDF quads to be converted to CSVW format.
  * @param options - Optional conversion options including descriptor and other settings.
- * @returns Promise resolving to a tuple containing CSVW table streams and the descriptor wrapper.
+ * @returns Iterable of rows belonging to the various CSVW tables.
  */
-export async function rdfToCsvw(
+export async function* rdfToCsvw(
   rdf: Stream<Quad>,
   options?: Rdf2CsvOptions,
-): Promise<Readable> {
+): AsyncIterable<CsvwResultItem> {
   options ??= {};
   const convertor = new Rdf2CsvwConvertor(options);
-  return convertor.convert(rdf);
+  const stream = await convertor.convert(rdf);
+  for await (const [descriptor, table, row] of stream) {
+    yield {
+      descriptor: (descriptor as DescriptorWrapper).descriptor,
+      table,
+      row,
+    };
+  }
 }
 
 /**

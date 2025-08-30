@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IssueCardComponent } from './issue-card.component';
+import { setInput } from '../../testing/set-input';
 
 describe('IssueCardComponent', () => {
   let component: IssueCardComponent;
@@ -12,6 +13,7 @@ describe('IssueCardComponent', () => {
 
     fixture = TestBed.createComponent(IssueCardComponent);
     component = fixture.componentInstance;
+    setInput(fixture, 'issue', {});
     fixture.detectChanges();
   });
 

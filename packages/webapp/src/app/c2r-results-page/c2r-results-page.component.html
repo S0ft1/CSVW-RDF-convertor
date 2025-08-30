@@ -19,6 +19,7 @@
       </button>
       <button matButton="filled" (click)="showResult.set(!resultShown)">
         {{ resultShown ? 'Hide' : 'Show' }} Result
+        {{ resultShown ? '' : '(' + lineCount() + ' lines)' }}
       </button>
       @if (!simple) {
         <button matButton="tonal" (click)="downloadConfig()">

@@ -1,25 +1,36 @@
 import { Injectable, signal } from '@angular/core';
 import { ConversionService } from './conversion.service';
-import { Issue, TableGroupSchema } from '@csvw-rdf-convertor/core';
-import { dataTtl } from './data.ttl';
+import {
+  AnyCsvwDescriptor,
+  ColumnSchema,
+  Issue,
+  TableGroupSchema,
+  TableSchema,
+} from '@csvw-rdf-convertor/core';
 
 export interface InitR2CParams {
   files: {
     mainFile?: File;
     mainFileUrl?: string;
     otherFiles: File[];
-    configFile?: File;
   };
   options: {
     baseIri?: string;
     pathOverrides: [string | RegExp, string][];
     useVocabMetadata?: boolean;
+    interactiveSchema?: boolean;
   };
+  descriptor?: AnyCsvwDescriptor;
+}
+
+export interface ResultFile {
+  filename: string;
+  content: string;
 }
 
 export interface ResultMessage {
   type: 'result';
-  data: string;
+  data: ResultFile[];
 }
 export interface SchemaMessage {
   type: 'schema';
@@ -46,17 +57,8 @@ export type WorkerRequest = ConvertRequest | SchemaRequest;
 @Injectable({
   providedIn: 'root',
 })
-export class R2CService extends ConversionService<InitR2CParams> {
+export class R2CService extends ConversionService<InitR2CParams, ResultFile[]> {
   public detectedSchema = signal<TableGroupSchema>(null);
-
-  constructor() {
-    super();
-    const file = new File([dataTtl], 'data.ttl', { type: 'text/turtle' });
-    this.inferSchema({
-      files: { mainFile: file, otherFiles: [] },
-      options: { pathOverrides: [], useVocabMetadata: true },
-    });
-  }
 
   public override initConversion(params: InitR2CParams): boolean {
     if (!super.initConversion(params)) return false;
@@ -94,18 +96,26 @@ export class R2CService extends ConversionService<InitR2CParams> {
   ): Record<string, any> {
     return {
       options: params.options,
+      descriptor: params.descriptor,
     };
   }
 
   public override configToParams(
     config: Record<string, any>,
   ): Partial<InitR2CParams> {
+    if (!('@context' in config) && 'options' in config) {
+      return {
+        options: {
+          baseIri: config.options.baseIri,
+          pathOverrides: config.options.pathOverrides ?? [],
+          useVocabMetadata: config.options.useVocabMetadata ?? true,
+          interactiveSchema: !config.descriptor,
+        },
+        descriptor: config.descriptor,
+      };
+    }
     return {
-      options: {
-        baseIri: config.options.baseIri,
-        pathOverrides: config.options.pathOverrides ?? [],
-        useVocabMetadata: config.options.useVocabMetadata ?? true,
-      },
+      descriptor: config as any,
     };
   }
 
@@ -127,7 +137,7 @@ export class R2CService extends ConversionService<InitR2CParams> {
         });
       } else if (data.type === 'schema') {
         this.converting.set(false);
-        this.detectedSchema.set(data.data);
+        this.detectedSchema.set(this.toSchemaClasses(data.data));
       }
     };
     worker.onerror = (error) => {
@@ -143,5 +153,24 @@ export class R2CService extends ConversionService<InitR2CParams> {
     };
     worker.postMessage({ params, type: 'schema' });
     return true;
+  }
+
+  /**
+   * The object that comes back from the worker is stripped of the class prototypes.
+   */
+  private toSchemaClasses(schema: TableGroupSchema): TableGroupSchema {
+    const newSchema = new TableGroupSchema();
+    Object.assign(newSchema, schema);
+    newSchema.tables = schema.tables.map((table) => {
+      const newTable = new TableSchema(table.url);
+      Object.assign(newTable, table);
+      newTable.tableSchema.columns = table.tableSchema.columns.map((column) => {
+        const newColumn = new ColumnSchema(column.name);
+        Object.assign(newColumn, column);
+        return newColumn;
+      });
+      return newTable;
+    }) as [TableSchema, ...TableSchema[]];
+    return newSchema;
   }
 }

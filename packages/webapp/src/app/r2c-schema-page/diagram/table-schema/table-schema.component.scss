@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 :host {
   display: block;
   width: fit-content;
@@ -6,10 +8,21 @@
   overflow: hidden;
 
   header {
-    text-align: center;
     padding: 5px;
     background-color: var(--mat-sys-primary);
     color: var(--mat-sys-on-primary);
+    display: flex;
+    padding-left: 53px; // offset the button on the other side
+
+    .table-name {
+      margin: auto;
+    }
+
+    @include mat.icon-button-overrides(
+      (
+        icon-color: var(--mat-sys-on-primary),
+      )
+    );
   }
 
   ul {
@@ -21,9 +34,15 @@
       padding: 5px;
       background-color: var(--mat-sys-surface);
       color: var(--mat-sys-on-surface);
-      display: flex;
       width: 100%;
-      justify-content: space-between;
+      display: flex;
+      align-items: center;
+
+      .flex-container {
+        flex-grow: 1;
+        display: flex;
+        justify-content: space-between;
+      }
 
       &:nth-of-type(even) {
         background-color: var(--mat-sys-surface-variant);
@@ -46,4 +65,8 @@
       }
     }
   }
+}
+
+.warn {
+  color: var(--mat-sys-error);
 }

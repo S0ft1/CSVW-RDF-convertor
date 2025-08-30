@@ -56,12 +56,7 @@
   "workspaces": [
     "packages/*"
   ],
-  "dependencies": {
-    "@fastify/autoload": "~6.0.3",
-    "@fastify/sensible": "~6.0.2",
-    "fastify": "~5.2.1",
-    "fastify-plugin": "~5.0.1"
-  },
+  "dependencies": {},
   "overrides": {
     "stylus": "0.0.1-security"
   }

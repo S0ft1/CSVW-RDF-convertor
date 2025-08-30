@@ -1190,7 +1190,8 @@ export class Csvw2RdfConvertor {
       pathOverrides: options.pathOverrides ?? [],
       cache: cache,
       resolveJsonldFn: (url, base) => {
-        if (cache.inCache(url, base)) return cache.fromCache(url, base);
+        if (cache.inCache(url, base))
+          return cache.fromCache(url, base) as Promise<string>;
         const originalFn = options?.resolveJsonldFn ?? defaultResolveJsonldFn;
         const result = originalFn(url, base);
         cache.toCache(url, base, result);

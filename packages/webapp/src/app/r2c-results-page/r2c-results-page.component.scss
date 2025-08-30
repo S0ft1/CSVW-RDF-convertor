@@ -1,0 +1,52 @@
+header {
+  font-size: 1.6em;
+  text-align: center;
+  margin: 20px 0;
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+pre {
+  overflow-x: auto;
+  width: 100%;
+  font-family: monospace;
+  font-size: 0.8em;
+  padding: 10px;
+  background-color: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  position: relative;
+}
+
+mat-card-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+:host ::ng-deep .mat-expansion-panel-body {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  right: 30px;
+  top: 20px;
+  z-index: 1;
+  background: var(--mat-sys-surface-container-low);
+}
+
+mat-expansion-panel {
+  margin: 10px 0;
+}

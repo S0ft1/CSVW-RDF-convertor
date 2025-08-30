@@ -114,7 +114,6 @@ export class TableSchema implements CsvwTableDescription {
     return aPath.path.at(-1) as CsvwBuiltinDatatype;
   }
 
-  /** you need to verify foreign keys integrity yourself */
   public removeColumn(name: string) {
     if (this.tableSchema.primaryKey.some((key) => key === name)) {
       throw new Error('Cannot remove a column that is part of the primary key');
@@ -123,37 +122,23 @@ export class TableSchema implements CsvwTableDescription {
     this.tableSchema.columns = this.tableSchema.columns.filter(
       (column) => column.name !== name,
     );
+    this.tableSchema.foreignKeys = this.tableSchema.foreignKeys.filter((fk) => {
+      const arr = Array.isArray(fk.columnReference)
+        ? fk.columnReference
+        : [fk.columnReference];
+      return !arr.includes(name);
+    });
   }
 
-  /** you need to verify foreign keys integrity yourself */
-  public renameColumn(oldName: string, newName: string) {
-    if (this.tableSchema.columns.some((column) => column.name === newName)) {
-      throw new Error('Cannot rename to an existing column');
-    }
-
+  public renameColumn(name: string, newTitle: string) {
     const column = this.tableSchema.columns.find(
-      (column) => column.name === oldName,
+      (column) => column.name === name,
     );
     if (column === undefined) {
       throw new Error('Column not found');
     }
 
-    column.renameColumn(newName);
-
-    const i = this.tableSchema.primaryKey.indexOf(oldName);
-    if (i !== -1) {
-      this.tableSchema.primaryKey[i] = newName;
-    }
-  }
-
-  public addForeignKey() {
-    // TODO: implement method
-    throw new Error('Method not implemented.');
-  }
-
-  public removeForeignKey() {
-    // TODO: implement method
-    throw new Error('Method not implemented.');
+    column.titles = newTitle;
   }
 
   public addPrimaryKey(columnName: string) {

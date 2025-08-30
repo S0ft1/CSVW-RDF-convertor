@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { R2cSchemaPageComponent } from './r2c-schema-page.component';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('R2cSchemaPageComponent', () => {
   let component: R2cSchemaPageComponent;
@@ -8,7 +9,11 @@ describe('R2cSchemaPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [R2cSchemaPageComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(R2cSchemaPageComponent, {
+        set: { imports: [], schemas: [NO_ERRORS_SCHEMA] },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(R2cSchemaPageComponent);
     component = fixture.componentInstance;

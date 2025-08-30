@@ -126,3 +126,49 @@ paths:
             text/turtle: {}
             text/n3: {}
             application/n-triples: {}
+  /rdf2csvw:
+    post:
+      description: Convert RDF to CSVW
+      tags:
+        - rdf2csvw
+      summary: Convert RDF to CSVW
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                options:
+                  type: object
+                  properties:
+                    input:
+                      type: string
+                      description: >-
+                        URL of the input RDF. Can also be a filename of an uploaded file.
+                    pathOverrides:
+                      type: object
+                      description: >-
+                        Record of path overrides where the key is a pattern and the value is
+                        the replacement. The pattern will be interpreted as a minimatch
+                        pattern.
+                      additionalProperties:
+                        type: string
+                    useVocabMetadata:
+                      type: boolean
+                      description: >-
+                        Use metadata from the vocabulary to enrich the conversion process. For example, `rdf:label`s of RDF properties can be used to provide more meaningful names for the generated columns. Defaults to true.
+                    baseIri:
+                      type: string
+                      description: >-
+                        Base IRI for loading resources. Defaults to the URL of the CSVW
+                        descriptor.
+                  required:
+                    - input
+                  additionalProperties: false
+              required:
+                - options
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/zip: {}

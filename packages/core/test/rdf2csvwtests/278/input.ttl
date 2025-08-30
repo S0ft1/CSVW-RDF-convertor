@@ -12,26 +12,26 @@
       csvw:row [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "1";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.2> "ADDISON AV";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.3> "Celtis australis";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.4> "Large Tree Routine Prune";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.5> "10/18/2010"
+          <tree-ops.csv#GID> "1";
+          <tree-ops.csv#_col.2> "ADDISON AV";
+          <tree-ops.csv#_col.3> "Celtis australis";
+          <tree-ops.csv#_col.4> "Large Tree Routine Prune";
+          <tree-ops.csv#_col.5> "10/18/2010"
         ];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=2>
+        csvw:url <tree-ops.csv#row=2>
       ],  [
         a csvw:Row;
         csvw:describes [
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#GID> "2";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.2> "EMERSON ST";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.3> "Liquidambar styraciflua";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.4> "Large Tree Routine Prune";
-          <http://www.w3.org/2013/csvw/tests/tree-ops.csv#_col.5> "6/2/2010"
+          <tree-ops.csv#GID> "2";
+          <tree-ops.csv#_col.2> "EMERSON ST";
+          <tree-ops.csv#_col.3> "Liquidambar styraciflua";
+          <tree-ops.csv#_col.4> "Large Tree Routine Prune";
+          <tree-ops.csv#_col.5> "6/2/2010"
         ];
         csvw:rownum "2"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv#row=3>
+        csvw:url <tree-ops.csv#row=3>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/tree-ops.csv>
+      csvw:url <tree-ops.csv>
     ]
  ] .

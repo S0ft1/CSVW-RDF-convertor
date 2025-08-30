@@ -290,7 +290,8 @@ export class Rdf2CsvwConvertor {
       logLevel: options.logLevel ?? LogLevel.Warn,
       cache: cache,
       resolveJsonldFn: (url, base) => {
-        if (cache.inCache(url, base)) return cache.fromCache(url, base);
+        if (cache.inCache(url, base))
+          return cache.fromCache(url, base) as Promise<string>;
         const originalFn = options?.resolveJsonldFn ?? defaultResolveJsonldFn;
         const result = originalFn(url, base);
         cache.toCache(url, base, result);

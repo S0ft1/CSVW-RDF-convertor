@@ -4,6 +4,7 @@ import { MatToolbar } from '@angular/material/toolbar';
 import { LightToggleComponent } from './light-toggle/light-toggle.component';
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from './services/loading-overlay.service';
+import { GhLogoComponent } from './widgets/gh-logo/gh-logo.component';
 
 @Component({
   imports: [
@@ -12,6 +13,7 @@ import { LoadingOverlayService } from './services/loading-overlay.service';
     RouterLink,
     LightToggleComponent,
     LoadingOverlayComponent,
+    GhLogoComponent,
   ],
   selector: 'app-root',
   templateUrl: './app.component.html',

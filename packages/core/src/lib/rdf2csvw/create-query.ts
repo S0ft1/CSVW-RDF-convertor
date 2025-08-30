@@ -5,12 +5,19 @@ import { CsvwTableDescriptionWithRequiredColumns } from '../types/descriptor/tab
 
 import { coerceArray } from '../utils/coerce.js';
 import { expandIri } from '../utils/expand-iri.js';
-import { commonPrefixes } from '../utils/prefix.js';
+import { commonPrefixes, dtUris } from '../utils/prefix.js';
 
 import { parseTemplate } from 'url-template';
 import { SUBJ_COL, UNKOWN_TYPE_TABLE } from './schema-inferrer.js';
+import { getBooleanFilter, isBooleanColumn } from '../utils/format-boolean.js';
+import { getNumericFilter, isNumericColumn } from '../utils/format-number.js';
+import {
+  getDateTimeFilter,
+  isDateTimeColumn,
+} from '../utils/format-datetime.js';
+import { getOtherFilter } from '../utils/format-other.js';
 
-const { rdf } = commonPrefixes;
+const { xsd, rdf } = commonPrefixes;
 
 /**
  * Creates SPARQL query.
@@ -165,6 +172,10 @@ function createSelectOfOptionalSubjects(
     const aboutUrl = column.aboutUrl;
     const propertyUrl = column.propertyUrl;
     const valueUrl = column.valueUrl;
+    const lang = column.lang;
+    let datatype = undefined;
+    if (typeof column.datatype === 'string') datatype = column.datatype;
+    else if (column.datatype !== undefined) datatype = column.datatype.base;
 
     const subject = `?${queryVars[aboutUrl ?? '']}`;
 
@@ -188,15 +199,56 @@ function createSelectOfOptionalSubjects(
         _sourceColumn: index + 1,
         _name: columns[index].name,
       });
-      if (column.datatype === 'anyURI' || predicate === `<${rdf}type>`)
+      if (predicate === `<${rdf}type>`) {
         object = `<${expandIri(object)}>`;
-      else object = `"${object}"`;
+      } else if (datatype) {
+        if (datatype === 'string')
+          object = lang
+            ? `"${object}"@${lang}`
+            : `"${object}"^^<${xsd + 'string'}>`;
+        else object = `"${object}"^^<${dtUris[datatype]}>`;
+      } else {
+        object = `"${object}"`;
+      }
     }
 
     if (predicate === `<${UNKOWN_TYPE_TABLE}#${SUBJ_COL}>`) continue;
     const lines = [`        ${subject} ${predicate} ${object} .`];
 
-    const lang = column.lang;
+    if (datatype && object.startsWith('?')) {
+      if (datatype === 'string') {
+        lines.push(
+          `        FILTER (DATATYPE(${object}) = <${lang ? rdf + 'langString' : xsd + 'string'}>)`,
+        );
+      } else if (datatype === 'anyURI') {
+        lines.push(
+          `        FILTER (isURI(${object}) || DATATYPE(${object}) = <${dtUris[datatype]}>)`,
+        );
+      } else {
+        lines.push(
+          `        FILTER (DATATYPE(${object}) = <${dtUris[datatype]}>)`,
+        );
+      }
+
+      if (isBooleanColumn(column)) {
+        const filter = getBooleanFilter(object, column);
+        if (filter !== undefined)
+          lines.push(...filter.split('\n').map((line) => `        ${line}`));
+      } else if (isNumericColumn(column)) {
+        const filter = getNumericFilter(object, column);
+        if (filter !== undefined)
+          lines.push(...filter.split('\n').map((line) => `        ${line}`));
+      } else if (isDateTimeColumn(column)) {
+        const filter = getDateTimeFilter(object, column);
+        if (filter !== undefined)
+          lines.push(...filter.split('\n').map((line) => `        ${line}`));
+      } else {
+        const filter = getOtherFilter(object, column);
+        if (filter !== undefined)
+          lines.push(...filter.split('\n').map((line) => `        ${line}`));
+      }
+    }
+
     if (lang && object.startsWith('?')) {
       // TODO: Should we lower our expectations if the matching language is not found?
       lines.push(`        FILTER LANGMATCHES(LANG(${object}), "${lang}")`);
@@ -216,7 +268,9 @@ function createSelectOfOptionalSubjects(
         }),
       );
       if (templateUrl !== '.*')
-        lines.push(`        FILTER REGEX(STR(${subject}), "${templateUrl}$")`);
+        lines.push(
+          `        FILTER (REGEX(STR(${subject}), "${templateUrl}$"))`,
+        );
     }
 
     if (valueUrl && object.startsWith('?')) {
@@ -233,7 +287,7 @@ function createSelectOfOptionalSubjects(
         }),
       );
       if (templateUrl !== '.*')
-        lines.push(`        FILTER REGEX(STR(${object}), "${templateUrl}$")`);
+        lines.push(`        FILTER (REGEX(STR(${object}), "${templateUrl}$"))`);
     }
 
     subjects.add(subject);
@@ -270,6 +324,10 @@ function createTriplePatterns(
   const aboutUrl = column.aboutUrl;
   const propertyUrl = column.propertyUrl;
   const valueUrl = column.valueUrl;
+  const lang = column.lang;
+  let datatype = undefined;
+  if (typeof column.datatype === 'string') datatype = column.datatype;
+  else if (column.datatype !== undefined) datatype = column.datatype.base;
 
   const subject = `?${queryVars[aboutUrl ?? '']}`;
 
@@ -293,15 +351,54 @@ function createTriplePatterns(
       _sourceColumn: index + 1,
       _name: columns[index].name,
     });
-    if (column.datatype === 'anyURI' || predicate === `<${rdf}type>`)
+    if (predicate === `<${rdf}type>`) {
       object = `<${expandIri(object)}>`;
-    else object = `"${object}"`;
+    } else if (datatype) {
+      if (datatype === 'string')
+        object = lang
+          ? `"${object}"@${lang}`
+          : `"${object}"^^<${xsd + 'string'}>`;
+      else object = `"${object}"^^<${dtUris[datatype]}>`;
+    } else {
+      object = `"${object}"`;
+    }
   }
 
   if (predicate === `<${UNKOWN_TYPE_TABLE}#${SUBJ_COL}>`) return '';
   const lines = [`  ${subject} ${predicate} ${object} .`];
 
-  const lang = column.lang;
+  if (datatype && object.startsWith('?')) {
+    if (datatype === 'string') {
+      lines.push(
+        `  FILTER (DATATYPE(${object}) = <${lang ? rdf + 'langString' : xsd + 'string'}>)`,
+      );
+    } else if (datatype === 'anyURI') {
+      lines.push(
+        `  FILTER (isURI(${object}) || DATATYPE(${object}) = <${dtUris[datatype]}>)`,
+      );
+    } else {
+      lines.push(`  FILTER (DATATYPE(${object}) = <${dtUris[datatype]}>)`);
+    }
+
+    if (isBooleanColumn(column)) {
+      const filter = getBooleanFilter(object, column);
+      if (filter !== undefined)
+        lines.push(...filter.split('\n').map((line) => `  ${line}`));
+    } else if (isNumericColumn(column)) {
+      const filter = getNumericFilter(object, column);
+      if (filter !== undefined)
+        lines.push(...filter.split('\n').map((line) => `  ${line}`));
+    } else if (isDateTimeColumn(column)) {
+      const filter = getDateTimeFilter(object, column);
+      if (filter !== undefined)
+        lines.push(...filter.split('\n').map((line) => `  ${line}`));
+    } else {
+      const filter = getOtherFilter(object, column);
+      if (filter !== undefined)
+        lines.push(...filter.split('\n').map((line) => `  ${line}`));
+    }
+  }
+
   if (lang && object.startsWith('?')) {
     // TODO: Should we lower our expectations if the matching language is not found?
     lines.push(`  FILTER LANGMATCHES(LANG(${object}), "${lang}")`);
@@ -318,7 +415,7 @@ function createTriplePatterns(
       }),
     );
     if (templateUrl !== '.*')
-      lines.push(`  FILTER REGEX(STR(${subject}), "${templateUrl}$")`);
+      lines.push(`  FILTER (REGEX(STR(${subject}), "${templateUrl}$"))`);
   }
 
   if (valueUrl && object.startsWith('?')) {
@@ -332,7 +429,7 @@ function createTriplePatterns(
       }),
     );
     if (templateUrl !== '.*')
-      lines.push(`  FILTER REGEX(STR(${object}), "${templateUrl}$")`);
+      lines.push(`  FILTER (REGEX(STR(${object}), "${templateUrl}$"))`);
   }
 
   if (predicate === `<${rdf}type>`) {

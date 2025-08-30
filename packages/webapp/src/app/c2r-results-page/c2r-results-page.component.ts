@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   OnDestroy,
   signal,
@@ -43,6 +44,16 @@ export class C2rResultsPageComponent implements OnDestroy {
   router = inject(Router);
   lastUrl = this.router.lastSuccessfulNavigation.initialUrl.toString();
   simple = this.lastUrl.endsWith('simple');
+  lineCount = computed(() => this.countLines(this.service.result() ?? ''));
+
+  constructor() {
+    effect(() => {
+      if (!this.service.result()) return;
+      if (this.lineCount() <= 500) {
+        this.showResult.set(true);
+      }
+    });
+  }
 
   copyToClipboard() {
     navigator.clipboard
@@ -105,5 +116,13 @@ export class C2rResultsPageComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.service.reset();
+  }
+
+  private countLines(text: string): number {
+    let lines = 1;
+    for (const char of text) {
+      if (char === '\n') lines++;
+    }
+    return lines;
   }
 }

@@ -1,1 +1,43 @@
-<p>r2c-results-page works!</p>
+@if (service.converting()) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  <header>Conversion in progress</header>
+} @else if (containsErrors()) {
+  <header>Conversion failed</header>
+} @else {
+  <header>Conversion results</header>
+}
+<main>
+  @for (issue of service.issues(); track issue) {
+    <app-issue-card [issue]="issue"></app-issue-card>
+  }
+
+  @if (!service.converting() && !containsErrors()) {
+    <div class="buttons">
+      <button matButton="filled" (click)="downloadFullResult()">
+        Download Result
+      </button>
+      @if (!simple) {
+        <button matButton="tonal" (click)="downloadConfig()">
+          Export Config File
+        </button>
+      }
+      <a matButton="tonal" [routerLink]="lastUrl">Convert Again</a>
+    </div>
+
+    @for (file of service.result(); track file.filename) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          {{ file.filename }}
+        </mat-expansion-panel-header>
+        <button
+          class="copy-button"
+          matIconButton
+          (click)="copyToClipboard(file.content)"
+        >
+          <mat-icon>content_copy</mat-icon>
+        </button>
+        <pre>{{ file.content }}</pre>
+      </mat-expansion-panel>
+    }
+  }
+</main>

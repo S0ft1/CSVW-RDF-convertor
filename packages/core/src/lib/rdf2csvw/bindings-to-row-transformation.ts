@@ -1,6 +1,6 @@
 import { CsvwColumn, CsvwRow } from './convertor.js';
 import { formatBoolean, isBooleanColumn } from '../utils/format-boolean.js';
-import { isNumericColumn, formatNumber } from '../utils/format-number.js';
+import { isNumericColumn, formatNumeric } from '../utils/format-number.js';
 import { isDateTimeColumn, formatDateTime } from '../utils/format-datetime.js';
 import { formatOther } from '../utils/format-other.js';
 import { trimUrl } from '../utils/url-trimming.js';
@@ -68,7 +68,7 @@ export function transform(
     if (isBooleanColumn(columnDescription)) {
       value = formatBoolean(value, columnDescription, issueTracker);
     } else if (isNumericColumn(columnDescription)) {
-      value = formatNumber(value, columnDescription, issueTracker);
+      value = formatNumeric(value, columnDescription, issueTracker);
     } else if (isDateTimeColumn(columnDescription)) {
       value = formatDateTime(value, columnDescription, issueTracker);
       // TODO: format durations and other types

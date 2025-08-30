@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { R2cService } from './r2c.service';
+import { R2CService } from './r2c.service';
 
-describe('R2cService', () => {
-  let service: R2cService;
+describe('R2CService', () => {
+  let service: R2CService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(R2cService);
+    service = TestBed.inject(R2CService);
   });
 
   it('should be created', () => {

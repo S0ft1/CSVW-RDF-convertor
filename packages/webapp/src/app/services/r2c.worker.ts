@@ -5,9 +5,19 @@ import {
   rdfToTableSchema,
   parseRdf,
   defaultResolveStreamFn,
+  rdfToCsvw,
+  CsvwResultItem,
+  CompactedCsvwDescriptor,
 } from '@csvw-rdf-convertor/core';
-import { InitR2CParams, SchemaMessage, WorkerRequest } from './r2c.service';
+import {
+  InitR2CParams,
+  ResultFile,
+  ResultMessage,
+  SchemaMessage,
+  WorkerRequest,
+} from './r2c.service';
 import { Quad, Stream } from '@rdfjs/types';
+import { stringify } from 'csv-stringify/browser/esm/sync';
 
 addEventListener('message', async ({ data }: { data: WorkerRequest }) => {
   const options = getOptions(data.params);
@@ -15,11 +25,42 @@ addEventListener('message', async ({ data }: { data: WorkerRequest }) => {
 
   if (data.type === 'schema') {
     const schema = await rdfToTableSchema(stream, options);
-    console.log(schema);
     postMessage({ type: 'schema', data: schema } satisfies SchemaMessage);
+    return;
+  } else if (data.type === 'convert') {
+    const result = rdfToCsvw(stream, options);
+    postMessage({
+      type: 'result',
+      data: await handleCsvwStream(result),
+    } satisfies ResultMessage);
     return;
   }
 });
+
+async function handleCsvwStream(
+  stream: AsyncIterable<CsvwResultItem>,
+): Promise<ResultFile[]> {
+  let latestDescriptor: CompactedCsvwDescriptor;
+  const tables: Record<string, string> = {};
+  for await (const { table, row, descriptor } of stream) {
+    latestDescriptor = descriptor;
+    tables[table.name] ??= stringify([table.columns]);
+    tables[table.name] += stringify([table.columns.map((col) => row[col])]);
+  }
+  const result: ResultFile[] = [
+    {
+      filename: latestDescriptor['@id'] ?? 'descriptor.json',
+      content: JSON.stringify(latestDescriptor, null, 2),
+    },
+  ];
+  for (const [filename, content] of Object.entries(tables)) {
+    result.push({
+      filename,
+      content,
+    });
+  }
+  return result;
+}
 
 function getOptions(params: InitR2CParams): Rdf2CsvOptions {
   const getUrl = (path: string, base: string) =>
@@ -41,6 +82,7 @@ function getOptions(params: InitR2CParams): Rdf2CsvOptions {
   };
   return {
     ...params.options,
+    descriptor: params.descriptor,
     baseIri,
     resolveJsonldFn: (url, base) => {
       url = getUrl(url, base);

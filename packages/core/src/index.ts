@@ -17,3 +17,5 @@ export * from './lib/loaders/parse.js';
 export * from './lib/loaders/serialize.js';
 export * from './lib/loaders/prefix-lookup.js';
 export * from './lib/loaders/rdf-serialization.js';
+
+export * from './lib/types/descriptor/descriptor.js';

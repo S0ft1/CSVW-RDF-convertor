@@ -3,6 +3,7 @@ import { conversionExistsGuard } from './auth/conversion-exists.guard';
 import { C2RService } from './services/c2r.service';
 import { ValidateService } from './services/validate.service';
 import { R2CService } from './services/r2c.service';
+import { inferringSchemaGuard } from './auth/inferring-schema.guard';
 
 export const appRoutes: Route[] = [
   {
@@ -94,7 +95,7 @@ export const appRoutes: Route[] = [
       import('./r2c-schema-page/r2c-schema-page.component').then(
         (m) => m.R2cSchemaPageComponent,
       ),
-    // canMatch: [conversionExistsGuard(R2CService, '/r2c')],
+    canMatch: [inferringSchemaGuard('/r2c')],
     title: 'RDF → CSVW',
   },
 ];

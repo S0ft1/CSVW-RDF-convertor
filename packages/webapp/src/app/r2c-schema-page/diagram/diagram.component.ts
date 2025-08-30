@@ -1,10 +1,14 @@
 import {
+  afterNextRender,
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   computed,
   effect,
   ElementRef,
+  inject,
+  Injector,
   input,
   signal,
   viewChild,
@@ -14,10 +18,20 @@ import { TableGroupSchema } from '@csvw-rdf-convertor/core';
 import * as d3 from 'd3';
 import { GraphEdge, graphlib, layout } from '@dagrejs/dagre';
 import { TableSchemaComponent } from './table-schema/table-schema.component';
+import { MatFabButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { AddTableDialogComponent } from './table-schema/add-table-dialog/add-table-dialog.component';
+import { RenameDialogComponent } from './table-schema/rename-dialog/rename-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import {
+  ConfirmData,
+  ConfirmDialogComponent,
+} from './table-schema/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-diagram',
-  imports: [TableSchemaComponent],
+  imports: [TableSchemaComponent, MatFabButton, MatIcon],
   templateUrl: './diagram.component.html',
   styleUrl: './diagram.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,10 +50,14 @@ export class DiagramComponent implements AfterViewInit {
   readonly id = DiagramComponent.instances++;
   private zoom: d3.ZoomBehavior<Element, unknown>;
   layout = signal<graphlib.Graph>(null);
+  private dialogS = inject(MatDialog);
+  private snackbar = inject(MatSnackBar);
+  private cdRef = inject(ChangeDetectorRef);
+  private injector = inject(Injector);
 
   constructor() {
     effect(() => {
-      if (this.schema() && this.svgContainer()) {
+      if (this.schema() && this.zoom) {
         this.render();
       }
     });
@@ -70,9 +88,19 @@ export class DiagramComponent implements AfterViewInit {
     return zoom;
   }
 
-  render() {
-    this.resetZoom();
-    this.layout.set(this.renderLayout());
+  render(resetZoom = false) {
+    if (resetZoom) {
+      this.resetZoom();
+    }
+
+    this.cdRef.markForCheck();
+    this.tableNodes().forEach((table) => table.cdRef.markForCheck());
+    afterNextRender(
+      () => {
+        this.layout.set(this.renderLayout());
+      },
+      { injector: this.injector },
+    );
   }
 
   private renderLayout() {
@@ -95,6 +123,7 @@ export class DiagramComponent implements AfterViewInit {
 
     layout(g, {
       width: this.svgContainer().node().clientWidth,
+      marginx: 20,
     });
     return g;
   }
@@ -144,5 +173,120 @@ export class DiagramComponent implements AfterViewInit {
 
   getEdgePath(e: GraphEdge) {
     return 'M ' + e.points.map((p) => `${p.x},${p.y}`).join(' L ');
+  }
+
+  addTable() {
+    const ref = this.dialogS.open(AddTableDialogComponent);
+    ref.afterClosed().subscribe((result?: string) => {
+      if (result) {
+        try {
+          this.schema().addTable(result);
+        } catch (e) {
+          this.showSnack(e as Error);
+          return;
+        }
+        this.render();
+      }
+    });
+  }
+
+  deleteTable(table: string) {
+    const ref = this.dialogS.open(ConfirmDialogComponent, {
+      data: {
+        message: `Do you really want to delete table "${table}"?`,
+        warn: true,
+      } satisfies ConfirmData,
+    });
+    ref.afterClosed().subscribe((result?: string) => {
+      if (result) {
+        try {
+          this.schema().removeTable(table);
+          console.log(this.schema());
+        } catch (e) {
+          this.showSnack(e as Error);
+          return;
+        }
+        this.render();
+      }
+    });
+  }
+
+  renameTable(table: string) {
+    const ref = this.dialogS.open(RenameDialogComponent, {
+      data: { original: table },
+    });
+    ref.afterClosed().subscribe((result?: string) => {
+      if (result) {
+        try {
+          this.schema().renameTable(table, result);
+        } catch (e) {
+          this.showSnack(e as Error);
+          return;
+        }
+        this.render();
+      }
+    });
+  }
+
+  renameColumn(table: string, col: string, colTitles: string) {
+    const ref = this.dialogS.open(RenameDialogComponent, {
+      data: { original: colTitles },
+    });
+    ref.afterClosed().subscribe((result?: string) => {
+      if (result) {
+        try {
+          this.schema().renameTableCol(table, col, result);
+        } catch (e) {
+          this.showSnack(e as Error);
+          return;
+        }
+        this.render();
+      }
+    });
+  }
+
+  deleteColumn(table: string, col: string, colTitles: string) {
+    const ref = this.dialogS.open(ConfirmDialogComponent, {
+      data: {
+        message: `Do you really want to delete column "${colTitles}"?`,
+        warn: true,
+      } satisfies ConfirmData,
+    });
+    ref.afterClosed().subscribe((result?: string) => {
+      if (result) {
+        try {
+          this.schema().removeTableCol(table, col);
+        } catch (e) {
+          this.showSnack(e as Error);
+          return;
+        }
+        this.render();
+      }
+    });
+  }
+
+  moveColumn(table: string, col: string, colTitles: string, toTable: string) {
+    const ref = this.dialogS.open(ConfirmDialogComponent, {
+      data: {
+        message: `Do you really want to move column "${colTitles}" to table "${toTable}"?`,
+      } satisfies ConfirmData,
+    });
+    ref.afterClosed().subscribe((result?: string) => {
+      if (result) {
+        try {
+          this.schema().moveTableCol(table, col, toTable);
+        } catch (e) {
+          this.showSnack(e as Error);
+          return;
+        }
+        this.render();
+      }
+    });
+  }
+
+  private showSnack(err: Error) {
+    this.snackbar.open(err.message, 'Close', {
+      duration: 3000,
+    });
   }
 }

@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { ConversionService } from '../services/conversion.service';
 
 export function conversionExistsGuard(
-  service: new (...args: any[]) => ConversionService<any>,
+  service: new (...args: any[]) => ConversionService<any, any>,
   defaultRoute: string,
 ): CanActivateFn {
   return () => {

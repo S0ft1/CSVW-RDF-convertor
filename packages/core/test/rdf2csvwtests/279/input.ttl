@@ -11,10 +11,10 @@
       rdfs:comment "Value MUST be a valid xsd:duration.";
       csvw:row [
         a csvw:Row;
-        csvw:describes [ <http://www.w3.org/2013/csvw/tests/test279.csv#duration> "Foo"];
+        csvw:describes [ <test279.csv#duration> "Foo"];
         csvw:rownum "1"^^xsd:integer;
-        csvw:url <http://www.w3.org/2013/csvw/tests/test279.csv#row=2>
+        csvw:url <test279.csv#row=2>
       ];
-      csvw:url <http://www.w3.org/2013/csvw/tests/test279.csv>
+      csvw:url <test279.csv>
     ]
  ] .
