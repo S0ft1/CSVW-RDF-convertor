@@ -216,7 +216,8 @@ function createSelectOfOptionalSubjects(
     const lines = [`        ${subject} ${predicate} ${object} .`];
 
     if (datatype && object.startsWith('?')) {
-      if (datatype === 'string') {
+      // TODO: datatype filtering temporarily disabled
+      /*if (datatype === 'string') {
         lines.push(
           `        FILTER (DATATYPE(${object}) = <${lang ? rdf + 'langString' : xsd + 'string'}>)`,
         );
@@ -228,7 +229,7 @@ function createSelectOfOptionalSubjects(
         lines.push(
           `        FILTER (DATATYPE(${object}) = <${dtUris[datatype]}>)`,
         );
-      }
+      }*/
 
       if (isBooleanColumn(column)) {
         const filter = getBooleanFilter(object, column);
@@ -368,7 +369,8 @@ function createTriplePatterns(
   const lines = [`  ${subject} ${predicate} ${object} .`];
 
   if (datatype && object.startsWith('?')) {
-    if (datatype === 'string') {
+    // TODO: datatype filtering temporarily disabled
+    /*if (datatype === 'string') {
       lines.push(
         `  FILTER (DATATYPE(${object}) = <${lang ? rdf + 'langString' : xsd + 'string'}>)`,
       );
@@ -378,7 +380,7 @@ function createTriplePatterns(
       );
     } else {
       lines.push(`  FILTER (DATATYPE(${object}) = <${dtUris[datatype]}>)`);
-    }
+    }*/
 
     if (isBooleanColumn(column)) {
       const filter = getBooleanFilter(object, column);
