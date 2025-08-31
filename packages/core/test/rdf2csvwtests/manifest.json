@@ -1198,7 +1198,7 @@
   },
   {
     "id": "247",
-    "type": "ToCsvwTestWithWarnings",
+    "type": "ToCsvwTest",
     "name": "date format (extra milliseconds)",
     "comment": "The supported date and time formats listed here are expressed in terms of the date field symbols defined in [UAX35] and MUST be interpreted by implementations as defined in that specification.",
     "action": "247/input.ttl",
