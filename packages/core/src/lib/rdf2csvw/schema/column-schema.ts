@@ -26,6 +26,7 @@ export class ColumnSchema implements CsvwColumnDescription {
     clone.aboutUrl = this.aboutUrl;
     clone.propertyUrl = this.propertyUrl;
     clone.valueUrl = this.valueUrl;
+    clone.titles = this.titles;
     clone.datatype = structuredClone(this.datatype);
     return clone;
   }

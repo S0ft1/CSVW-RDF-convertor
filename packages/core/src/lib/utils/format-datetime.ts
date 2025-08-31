@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { tz } from '@date-fns/tz';
 import {
   CsvwColumnDescriptionWithDateTimeDatatype,
   CsvwColumnDescription,
@@ -9,6 +10,7 @@ import {
 } from '../types/descriptor/datatype.js';
 import { IssueTracker } from './issue-tracker.js';
 import { dtUris } from './prefix.js';
+import { parseDate } from '../utils/parse-date.js';
 
 type DateTimeDatatypeValidation = {
   regex: RegExp;
@@ -45,16 +47,6 @@ const dateTimeDatatypePatterns: {
     /^-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$/,
   time: /^(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$/,
 };
-
-function constraintToDateTime(
-  value: number | string | Date | undefined,
-): Date | undefined {
-  if (typeof value === 'number' || typeof value === 'string') {
-    // TODO: date and time parsing
-    return new Date(value);
-  }
-  return value;
-}
 
 export function isDateTimeColumn(
   column: CsvwColumnDescription,
@@ -135,20 +127,36 @@ export function formatDateTime(
       regex: dateTimeDatatypePatterns[column.datatype.base],
     };
 
-    validation.minInclusive =
-      constraintToDateTime(
-        column.datatype.minimum ?? column.datatype.minInclusive,
-      ) ?? validation.minInclusive;
-    validation.maxInclusive =
-      constraintToDateTime(
-        column.datatype.maximum ?? column.datatype.maxInclusive,
-      ) ?? validation.maxInclusive;
-    validation.minExclusive =
-      constraintToDateTime(column.datatype.minExclusive) ??
-      validation.minExclusive;
-    validation.maxExclusive =
-      constraintToDateTime(column.datatype.maxExclusive) ??
-      validation.maxExclusive;
+    if (typeof column.datatype.minimum === 'string')
+      validation.minInclusive = parseDate(
+        column.datatype.minimum,
+        dtUris[column.datatype.base],
+      );
+    if (typeof column.datatype.maximum === 'string')
+      validation.maxInclusive = parseDate(
+        column.datatype.maximum,
+        dtUris[column.datatype.base],
+      );
+    if (typeof column.datatype.minInclusive === 'string')
+      validation.minInclusive = parseDate(
+        column.datatype.minInclusive,
+        dtUris[column.datatype.base],
+      );
+    if (typeof column.datatype.maxInclusive === 'string')
+      validation.maxInclusive = parseDate(
+        column.datatype.maxInclusive,
+        dtUris[column.datatype.base],
+      );
+    if (typeof column.datatype.minExclusive === 'string')
+      validation.minExclusive = parseDate(
+        column.datatype.minExclusive,
+        dtUris[column.datatype.base],
+      );
+    if (typeof column.datatype.maxExclusive === 'string')
+      validation.maxExclusive = parseDate(
+        column.datatype.maxExclusive,
+        dtUris[column.datatype.base],
+      );
   }
 
   if (!validation.regex.test(value)) {
@@ -159,8 +167,14 @@ export function formatDateTime(
     return value;
   }
 
-  // TODO: implement date and time parsing, this simple parsing does not support all possible types and formats
-  const date = new Date(value);
+  const date = parseDate(
+    value,
+    dtUris[
+      typeof column.datatype === 'string'
+        ? column.datatype
+        : column.datatype.base
+    ],
+  );
 
   if (validation.minInclusive !== undefined && date < validation.minInclusive) {
     issueTracker.addWarning(
@@ -202,6 +216,11 @@ export function formatDateTime(
     return value;
   }
 
-  // TODO: implement formatting
-  return format(date, pattern.replace(/T/g, "'T'")).toString();
+  if (date.timeZone) {
+    return format(date, pattern.replace(/T/g, "'T'"), {
+      in: tz(date.timeZone as string),
+    });
+  } else {
+    return format(date, pattern.replace(/T/g, "'T'"));
+  }
 }

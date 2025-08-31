@@ -5,7 +5,7 @@ A command-line interface for converting between CSVW (CSV on the Web) and RDF fo
 ## Features
 
 - 🔄 **Bidirectional conversion** between CSVW and RDF formats
-- 📊 **Multiple RDF formats** supported (Turtle, N-Triples, N-Quads, TriG, JSON-LD)
+- 📊 **Multiple RDF formats** supported (Turtle, N-Triples, N-Quads, TriG, JSON-LD and RDF/XML)
 - ✅ **CSVW validation** to ensure specification compliance
 - 🎯 **Interactive mode** for guided conversions
 - 🚀 **Streaming support** for large datasets
@@ -41,8 +41,10 @@ docker run -it --rm csvw_cli
 # example: convert local csvw to rdf
 docker run -it --rm -v $PWD:/app csvw_cli c2r -i /app/local-descriptor.json -o /app/output.ttl
 ```
+
 ##Build and run yourself
 Requires Node.js 22. Run these commands in the monorepo root folder.
+
 ```bash
 npm install
 npx nx build cli
@@ -55,11 +57,11 @@ node packages/cli/dist/index.js c2r -i local-descriptor.json -o output.ttl
 
 ### Commands Overview
 
-| Command | Alias | Description |
-|---------|-------|-------------|
-| `csvw2rdf` | `c2r` | Convert CSVW metadata and CSV files to RDF |
-| `rdf2csvw` | `r2c` | Convert RDF data to CSVW format |
-| `validate` | - | Validate CSVW metadata against W3C specification |
+| Command    | Alias | Description                                      |
+| ---------- | ----- | ------------------------------------------------ |
+| `csvw2rdf` | `c2r` | Convert CSVW metadata and CSV files to RDF       |
+| `rdf2csvw` | `r2c` | Convert RDF data to CSVW format                  |
+| `validate` | -     | Validate CSVW metadata against W3C specification |
 
 ### csvw2rdf Options
 
@@ -79,18 +81,17 @@ node packages/cli/dist/index.js c2r -i local-descriptor.json -o output.ttl
 - `--version` - Show version number
 
 ### rdf2csvw Options
+
 - `-i, --input <file>` - Input file or URL
-- `-d, --descriptor <file>` - Descriptor location
-- `-o, --output <directory>` - Output directory
+- `-d, --descriptor <file>` - Location of a CSVW descriptor to base the conversion on.
+- `-o, --outDir <directory>` - Output directory
 - `--baseIri <IRI>` - Sets base IRI
 - `--interactive` - Interactive mode
-- `--streaming <bool>` - Enable streaming mode for large files
-- `--bufferSize <number> ` - How many triples to keep in memory when processing streaming data.
+- `--useVocabMetadata` - Use information from referenced vocabularies to enrich the conversion.
+- `--windowSize <number> ` - How many triples to keep in memory when processing streaming data.
 - `--pathOverrides <path1 value1 path2 value2 ...>` - Overrides paths in a descriptor
 - `--help` - Show help information
 - `--version` - Show version number
-
-
 
 #### Examples
 
@@ -136,13 +137,14 @@ The CLI supports multiple input sources:
 
 ## Supported RDF Formats
 
-| Format | Extension | MIME Type |
-|--------|-----------|-----------|
-| Turtle | `.ttl` | `text/turtle` |
-| N-Triples | `.nt` | `application/n-triples` |
-| N-Quads | `.nq` | `application/n-quads` |
-| TriG | `.trig` | `application/trig` |
-| JSON-LD | `.jsonld` | `application/ld+json` |
+| Format    | Extension     | MIME Type               |
+| --------- | ------------- | ----------------------- |
+| Turtle    | `.ttl`        | `text/turtle`           |
+| N-Triples | `.nt`         | `application/n-triples` |
+| N-Quads   | `.nq`         | `application/n-quads`   |
+| TriG      | `.trig`       | `application/trig`      |
+| JSON-LD   | `.jsonld`     | `application/ld+json`   |
+| RDF/XML   | `.rdf`, `xml` | `application/rdf+xml`   |
 
 ## Logging
 

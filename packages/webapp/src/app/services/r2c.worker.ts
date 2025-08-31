@@ -8,6 +8,7 @@ import {
   rdfToCsvw,
   CsvwResultItem,
   CompactedCsvwDescriptor,
+  CsvwTableGroupDescription,
 } from '@csvw-rdf-convertor/core';
 import {
   InitR2CParams,
@@ -18,6 +19,7 @@ import {
 } from './r2c.service';
 import { Quad, Stream } from '@rdfjs/types';
 import { stringify } from 'csv-stringify/browser/esm/sync';
+import { Options } from 'csv-stringify';
 
 addEventListener('message', async ({ data }: { data: WorkerRequest }) => {
   const options = getOptions(data.params);
@@ -42,10 +44,20 @@ async function handleCsvwStream(
 ): Promise<ResultFile[]> {
   let latestDescriptor: CompactedCsvwDescriptor;
   const tables: Record<string, string> = {};
+  const tableOptions: Record<string, Options> = {};
   for await (const { table, row, descriptor } of stream) {
     latestDescriptor = descriptor;
-    tables[table.name] ??= stringify([table.columns]);
-    tables[table.name] += stringify([table.columns.map((col) => row[col])]);
+    if (!tables[table.name]) {
+      const [hasHeader, options] = getDialect(descriptor, table.name);
+      tables[table.name] ??= hasHeader
+        ? stringify([table.columns], options)
+        : '';
+      tableOptions[table.name] = options;
+    }
+    tables[table.name] += stringify(
+      [table.columns.map((col) => row[col])],
+      tableOptions[table.name],
+    );
   }
   const result: ResultFile[] = [
     {
@@ -60,6 +72,32 @@ async function handleCsvwStream(
     });
   }
   return result;
+}
+
+function getDialect(
+  descriptor: CompactedCsvwDescriptor,
+  table: string,
+): [boolean, Options] {
+  const dialect = descriptor.dialect ?? {};
+  const tableDialect =
+    (descriptor as CsvwTableGroupDescription).tables.find(
+      (t) => t.url === table,
+    ).dialect ?? {};
+
+  const hasHeader = tableDialect.header ?? dialect.header ?? true;
+  const toArr = (val: any) => (Array.isArray(val) ? val : [val]);
+
+  return [
+    hasHeader,
+    {
+      delimiter: dialect.delimiter ?? ',',
+      escape: (dialect.doubleQuote ?? true) ? '"' : '\\',
+      record_delimiter: dialect.lineTerminators
+        ? toArr(dialect.lineTerminators)[0]
+        : '\n',
+      quote: dialect.quoteChar ?? '"',
+    },
+  ];
 }
 
 function getOptions(params: InitR2CParams): Rdf2CsvOptions {

@@ -39,14 +39,19 @@ export function createQuery(
 
     let name = `_col.${i + 1}`;
     if (column.name !== undefined) {
-      name = encodeURIComponent(column.name);
+      name = encodeURIComponent(column.name).replaceAll('-', '%2D');
     } else if (column.titles !== undefined) {
       if (typeof column.titles === 'string' || Array.isArray(column.titles)) {
-        name = encodeURIComponent(coerceArray(column.titles)[0]);
+        name = encodeURIComponent(coerceArray(column.titles)[0]).replaceAll(
+          '-',
+          '%2D',
+        );
       } else {
         // TODO: use else (startsWith(defaultLang)) as in core/src/lib/csvw2rdf/convertor.ts, or set inherited properties just away in normalizeDescriptor().
         if (defaultLang in column.titles) {
-          name = encodeURIComponent(coerceArray(column.titles[defaultLang])[0]);
+          name = encodeURIComponent(
+            coerceArray(column.titles[defaultLang])[0],
+          ).replaceAll('-', '%2D');
         }
       }
     }
@@ -216,7 +221,8 @@ function createSelectOfOptionalSubjects(
     const lines = [`        ${subject} ${predicate} ${object} .`];
 
     if (datatype && object.startsWith('?')) {
-      if (datatype === 'string') {
+      // TODO: datatype filtering temporarily disabled
+      /*if (datatype === 'string') {
         lines.push(
           `        FILTER (DATATYPE(${object}) = <${lang ? rdf + 'langString' : xsd + 'string'}>)`,
         );
@@ -228,7 +234,7 @@ function createSelectOfOptionalSubjects(
         lines.push(
           `        FILTER (DATATYPE(${object}) = <${dtUris[datatype]}>)`,
         );
-      }
+      }*/
 
       if (isBooleanColumn(column)) {
         const filter = getBooleanFilter(object, column);
@@ -368,7 +374,8 @@ function createTriplePatterns(
   const lines = [`  ${subject} ${predicate} ${object} .`];
 
   if (datatype && object.startsWith('?')) {
-    if (datatype === 'string') {
+    // TODO: datatype filtering temporarily disabled
+    /*if (datatype === 'string') {
       lines.push(
         `  FILTER (DATATYPE(${object}) = <${lang ? rdf + 'langString' : xsd + 'string'}>)`,
       );
@@ -378,7 +385,7 @@ function createTriplePatterns(
       );
     } else {
       lines.push(`  FILTER (DATATYPE(${object}) = <${dtUris[datatype]}>)`);
-    }
+    }*/
 
     if (isBooleanColumn(column)) {
       const filter = getBooleanFilter(object, column);

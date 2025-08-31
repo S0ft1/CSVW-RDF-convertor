@@ -28,7 +28,7 @@ export async function parseRdf(
   let parser: StreamParser | JsonLdParser | RdfXmlParser;
   if (url.match(/\.(rdf|xml)([?#].*)?$/)) {
     parser = new RdfXmlParser();
-  } else if (url.match(/\.json(ld)?([?#].*)?$/)) {
+  } else if (url.match(/\.jsonld([?#].*)?$/)) {
     parser = new JsonLdParser();
   } else {
     // TODO: By default, N3.Parser parses a permissive superset of Turtle, TriG, N-Triples, and N-Quads. For strict compatibility with any of those languages, pass a format argument upon creation.

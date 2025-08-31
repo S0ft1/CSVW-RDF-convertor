@@ -1,3 +1,18 @@
+## 1.1.0 (2025-08-31)
+
+### 🚀 Features
+
+- initial rdf -> csvw conversion without descriptor. ([8415d32](https://github.com/S0ft1/CSVW-RDF-convertor/commit/8415d32))
+
+### 🩹 Fixes
+
+- stylus package override ([338ff55](https://github.com/S0ft1/CSVW-RDF-convertor/commit/338ff55))
+
+### ❤️ Thank You
+
+- d-kral
+- Filip Ježek @filipjezek
+
 ## 0.5.0 (2025-06-16)
 
 ### 🚀 Features

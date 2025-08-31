@@ -21,6 +21,78 @@
         ];
         csvw:rownum 1;
         csvw:url <test202.csv#row=2>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test202.csv#maxExclusive> "4"^^xsd:float;
+          <test202.csv#maxInclusive> "5"^^xsd:float;
+          <test202.csv#maximum> "5"^^xsd:float;
+          <test202.csv#minExclusive> "6"^^xsd:float;
+          <test202.csv#minInclusive> "5"^^xsd:float;
+          <test202.csv#minimum> "4"^^xsd:float;
+        ];
+        csvw:rownum 2;
+        csvw:url <test202.csv#row=3>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test202.csv#maxExclusive> "4"^^xsd:float;
+          <test202.csv#maxInclusive> "5"^^xsd:float;
+          <test202.csv#maximum> "6"^^xsd:float;
+          <test202.csv#minExclusive> "6"^^xsd:float;
+          <test202.csv#minInclusive> "5"^^xsd:float;
+          <test202.csv#minimum> "5"^^xsd:float
+        ];
+        csvw:rownum 3;
+        csvw:url <test202.csv#row=4>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test202.csv#maxExclusive> "4"^^xsd:float;
+          <test202.csv#maxInclusive> "5"^^xsd:float;
+          <test202.csv#maximum> "5"^^xsd:float;
+          <test202.csv#minExclusive> "6"^^xsd:float;
+          <test202.csv#minInclusive> "4"^^xsd:float;
+          <test202.csv#minimum> "5"^^xsd:float
+        ];
+        csvw:rownum 4;
+        csvw:url <test202.csv#row=5>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test202.csv#maxExclusive> "4"^^xsd:float;
+          <test202.csv#maxInclusive> "6"^^xsd:float;
+          <test202.csv#maximum> "5"^^xsd:float;
+          <test202.csv#minExclusive> "6"^^xsd:float;
+          <test202.csv#minInclusive> "5"^^xsd:float;
+          <test202.csv#minimum> "5"^^xsd:float
+        ];
+        csvw:rownum 5;
+        csvw:url <test202.csv#row=6>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test202.csv#maxExclusive> "4"^^xsd:float;
+          <test202.csv#maxInclusive> "5"^^xsd:float;
+          <test202.csv#maximum> "5"^^xsd:float;
+          <test202.csv#minExclusive> "5"^^xsd:float;
+          <test202.csv#minInclusive> "5"^^xsd:float;
+          <test202.csv#minimum> "5"^^xsd:float
+        ];
+        csvw:rownum 6;
+        csvw:url <test202.csv#row=7>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test202.csv#maxExclusive> "5"^^xsd:float;
+          <test202.csv#maxInclusive> "5"^^xsd:float;
+          <test202.csv#maximum> "5"^^xsd:float;
+          <test202.csv#minExclusive> "6"^^xsd:float;
+          <test202.csv#minInclusive> "5"^^xsd:float;
+          <test202.csv#minimum> "5"^^xsd:float
+        ];
+        csvw:rownum 7;
+        csvw:url <test202.csv#row=8>
       ];
       csvw:url <test202.csv>
     ]

@@ -21,6 +21,78 @@
         ];
         csvw:rownum 1;
         csvw:url <test209.csv#row=2>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test209.csv#maxExclusive> "2015-06-04"^^xsd:date;
+          <test209.csv#maxInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#maximum> "2015-06-05"^^xsd:date;
+          <test209.csv#minExclusive> "2015-06-06"^^xsd:date;
+          <test209.csv#minInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#minimum> "2015-06-04"^^xsd:date;
+        ];
+        csvw:rownum 2;
+        csvw:url <test209.csv#row=3>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test209.csv#maxExclusive> "2015-06-04"^^xsd:date;
+          <test209.csv#maxInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#maximum> "2015-06-06"^^xsd:date;
+          <test209.csv#minExclusive> "2015-06-06"^^xsd:date;
+          <test209.csv#minInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#minimum> "2015-06-05"^^xsd:date
+        ];
+        csvw:rownum 3;
+        csvw:url <test209.csv#row=4>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test209.csv#maxExclusive> "2015-06-04"^^xsd:date;
+          <test209.csv#maxInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#maximum> "2015-06-05"^^xsd:date;
+          <test209.csv#minExclusive> "2015-06-06"^^xsd:date;
+          <test209.csv#minInclusive> "2015-06-04"^^xsd:date;
+          <test209.csv#minimum> "2015-06-05"^^xsd:date
+        ];
+        csvw:rownum 4;
+        csvw:url <test209.csv#row=5>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test209.csv#maxExclusive> "2015-06-04"^^xsd:date;
+          <test209.csv#maxInclusive> "2015-06-06"^^xsd:date;
+          <test209.csv#maximum> "2015-06-05"^^xsd:date;
+          <test209.csv#minExclusive> "2015-06-06"^^xsd:date;
+          <test209.csv#minInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#minimum> "2015-06-05"^^xsd:date
+        ];
+        csvw:rownum 5;
+        csvw:url <test209.csv#row=6>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test209.csv#maxExclusive> "2015-06-04"^^xsd:date;
+          <test209.csv#maxInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#maximum> "2015-06-05"^^xsd:date;
+          <test209.csv#minExclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#minInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#minimum> "2015-06-05"^^xsd:date
+        ];
+        csvw:rownum 6;
+        csvw:url <test209.csv#row=7>
+      ], [
+        a csvw:Row;
+        csvw:describes [
+          <test209.csv#maxExclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#maxInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#maximum> "2015-06-05"^^xsd:date;
+          <test209.csv#minExclusive> "2015-06-06"^^xsd:date;
+          <test209.csv#minInclusive> "2015-06-05"^^xsd:date;
+          <test209.csv#minimum> "2015-06-05"^^xsd:date
+        ];
+        csvw:rownum 7;
+        csvw:url <test209.csv#row=8>
       ];
       csvw:url <test209.csv>
     ]

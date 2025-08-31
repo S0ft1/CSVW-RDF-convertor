@@ -5,7 +5,7 @@ The core library for bidirectional conversion between CSV-W (CSV on the Web) and
 ## Features
 
 - 🔄 **Bidirectional conversion** between CSVW and RDF formats
-- 📊 **Multiple RDF serializations** (Turtle, N-Triples, N-Quads, TriG, JSON-LD)
+- 📊 **Multiple RDF serializations** (Turtle, N-Triples, N-Quads, TriG, JSON-LD and RDF/XML)
 - ✅ **CSVW validation** against W3C specification
 - 🚀 **Streaming support** for large datasets
 - 🎯 **Schema inference** from RDF data
@@ -155,6 +155,7 @@ interface ConversionOptions {
 | N-Quads | `application/n-quads` | `.nq` | ✅ |
 | TriG | `application/trig` | `.trig` | ✅ |
 | JSON-LD | `application/ld+json` | `.jsonld` | ✅ |
+| RDF/XML | `application/rdf+xml` | `rdf`, `xml` | ✅ |
 
 
 ## Performance Considerations
@@ -168,5 +169,5 @@ interface ConversionOptions {
 The library is written in TypeScript and provides comprehensive type definitions:
 
 ## Documentation
-
+Developer documentation available here: [Dev doc](https://github.com/S0ft1/CSVW-RDF-convertor/edit/main/packages/core/devDoc.md)
 Full API documentation is available online: https://s0ft1.github.io/CSVW-RDF-convertor/

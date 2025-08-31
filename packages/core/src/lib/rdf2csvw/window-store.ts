@@ -61,7 +61,6 @@ export class WindowStore {
     if (!this.queue) {
       await this.store.putStream(this.stream);
       this._done = true;
-      console.log('Stream fully loaded into store');
     } else {
       const iterable =
         Symbol.asyncIterator in this.stream
