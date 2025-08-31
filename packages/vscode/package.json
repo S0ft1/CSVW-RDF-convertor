@@ -2,7 +2,7 @@
   "name": "csvw-rdf-convertor",
   "displayName": "CSVW RDF Converter",
   "description": "Convert between CSV-W and RDF formats with full support for W3C CSVW specification",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "publisher": "jakubyaghob",
@@ -39,7 +39,7 @@
     "onStartupFinished"
   ],
   "dependencies": {
-    "@csvw-rdf-convertor/core": "0.5.0",
+    "@csvw-rdf-convertor/core": "1.1.0",
     "@swc/helpers": "~0.5.11",
     "csv": "^6.3.11",
     "n3": "^1.23.1"

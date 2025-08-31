@@ -1,6 +1,6 @@
 {
   "name": "@csvw-rdf-convertor/cli",
-  "version": "0.5.0",
+  "version": "1.1.0",
   "description": "",
   "keywords": [
     "csv",
@@ -57,7 +57,7 @@
     ]
   },
   "dependencies": {
-    "@csvw-rdf-convertor/core": "0.5.0",
+    "@csvw-rdf-convertor/core": "1.1.0",
     "@inquirer/prompts": "^7.3.1",
     "@rdfjs/prefix-map": "^0.1.2",
     "@rdfjs/serializer-turtle": "^1.1.5",
