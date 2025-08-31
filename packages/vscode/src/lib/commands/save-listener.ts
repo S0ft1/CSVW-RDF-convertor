@@ -11,23 +11,31 @@ import type { ConversionItem } from '../types.js';
  * @param conversions - Array of conversion items to search through
  * @returns The matching conversion item or null if no match found or if file is an output file
  */
-function findMatchingConversion(filePath: string, conversions: (ConversionItem | null)[]): ConversionItem | null {
-	for (const conv of conversions) {
-		if (!conv) continue;
+function findMatchingConversion(
+  filePath: string,
+  conversions: (ConversionItem | null)[],
+): ConversionItem | null {
+  for (const conv of conversions) {
+    if (!conv) continue;
 
-		if (filePath === conv.outputFilePath || 
-			(conv.outputFilePaths && conv.outputFilePaths.includes(filePath))) {
-			return null;
-		}
+    if (
+      filePath === conv.outputFilePath ||
+      (conv.outputFilePaths && conv.outputFilePaths.includes(filePath))
+    ) {
+      return null;
+    }
 
-		if (filePath === conv.descriptorFilePath ||
-			filePath === conv.inputFilePath ||
-			filePath === conv.rdfInputFilePath ||
-			(conv.additionalInputFilePaths && conv.additionalInputFilePaths.includes(filePath))) {
-			return conv;
-		}
-	}
-	return null;
+    if (
+      filePath === conv.descriptorFilePath ||
+      filePath === conv.inputFilePath ||
+      filePath === conv.rdfInputFilePath ||
+      (conv.additionalInputFilePaths &&
+        conv.additionalInputFilePaths.includes(filePath))
+    ) {
+      return conv;
+    }
+  }
+  return null;
 }
 
 /**
@@ -36,16 +44,18 @@ function findMatchingConversion(filePath: string, conversions: (ConversionItem |
  * @param conversion - The conversion item whose descriptor was saved
  * @returns Promise resolving to true when input files have been updated
  */
-async function handleDescriptorSave(conversion: ConversionItem): Promise<boolean> {
-	const descriptorEditor = vscode.window.visibleTextEditors.find(
-		editor => editor.document.uri.fsPath === conversion.descriptorFilePath
-	);
+async function handleDescriptorSave(
+  conversion: ConversionItem,
+): Promise<boolean> {
+  const descriptorEditor = vscode.window.visibleTextEditors.find(
+    (editor) => editor.document.uri.fsPath === conversion.descriptorFilePath,
+  );
 
-	if (descriptorEditor) {
-		const descriptorContent = descriptorEditor.document.getText();
-		await updateInputFilesFromDescriptor(conversion, descriptorContent);
-	}
-	return true;
+  if (descriptorEditor) {
+    const descriptorContent = descriptorEditor.document.getText();
+    await updateInputFilesFromDescriptor(conversion, descriptorContent);
+  }
+  return true;
 }
 
 /**
@@ -54,8 +64,11 @@ async function handleDescriptorSave(conversion: ConversionItem): Promise<boolean
  * @param conversion - The conversion item to check against
  * @returns True if converting from RDF to CSVW, false if converting from CSVW to RDF
  */
-function isRdfToCSVWConversion(filePath: string, conversion: ConversionItem): boolean {
-	return filePath === conversion.rdfInputFilePath;
+function isRdfToCSVWConversion(
+  filePath: string,
+  conversion: ConversionItem,
+): boolean {
+  return filePath === conversion.rdfInputFilePath;
 }
 
 /**
@@ -68,17 +81,25 @@ function isRdfToCSVWConversion(filePath: string, conversion: ConversionItem): bo
  * @throws Error if the conversion process fails
  */
 async function performConversion(
-	conversion: ConversionItem, 
-	descriptorContent: string, 
-	isRdfToCSVW: boolean
+  conversion: ConversionItem,
+  descriptorContent: string,
+  isRdfToCSVW: boolean,
 ): Promise<string[]> {
-	if (isRdfToCSVW) {
-		return await convertRDF2CSVW(descriptorContent, conversion.rdfInputFilePath, conversion);
-	} else {
-		const templateIRIs = conversion.templateIRIsChecked || false;
-		const minimalMode = conversion.minimalModeChecked || false;
-		return await convertCSVW2RDF(descriptorContent, { templateIris: templateIRIs, minimal: minimalMode }, conversion);
-	}
+  if (isRdfToCSVW) {
+    return await convertRDF2CSVW(
+      descriptorContent,
+      conversion.rdfInputFilePath,
+      conversion,
+    );
+  } else {
+    const templateIRIs = conversion.templateIRIsChecked || false;
+    const minimalMode = conversion.minimalModeChecked || false;
+    return await convertCSVW2RDF(
+      descriptorContent,
+      { templateIris: templateIRIs, minimal: minimalMode },
+      conversion,
+    );
+  }
 }
 
 /**
@@ -88,19 +109,24 @@ async function performConversion(
  * @param outputFilePaths - Array of all output file paths from the conversion process
  * @returns Filtered array of output file paths excluding error.txt files
  */
-function updateConversionOutputs(conversion: ConversionItem, outputFilePaths: string[]): string[] {
-	const filteredOutputPaths = outputFilePaths.filter(filePath => !filePath.endsWith('error.txt'));
-	
-	if (filteredOutputPaths.length > 1) {
-		conversion.outputFilePaths = filteredOutputPaths;
-	} else if (filteredOutputPaths.length === 1) {
-		conversion.outputFilePath = filteredOutputPaths[0];
-	}
+function updateConversionOutputs(
+  conversion: ConversionItem,
+  outputFilePaths: string[],
+): string[] {
+  const filteredOutputPaths = outputFilePaths.filter(
+    (filePath) => !filePath.endsWith('error.txt'),
+  );
 
-	conversion.errorFilePath = undefined;
-	conversion.lastShownOutputFiles = [...filteredOutputPaths];
-	
-	return filteredOutputPaths;
+  if (filteredOutputPaths.length > 1) {
+    conversion.outputFilePaths = filteredOutputPaths;
+  } else if (filteredOutputPaths.length === 1) {
+    conversion.outputFilePath = filteredOutputPaths[0];
+  }
+
+  conversion.errorFilePath = undefined;
+  conversion.lastShownOutputFiles = [...filteredOutputPaths];
+
+  return filteredOutputPaths;
 }
 
 /**
@@ -110,21 +136,24 @@ function updateConversionOutputs(conversion: ConversionItem, outputFilePaths: st
  * @returns Promise that resolves when all files have been opened
  */
 async function openOutputFiles(outputFilePaths: string[]): Promise<void> {
-	for (const outputFilePath of outputFilePaths) {
-		const outputUri = vscode.Uri.file(outputFilePath);
-		const outputEditor = vscode.window.visibleTextEditors.find(
-			editor => editor.document.uri.fsPath === outputFilePath
-		);
-		
-		if (outputEditor) {
-			await vscode.commands.executeCommand('workbench.action.files.revert', outputUri);
-		}
-		await vscode.window.showTextDocument(outputUri, { 
-			viewColumn: vscode.ViewColumn.Three, 
-			preview: false, 
-			preserveFocus: true 
-		});
-	}
+  for (const outputFilePath of outputFilePaths) {
+    const outputUri = vscode.Uri.file(outputFilePath);
+    const outputEditor = vscode.window.visibleTextEditors.find(
+      (editor) => editor.document.uri.fsPath === outputFilePath,
+    );
+
+    if (outputEditor) {
+      await vscode.commands.executeCommand(
+        'workbench.action.files.revert',
+        outputUri,
+      );
+    }
+    await vscode.window.showTextDocument(outputUri, {
+      viewColumn: vscode.ViewColumn.Three,
+      preview: false,
+      preserveFocus: true,
+    });
+  }
 }
 
 /**
@@ -136,22 +165,43 @@ async function openOutputFiles(outputFilePaths: string[]): Promise<void> {
  * @param isRdfToCSVW - The conversion direction for error reporting
  * @returns Promise that resolves when error handling is complete
  */
-async function handleConversionError(error: unknown, conversion: ConversionItem, isRdfToCSVW: boolean): Promise<void> {
-	try {
-		const conversionDirection = isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF';
-		const errorMessage = `# Auto-conversion Error (${conversionDirection})\n# ${new Date().toISOString()}\n# Error: ${error instanceof Error ? error.message : String(error)}\n\n# Stack trace:\n# ${error instanceof Error && error.stack ? error.stack.split('\n').map(line => `# ${line}`).join('\n') : 'No stack trace available'}\n`;
+async function handleConversionError(
+  error: unknown,
+  conversion: ConversionItem,
+  isRdfToCSVW: boolean,
+): Promise<void> {
+  try {
+    const conversionDirection = isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF';
+    const errorMessage = `# Auto-conversion Error (${conversionDirection})\n# ${new Date().toISOString()}\n# Error: ${error instanceof Error ? error.message : String(error)}\n\n# Stack trace:\n# ${
+      error instanceof Error && error.stack
+        ? error.stack
+            .split('\n')
+            .map((line) => `# ${line}`)
+            .join('\n')
+        : 'No stack trace available'
+    }\n`;
 
-		const errorPath = vscode.Uri.file(`${conversion.folderPath}/outputs/error.txt`);
-		await vscode.workspace.fs.writeFile(errorPath, Buffer.from(errorMessage, 'utf8'));
+    const errorPath = vscode.Uri.file(
+      `${conversion.folderPath}/outputs/error.txt`,
+    );
+    await vscode.workspace.fs.writeFile(
+      errorPath,
+      Buffer.from(errorMessage, 'utf8'),
+    );
 
-		const errorDocument = await vscode.workspace.openTextDocument(errorPath);
-		await vscode.window.showTextDocument(errorDocument, vscode.ViewColumn.Three);
+    const errorDocument = await vscode.workspace.openTextDocument(errorPath);
+    await vscode.window.showTextDocument(
+      errorDocument,
+      vscode.ViewColumn.Three,
+    );
 
-		conversion.errorFilePath = errorPath.fsPath;
-	} catch (writeError) {
-		const conversionDirection = isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF';
-		vscode.window.showErrorMessage(`Auto-conversion failed (${conversionDirection}): ${error instanceof Error ? error.message : String(error)}`);
-	}
+    conversion.errorFilePath = errorPath.fsPath;
+  } catch {
+    const conversionDirection = isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF';
+    vscode.window.showErrorMessage(
+      `Auto-conversion failed (${conversionDirection}): ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 /**
@@ -161,37 +211,46 @@ async function handleConversionError(error: unknown, conversion: ConversionItem,
  * @param csvwActionsProvider - The tree data provider managing conversion items
  * @returns Disposable object for the save event listener
  */
-export function registerSaveListener(csvwActionsProvider: CSVWActionsProvider): vscode.Disposable {
-	return vscode.workspace.onDidSaveTextDocument(async (document) => {
-		const changedFilePath = document.uri.fsPath;
-		const conversions = csvwActionsProvider.getAllConversions();
-		const conversion = findMatchingConversion(changedFilePath, conversions);
+export function registerSaveListener(
+  csvwActionsProvider: CSVWActionsProvider,
+): vscode.Disposable {
+  return vscode.workspace.onDidSaveTextDocument(async (document) => {
+    const changedFilePath = document.uri.fsPath;
+    const conversions = csvwActionsProvider.getAllConversions();
+    const conversion = findMatchingConversion(changedFilePath, conversions);
 
-		if (!conversion) return;
+    if (!conversion) return;
 
-		if (changedFilePath === conversion.descriptorFilePath) {
-			await handleDescriptorSave(conversion);
-			return;
-		}
+    if (changedFilePath === conversion.descriptorFilePath) {
+      await handleDescriptorSave(conversion);
+      return;
+    }
 
-		const isRdfToCSVW = isRdfToCSVWConversion(changedFilePath, conversion);
+    const isRdfToCSVW = isRdfToCSVWConversion(changedFilePath, conversion);
 
-		const descriptorEditor = vscode.window.visibleTextEditors.find(
-			editor => editor.document.uri.fsPath === conversion.descriptorFilePath
-		);
+    const descriptorEditor = vscode.window.visibleTextEditors.find(
+      (editor) => editor.document.uri.fsPath === conversion.descriptorFilePath,
+    );
 
-		if (descriptorEditor) {
-			try {
-				const descriptorContent = descriptorEditor.document.getText();
-				const outputFilePaths = await performConversion(conversion, descriptorContent, isRdfToCSVW);
-				const filteredOutputPaths = updateConversionOutputs(conversion, outputFilePaths);
+    if (descriptorEditor) {
+      try {
+        const descriptorContent = descriptorEditor.document.getText();
+        const outputFilePaths = await performConversion(
+          conversion,
+          descriptorContent,
+          isRdfToCSVW,
+        );
+        const filteredOutputPaths = updateConversionOutputs(
+          conversion,
+          outputFilePaths,
+        );
 
-				if (filteredOutputPaths.length > 0) {
-					await openOutputFiles(filteredOutputPaths);
-				}
-			} catch (error) {
-				await handleConversionError(error, conversion, isRdfToCSVW);
-			}
-		}
-	});
+        if (filteredOutputPaths.length > 0) {
+          await openOutputFiles(filteredOutputPaths);
+        }
+      } catch (error) {
+        await handleConversionError(error, conversion, isRdfToCSVW);
+      }
+    }
+  });
 }

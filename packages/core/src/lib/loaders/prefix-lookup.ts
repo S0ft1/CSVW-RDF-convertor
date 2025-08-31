@@ -1,7 +1,7 @@
-import { commonPrefixes } from '@csvw-rdf-convertor/core';
 import PrefixMap from '@rdfjs/prefix-map/PrefixMap.js';
 import { Quad } from '@rdfjs/types';
 import N3 from 'n3';
+import { commonPrefixes } from '../utils/prefix.js';
 
 const { namedNode } = N3.DataFactory;
 

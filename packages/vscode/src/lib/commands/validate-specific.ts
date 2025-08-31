@@ -14,12 +14,8 @@ import { getCSVWOptions } from '../conversion-logic.js';
  * Validates the descriptor document for a conversion.
  * Performs JSON syntax validation and highlights errors with red underlines in the editor.
  * @param conversion - The conversion item whose descriptor should be validated
- * @param provider - The tree data provider (unused but kept for future validation features)
  */
-async function validateDocument(
-  conversion: ConversionItem,
-  provider: CSVWActionsProvider,
-) {
+async function validateDocument(conversion: ConversionItem) {
   const descriptorEditor = vscode.window.visibleTextEditors.find(
     (editor) => editor.document.uri.fsPath === conversion.descriptorFilePath,
   );
@@ -83,7 +79,7 @@ export function registerValidateSpecific(
         );
         return;
       }
-      validateDocument(conversion, csvwActionsProvider);
+      validateDocument(conversion);
     },
   );
 }

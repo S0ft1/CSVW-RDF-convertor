@@ -107,7 +107,7 @@ export async function handleConversionError(
     conversion.outputFilePath = undefined;
     conversion.outputFilePaths = undefined;
     conversion.lastShownOutputFiles = [errorPath.fsPath];
-  } catch (writeError) {
+  } catch {
     vscode.window.showErrorMessage(
       `❌ ${conversionDirection} conversion failed: ${error instanceof Error ? error.message : String(error)}`,
     );
