@@ -30,7 +30,7 @@ The core is designed for true bidirectional conversion between CSVW and RDF. Eac
   - All logic for converting RDF quads to CSVW-compliant tables and metadata is in the `rdf2csvw` modules 
   - Public API: `rdfToCsvw`, `rdfToTableSchema`
   - Handles schema inference, table generation, and streaming output
-![Arch2](Picture2.png)
+![Arch2](Picture1.png)
 This separation allows for independent evolution, testing, and extension of each direction. Both directions share common utilities (types, streaming, validation) but are otherwise decoupled, making the core flexible and maintainable.
 
 ### Key Architectural Principles
