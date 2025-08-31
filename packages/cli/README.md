@@ -5,7 +5,7 @@ A command-line interface for converting between CSVW (CSV on the Web) and RDF fo
 ## Features
 
 - 🔄 **Bidirectional conversion** between CSVW and RDF formats
-- 📊 **Multiple RDF formats** supported (Turtle, N-Triples, N-Quads, TriG, JSON-LD)
+- 📊 **Multiple RDF formats** supported (Turtle, N-Triples, N-Quads, TriG, JSON-LD and RDF/XML)
 - ✅ **CSVW validation** to ensure specification compliance
 - 🎯 **Interactive mode** for guided conversions
 - 🚀 **Streaming support** for large datasets
@@ -137,13 +137,14 @@ The CLI supports multiple input sources:
 
 ## Supported RDF Formats
 
-| Format    | Extension | MIME Type               |
-| --------- | --------- | ----------------------- |
-| Turtle    | `.ttl`    | `text/turtle`           |
-| N-Triples | `.nt`     | `application/n-triples` |
-| N-Quads   | `.nq`     | `application/n-quads`   |
-| TriG      | `.trig`   | `application/trig`      |
-| JSON-LD   | `.jsonld` | `application/ld+json`   |
+| Format    | Extension     | MIME Type               |
+| --------- | ------------- | ----------------------- |
+| Turtle    | `.ttl`        | `text/turtle`           |
+| N-Triples | `.nt`         | `application/n-triples` |
+| N-Quads   | `.nq`         | `application/n-quads`   |
+| TriG      | `.trig`       | `application/trig`      |
+| JSON-LD   | `.jsonld`     | `application/ld+json`   |
+| RDF/XML   | `.rdf`, `xml` | `application/rdf+xml`   |
 
 ## Logging
 
