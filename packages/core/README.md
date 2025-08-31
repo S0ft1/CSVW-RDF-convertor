@@ -169,5 +169,5 @@ interface ConversionOptions {
 The library is written in TypeScript and provides comprehensive type definitions:
 
 ## Documentation
-
+Developer documentation available here: [Dev doc](https://github.com/S0ft1/CSVW-RDF-convertor/edit/main/packages/core/devDoc.md)
 Full API documentation is available online: https://s0ft1.github.io/CSVW-RDF-convertor/
