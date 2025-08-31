@@ -1,15 +1,17 @@
 {
-  "name": "csvw-rdf-convertor",
-  "displayName": "CSVW RDF Converter",
-  "description": "Convert between CSV-W and RDF formats with full support for W3C CSVW specification",
-  "version": "1.0.0",
-  "module": "./dist/index.js",
+  "name": "@csvw-rdf-convertor/vscode",
+  "version": "1.1.1",
+  "type": "module",
+  "main": "./dist/extension.js",
+  "module": "./dist/extension.js",
   "types": "./dist/index.d.ts",
-  "publisher": "jakubyaghob",
+  "displayName": "CSVWRDFConvertor",
+  "description": "Bidirectional CSVW to RDF convertor and validator",
+  "publisher": "JakubYaghob",
   "engines": {
     "vscode": "^1.102.0"
   },
-  "nx": {
+"nx": {
     "sourceRoot": "packages/vscode/src",
     "targets": {
       "build": {
@@ -19,7 +21,7 @@
         ],
         "options": {
           "outputPath": "packages/vscode/dist",
-          "main": "packages/vscode/src/index.ts",
+          "main": "packages/vscode/src/extension.ts",
           "tsConfig": "packages/vscode/tsconfig.lib.json",
           "skipTypeCheck": true,
           "stripLeadingPaths": true
@@ -27,23 +29,28 @@
       }
     }
   },
-  "main": "./dist/index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/S0ft1/CSVW-RDF-convertor"
+
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/extension.js",
+      "default": "./dist/extension.js"
+    }
+  },
+  "dependencies": {
+    "@swc/helpers": "~0.5.11",
+    "@csvw-rdf-convertor/core": "0.5.0",
+    "n3": "^1.23.1",
+    "csv": "^6.3.11",
+    "@rdfjs/types": "^2.0.1"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "*"
   ],
-  "dependencies": {
-    "@csvw-rdf-convertor/core": "0.5.0",
-    "@swc/helpers": "~0.5.11",
-    "csv": "^6.3.11",
-    "n3": "^1.23.1"
-  },
   "contributes": {
     "commands": [
       {
@@ -149,11 +156,10 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./tsconfig.json",
-    "watch": "tsc -watch -p ./tsconfig.json",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "lint": "eslint src"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -164,7 +170,6 @@
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.32.0",
-    "typedoc": "^0.28.11",
     "typescript": "^5.9.2"
   }
 }
