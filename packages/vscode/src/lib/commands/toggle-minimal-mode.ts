@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
-import { validateConversionExists } from './conversion-utils.js';
+import { validateConversionExists } from '../conversion-utils.js';
 
 /**
  * Registers the toggle Minimal Mode command

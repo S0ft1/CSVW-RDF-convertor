@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import type { ConversionItem } from '../types.js';
+import type { ConversionItem } from './types.js';
 
 /**
  * Collects all input file paths associated with a conversion.

@@ -27,11 +27,16 @@ export function addRedUnderlineToLines(editor: vscode.TextEditor, errorMessages:
 		return;
 	}
 	const firstLine = editor.document.lineAt(0);
-
+	console.log(errorMessages)
 	let combinedErrorMessage = 'Validation Errors/Warnings:\n';
 	const cleanedMessages = errorMessages.map(msg => {
 		const cleanMsg = String(msg).trim();
-		return cleanMsg.endsWith('}') ? cleanMsg.slice(0, -1).trim() : cleanMsg;
+		const cleanedMsg = cleanMsg.endsWith('}') ? cleanMsg.slice(0, -1).trim() : cleanMsg;
+		
+		return cleanedMsg.replace(/\brow\s+(\d+)/gi, (match, rowNumber) => {
+			const incrementedRow = parseInt(rowNumber, 10) + 1;
+			return `row ${incrementedRow}`;
+		});
 	});
 	combinedErrorMessage += cleanedMessages.map(msg => `\n• ${msg}`).join('\n');
 	const decoration: vscode.DecorationOptions = {

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ConversionItem } from '../types.js';
+import { ConversionItem } from './types.js';
 
 /**
  * Reads the content of a descriptor file for a conversion

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
 import { ConversionItem } from '../types.js';
-import { collectInputFilePaths, collectOutputFilePaths, findTabsToClose } from './conversion-file-utils.js';
+import { collectInputFilePaths, collectOutputFilePaths, findTabsToClose } from '../conversion-file-utils.js';
 
 /**
  * Clears all conversion state after closing files

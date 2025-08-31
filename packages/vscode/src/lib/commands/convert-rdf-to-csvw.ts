@@ -9,7 +9,7 @@ import {
 	updateConversionState, 
 	openOutputFiles, 
 	handleConversionError 
-} from './conversion-utils.js';
+} from '../conversion-utils.js';
 
 /**
  * Performs the RDF to CSVW conversion process

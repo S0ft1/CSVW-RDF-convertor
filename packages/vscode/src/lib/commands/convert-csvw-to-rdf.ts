@@ -9,7 +9,7 @@ import {
 	updateConversionState, 
 	openOutputFiles, 
 	handleConversionError 
-} from './conversion-utils.js';
+} from '../conversion-utils.js';
 
 /**
  * Gets the conversion options from the conversion item

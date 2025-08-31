@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { CSVWActionsProvider } from '../tree-data-provider.js';
-import { collectInputFilePaths, closeTabsForPaths } from './conversion-file-utils.js';
+import type { CSVWActionsProvider } from '../tree-data-provider.js';
+import { collectInputFilePaths, closeTabsForPaths } from '../conversion-file-utils.js';
 
 /**
  * Collects all file paths that need to be closed before deletion.
