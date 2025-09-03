@@ -2,6 +2,7 @@ import { CsvwColumn, CsvwRow } from './convertor.js';
 import { formatBoolean, isBooleanColumn } from '../utils/format-boolean.js';
 import { isNumericColumn, formatNumeric } from '../utils/format-number.js';
 import { isDateTimeColumn, formatDateTime } from '../utils/format-datetime.js';
+import { isDurationColumn, formatDuration } from '../utils/format-duration.js';
 import { formatOther } from '../utils/format-other.js';
 import { trimUrl } from '../utils/url-trimming.js';
 import { commonPrefixes } from '../utils/prefix.js';
@@ -71,7 +72,8 @@ export function transform(
       value = formatNumeric(value, columnDescription, issueTracker);
     } else if (isDateTimeColumn(columnDescription)) {
       value = formatDateTime(value, columnDescription, issueTracker);
-      // TODO: format durations and other types
+    } else if (isDurationColumn(columnDescription)) {
+      value = formatDuration(value, columnDescription, issueTracker);
     } else {
       value = formatOther(value, columnDescription, issueTracker);
     }

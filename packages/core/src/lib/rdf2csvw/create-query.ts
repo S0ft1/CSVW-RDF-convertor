@@ -15,6 +15,10 @@ import {
   getDateTimeFilter,
   isDateTimeColumn,
 } from '../utils/format-datetime.js';
+import {
+  getDurationFilter,
+  isDurationColumn,
+} from '../utils/format-duration.js';
 import { getOtherFilter } from '../utils/format-other.js';
 
 const { xsd, rdf } = commonPrefixes;
@@ -248,6 +252,10 @@ function createSelectOfOptionalSubjects(
         const filter = getDateTimeFilter(object, column);
         if (filter !== undefined)
           lines.push(...filter.split('\n').map((line) => `        ${line}`));
+      } else if (isDurationColumn(column)) {
+        const filter = getDurationFilter(object, column);
+        if (filter !== undefined)
+          lines.push(...filter.split('\n').map((line) => `        ${line}`));
       } else {
         const filter = getOtherFilter(object, column);
         if (filter !== undefined)
@@ -397,6 +405,10 @@ function createTriplePatterns(
         lines.push(...filter.split('\n').map((line) => `  ${line}`));
     } else if (isDateTimeColumn(column)) {
       const filter = getDateTimeFilter(object, column);
+      if (filter !== undefined)
+        lines.push(...filter.split('\n').map((line) => `  ${line}`));
+    } else if (isDurationColumn(column)) {
+      const filter = getDurationFilter(object, column);
       if (filter !== undefined)
         lines.push(...filter.split('\n').map((line) => `  ${line}`));
     } else {

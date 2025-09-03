@@ -68,3 +68,12 @@ export type CsvwColumnDescriptionWithDateTimeDatatype = Omit<
   CsvwColumnDescription,
   'datatype'
 > & { datatype: CsvwBuiltinDatatype | CsvwDateTimeDatatype };
+
+type CsvwDurationDatatype = Omit<
+  Omit<CsvwDatatype, 'base'> & Required<Pick<CsvwDatatype, 'base'>>,
+  'format'
+> & { format?: string | RegExp };
+export type CsvwColumnDescriptionWithDurationDatatype = Omit<
+  CsvwColumnDescription,
+  'datatype'
+> & { datatype: CsvwBuiltinDatatype | CsvwDurationDatatype };
