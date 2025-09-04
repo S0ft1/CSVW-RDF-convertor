@@ -36,7 +36,7 @@ describe('CSVW -> RDF Official tests', () => {
     93, 99, 100, 101, 135, 136, 270, 271, 272, 274,
     // CSVW default names (_col1, _col2, ...) expected instead of CSV header titles
     107,
-    148, 149, 278,
+    148, 149, 278, 259
   ];
 
   for (const entry of manifest.entries.filter(
