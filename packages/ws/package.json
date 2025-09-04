@@ -1,6 +1,6 @@
 {
   "name": "@csvw-rdf-convertor/ws",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "main": "main.js",
@@ -64,7 +64,7 @@
     }
   },
   "dependencies": {
-    "@csvw-rdf-convertor/core": "1.1.0",
+    "@csvw-rdf-convertor/core": "1.0.0",
     "@fastify/autoload": "~6.0.3",
     "@fastify/multipart": "^9.0.3",
     "@fastify/sensible": "~6.0.2",
