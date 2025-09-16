@@ -8,6 +8,10 @@
   "displayName": "CSVWRDFConvertor",
   "description": "Bidirectional CSVW to RDF convertor and validator",
   "publisher": "JakubYaghob",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/S0ft1/CSVW-RDF-convertor"
+  },
   "engines": {
     "vscode": "^1.102.0"
   },
