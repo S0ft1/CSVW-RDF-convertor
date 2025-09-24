@@ -148,6 +148,7 @@ async function interactiveOptions(args: C2RArgs): Promise<void> {
         'ntriples',
         'turtle',
         'trig',
+        'jsonld',
       ] satisfies RDFSerialization[],
       message: 'Output format [turtle]',
       default: 'turtle',
