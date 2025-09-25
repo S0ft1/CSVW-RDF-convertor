@@ -347,6 +347,7 @@ export class Csvw2RdfConvertor {
     }
     //4.6
     let rowNum = 0;
+    console.log('Processing table', ctx.table.url, this.options.baseIri);
     const csvStream = (
       await this.options.resolveCsvStreamFn(ctx.table.url, this.options.baseIri)
     ).pipeThrough(new CSVParser(ctx.dialect));
@@ -1234,10 +1235,12 @@ export class Csvw2RdfConvertor {
     uri = URL.parse(uri)?.href ?? baseIri + uri;
     if (this.options.templateIris) {
       const parsed = URL.parse(uri) as URL;
-      uri = parsed.href.replace(
-        parsed.hostname,
-        uts46.toUnicode(parsed.hostname),
-      );
+      if (parsed) {
+        uri = parsed.href.replace(
+          parsed.hostname,
+          uts46.toUnicode(parsed.hostname),
+        );
+      }
       uri = decodeURI(uri);
     }
     return namedNode(uri);

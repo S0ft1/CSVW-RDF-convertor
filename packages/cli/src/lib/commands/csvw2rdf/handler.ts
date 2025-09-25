@@ -3,22 +3,16 @@ import {
   csvwDescriptorToRdf,
   csvUrlToRdf,
   Csvw2RdfOptions,
-  defaultResolveJsonldFn,
-  defaultResolveStreamFn,
   rdfStreamToArray,
   commonPrefixes,
-  defaultResolveTextFn,
   LogLevel,
   lookupPrefixes,
   serializeRdf,
 } from '@csvw-rdf-convertor/core';
 import N3 from 'n3';
 import fs from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import { text } from 'node:stream/consumers';
 import { dirname, isAbsolute, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { Readable } from 'node:stream';
 import { Quad, Stream } from '@rdfjs/types';
 import TurtleSerializer from '@rdfjs/serializer-turtle';
 import PrefixMap from '@rdfjs/prefix-map/PrefixMap.js';
@@ -27,6 +21,11 @@ import {
   getPrefixes,
 } from '../interactive/get-path-overrides.js';
 import { MMRegExp } from 'minimatch';
+import {
+  resolveJson,
+  resolveText,
+  resolveTextStream,
+} from '../../resolvers.js';
 
 const { namedNode } = N3.DataFactory;
 
@@ -45,10 +44,7 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
     stream = csvUrlToRdf(args.input, options);
   } else {
     const descriptorText = args.input
-      ? ((await options.resolveJsonldFn?.(
-          args.input,
-          args.baseIri ?? process.cwd(),
-        )) ?? '')
+      ? ((await options.resolveJsonldFn?.(args.input, options.baseIri!)) ?? '')
       : await text(process.stdin);
     const descriptor = JSON.parse(descriptorText);
     if (!args.pathOverrides?.length && args.interactive) {
@@ -83,12 +79,10 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
 }
 
 function getOptions(args: C2RArgs): Csvw2RdfOptions {
-  const getUrl = (path: string, base: string) =>
-    URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   return {
     baseIri:
       args.baseIri ??
-      (args.input && URL.canParse(args.input)
+      (args.input && URL.canParse(args.input) && !isAbsolute(args.input)
         ? args.input
         : dirname(resolve(process.cwd(), args.input ?? ''))),
     minimal: args.minimal,
@@ -100,40 +94,9 @@ function getOptions(args: C2RArgs): Csvw2RdfOptions {
         : args.logLevel === 'warn'
           ? LogLevel.Warn
           : LogLevel.Error,
-    resolveJsonldFn: async (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveJsonldFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
-    resolveWkfFn: async (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveTextFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
-    resolveCsvStreamFn: (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
-        if (url.startsWith('file:')) {
-          return Promise.resolve(
-            Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
-          );
-        }
-        return defaultResolveStreamFn(url, base);
-      }
-      return Promise.resolve(
-        Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
-      );
-    },
+    resolveJsonldFn: resolveJson,
+    resolveWkfFn: resolveText,
+    resolveCsvStreamFn: resolveTextStream,
   };
 }
 

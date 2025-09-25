@@ -9,8 +9,6 @@ import {
 
 import {
   CompactedCsvwDescriptor,
-  defaultResolveJsonldFn,
-  defaultResolveStreamFn,
   LogLevel,
   parseRdf,
   Rdf2CsvOptions,
@@ -18,16 +16,17 @@ import {
 } from '@csvw-rdf-convertor/core';
 
 import * as csv from 'csv';
-import fs, { createWriteStream } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { isAbsolute, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createWriteStream } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { getPathOverrides } from '../interactive/get-path-overrides.js';
 import { getSchema } from '../interactive/get-schema.js';
 import { once } from 'node:events';
+import { resolveJson, resolveTextStream } from '../../resolvers.js';
 
 export async function handler(args: R2CArgs): Promise<void> {
+  console.log('Converting RDF to CSV-W...', args);
   const options = await argsToOptions(args);
   const rdfStream = await parseRdf(args.input || '', {
     baseIri: options.baseIri!,
@@ -64,14 +63,18 @@ export async function handler(args: R2CArgs): Promise<void> {
   });
 
   await mkdir(args.outDir, { recursive: true });
+  console.log(`Saving CSV-W files to ${args.outDir}...`);
   await saveToOutdir(stream, args.outDir);
+  console.log(`CSV-W files saved to ${args.outDir}`);
 }
 
 async function argsToOptions(args: R2CArgs): Promise<Rdf2CsvOptions> {
-  const getUrl = (path: string, base: string) =>
-    URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   const opts: Rdf2CsvOptions = {
-    baseIri: args.baseIri,
+    baseIri:
+      args.baseIri ??
+      (args.input && URL.canParse(args.input) && !isAbsolute(args.input)
+        ? args.input
+        : dirname(resolve(process.cwd(), args.input ?? ''))),
     pathOverrides: args.pathOverrides ?? [],
     logLevel:
       args.logLevel === 'debug'
@@ -79,37 +82,15 @@ async function argsToOptions(args: R2CArgs): Promise<Rdf2CsvOptions> {
         : args.logLevel === 'warn'
           ? LogLevel.Warn
           : LogLevel.Error,
-    resolveJsonldFn: async (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveJsonldFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
-    resolveRdfFn: (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
-        if (url.startsWith('file:')) {
-          return Promise.resolve(
-            Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
-          );
-        }
-        return defaultResolveStreamFn(url, base);
-      }
-      return Promise.resolve(
-        Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
-      );
-    },
+    resolveJsonldFn: resolveJson,
+    resolveRdfFn: resolveTextStream,
     useVocabMetadata: args.useVocabMetadata,
     windowSize: args.windowSize,
   };
 
   if (args.descriptor) {
     opts.descriptor = JSON.parse(
-      await opts.resolveJsonldFn!(args.descriptor, args.baseIri!),
+      await opts.resolveJsonldFn!(args.descriptor, opts.baseIri!),
     );
   }
 
@@ -124,6 +105,7 @@ async function saveToOutdir(
   const tableOptions: Record<string, csv.stringifier.Options> = {};
   let latestDescriptor: CompactedCsvwDescriptor;
   for await (const { descriptor, table, row } of stream) {
+    console.log(`Processing table: ${table.name}`);
     latestDescriptor = descriptor;
     let outStream = outStreams[table.name];
     if (!outStream) {
@@ -139,7 +121,7 @@ async function saveToOutdir(
   }
   await writeFile(
     join(outdir, 'descriptor.json'),
-    JSON.stringify(latestDescriptor!),
+    JSON.stringify(latestDescriptor!) ?? '',
   );
   const ends: Promise<any>[] = [];
   for (const s of Object.values(outStreams)) {
@@ -155,7 +137,7 @@ function getDialect(
 ): [boolean, csv.stringifier.Options] {
   const dialect = descriptor.dialect ?? {};
   const tableDialect =
-    (descriptor as CsvwTableGroupDescription).tables.find(
+    (descriptor as CsvwTableGroupDescription).tables?.find(
       (t) => t.url === table,
     )?.dialect ?? {};
 
