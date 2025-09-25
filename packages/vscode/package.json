@@ -5,8 +5,9 @@
   "main": "./dist/extension.js",
   "module": "./dist/extension.js",
   "types": "./dist/index.d.ts",
-  "displayName": "CSVWRDFConvertor",
+  "displayName": "CSVW-RDF Convertor",
   "description": "Bidirectional CSVW to RDF convertor and validator",
+  "icon": "resources/favicon.png",
   "publisher": "JakubYaghob",
   "repository": {
     "type": "git",
@@ -125,14 +126,14 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "csvw-rdf-converter",
-          "title": "CSVW RDF Converter",
-          "icon": "$(file-code)"
+          "id": "csvw-rdf-convertor",
+          "title": "CSVW-RDF Convertor",
+          "icon": "resources/favicon.svg"
         }
       ]
     },
     "views": {
-      "csvw-rdf-converter": [
+      "csvw-rdf-convertor": [
         {
           "id": "csvw-rdf-actions",
           "name": "Actions",
