@@ -48,7 +48,14 @@
           "main": "packages/cli/src/index.ts",
           "tsConfig": "packages/cli/tsconfig.lib.json",
           "skipTypeCheck": true,
-          "stripLeadingPaths": true
+          "stripLeadingPaths": true,
+          "assets": [
+            {
+              "glob": "package.json",
+              "input": "{workspaceRoot}/packages/cli",
+              "output": ""
+            }
+          ]
         }
       }
     },
