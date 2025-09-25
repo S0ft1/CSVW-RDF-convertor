@@ -109,13 +109,16 @@ export class Rdf2CsvwConvertor {
     const outputStream = new Readable({
       objectMode: true,
       read: async () => {
+        console.log('Reading from output stream');
         while (outputQueue.size == 0) {
+          console.log('queue empty');
           // create SPARQL query and add new bindings to the queue
           const tables = this.wrapper.getTables();
 
           const queryRecords: QueryRecords[] = [];
 
           for (const table of tables) {
+            console.log('Processing table', table.url);
             // TODO: use IssueTracker
             if (!table.tableSchema?.columns) {
               if (this.options.logLevel >= LogLevel.Warn)
@@ -131,6 +134,7 @@ export class Rdf2CsvwConvertor {
                 );
               continue;
             }
+            console.log('not skipped');
 
             const tableWithRequiredColumns =
               table as CsvwTableDescriptionWithRequiredColumns;
@@ -147,11 +151,14 @@ export class Rdf2CsvwConvertor {
               tableWithRequiredColumns,
               this.wrapper,
             );
+            console.log('Generated query:');
             if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
             const resultStream = await this.engine.queryBindings(query, {
               baseIRI: '.',
             });
+
+            console.log('Query executed');
 
             queryRecords.push({
               table: tableWithRequiredColumns,
@@ -163,6 +170,8 @@ export class Rdf2CsvwConvertor {
           const previouslyDone = this.store.done;
           previouslyAdded = added;
           [added, removed] = await this.store.moveWindow();
+
+          console.log('window moved');
 
           for (const record of queryRecords) {
             for await (const bindings of record.result as any) {

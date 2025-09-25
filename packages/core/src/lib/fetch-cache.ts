@@ -49,6 +49,8 @@ export class DefaultFetchCache {
   }
 
   protected combine(url: string, base: string) {
-    return base + '|||' + url;
+    return (
+      URL.parse(url, base)?.href ?? URL.parse(url)?.href ?? base + '/' + url
+    );
   }
 }

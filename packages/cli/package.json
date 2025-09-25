@@ -65,6 +65,7 @@
     "@swc/helpers": "~0.5.11",
     "chalk": "^5.4.1",
     "csv": "^6.3.11",
+    "figures": "6.1.0",
     "fuzzysort": "^3.1.0",
     "inquirer-action-select": "^0.0.3",
     "minimatch": "^10.0.1",

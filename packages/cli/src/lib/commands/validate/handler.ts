@@ -1,22 +1,20 @@
 import { ValidateArgs } from './command.js';
 import {
   Csvw2RdfOptions,
-  defaultResolveJsonldFn,
-  defaultResolveStreamFn,
-  defaultResolveTextFn,
   LogLevel,
   Issue,
   validateCsvwFromUrl,
   validateCsvwFromDescriptor,
 } from '@csvw-rdf-convertor/core';
-import fs from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import { text } from 'node:stream/consumers';
 import { dirname, isAbsolute, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { Readable } from 'node:stream';
 import { getPathOverrides } from '../interactive/get-path-overrides.js';
 import { MMRegExp } from 'minimatch';
+import {
+  resolveJson,
+  resolveText,
+  resolveTextStream,
+} from '../../resolvers.js';
 
 export type ArgsWithDefaults = ValidateArgs;
 
@@ -66,12 +64,10 @@ export async function handler(args: ArgsWithDefaults): Promise<void> {
 }
 
 function getOptions(args: ValidateArgs): Csvw2RdfOptions {
-  const getUrl = (path: string, base: string) =>
-    URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   return {
     baseIri:
       args.baseIri ??
-      (args.input && URL.canParse(args.input)
+      (args.input && URL.canParse(args.input) && !isAbsolute(args.input)
         ? args.input
         : dirname(resolve(process.cwd(), args.input ?? ''))),
     pathOverrides: args.pathOverrides ?? [],
@@ -81,40 +77,9 @@ function getOptions(args: ValidateArgs): Csvw2RdfOptions {
         : args.logLevel === 'warn'
           ? LogLevel.Warn
           : LogLevel.Error,
-    resolveJsonldFn: async (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveJsonldFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
-    resolveWkfFn: async (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveTextFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
-    resolveCsvStreamFn: (path, base) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
-        if (url.startsWith('file:')) {
-          return Promise.resolve(
-            Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
-          );
-        }
-        return defaultResolveStreamFn(url, base);
-      }
-      return Promise.resolve(
-        Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
-      );
-    },
+    resolveJsonldFn: resolveJson,
+    resolveWkfFn: resolveText,
+    resolveCsvStreamFn: resolveTextStream,
   };
 }
 
