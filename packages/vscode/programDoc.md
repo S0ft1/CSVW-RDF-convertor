@@ -1,6 +1,6 @@
-# CSVW RDF Converter - VS Code Extension Developer Documentation
+# CSVW-RDF Convertor - VS Code Extension Developer Documentation
 
-This document provides comprehensive technical documentation for developers working on or extending the CSVW RDF Converter VS Code extension.
+This document provides comprehensive technical documentation for developers working on or extending the CSVW-RDF Convertor VS Code extension.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ This document provides comprehensive technical documentation for developers work
 
 ## Architecture Overview
 
-The CSVW RDF Converter VS Code extension follows a modular, command-driven architecture that integrates with VS Code's extension API. The extension provides bidirectional conversion between CSVW (CSV on the Web) and RDF formats through an intuitive tree view interface and editor commands.
+The CSVW-RDF Convertor VS Code extension follows a modular, command-driven architecture that integrates with VS Code's extension API. The extension provides bidirectional conversion between CSVW (CSV on the Web) and RDF formats through an intuitive tree view interface and editor commands.
 
 ### High-Level Architecture
 
@@ -181,4 +181,4 @@ The extension activates when:
 - **VS Code Test Explorer**: For running and debugging tests
 ---
 
-This documentation provides a comprehensive guide to understanding and extending the CSVW RDF Converter VS Code extension. For specific implementation details, refer to the source code and the API documentation linked above.
+This documentation provides a comprehensive guide to understanding and extending the CSVW-RDF Convertor VS Code extension. For specific implementation details, refer to the source code and the API documentation linked above.
