@@ -121,7 +121,7 @@ async function saveToOutdir(
   }
   await writeFile(
     join(outdir, 'descriptor.json'),
-    JSON.stringify(latestDescriptor!) ?? '',
+    JSON.stringify(latestDescriptor!, null, '  ') ?? '',
   );
   const ends: Promise<any>[] = [];
   for (const s of Object.values(outStreams)) {
