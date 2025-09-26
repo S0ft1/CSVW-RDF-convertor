@@ -184,7 +184,7 @@ export class Rdf2CsvwConvertor {
                   added,
                   removed,
                 )
-              )
+              ) {
                 outputQueue.enqueue([
                   this.wrapper,
                   {
@@ -203,6 +203,7 @@ export class Rdf2CsvwConvertor {
                     this.issueTracker,
                   ),
                 ]);
+              }
             }
           }
 

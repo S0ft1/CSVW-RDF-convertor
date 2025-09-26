@@ -358,24 +358,18 @@ function createTriplePatterns(
   let object = `?${columns[index].queryVariable}`;
   if (
     valueUrl &&
-    valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
+    valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1 &&
+    predicate === `<${rdf}type>`
   ) {
+    // literal value can be used instead of the variable
+    // only when the variable is not queryVar of the column (i.e. the predicate is rdf:type),
+    // this prevents selection of unassigned variables
     object = parseTemplate(valueUrl).expand({
       _column: index + 1,
       _sourceColumn: index + 1,
       _name: columns[index].name,
     });
-    if (predicate === `<${rdf}type>`) {
-      object = `<${expandIri(object)}>`;
-    } else if (datatype) {
-      if (datatype === 'string')
-        object = lang
-          ? `"${object}"@${lang}`
-          : `"${object}"^^<${xsd + 'string'}>`;
-      else object = `"${object}"^^<${dtUris[datatype]}>`;
-    } else {
-      object = `"${object}"`;
-    }
+    object = `<${expandIri(object)}>`;
   }
 
   if (predicate === `<${UNKOWN_TYPE_TABLE}#${SUBJ_COL}>`) return '';
