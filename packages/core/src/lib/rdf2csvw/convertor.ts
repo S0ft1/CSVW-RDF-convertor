@@ -22,6 +22,7 @@ import { Queue } from 'mnemonist';
 import { DataFactory } from 'n3';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
+import { deskolemizeTerm } from '@comunica/actor-context-preprocess-query-source-skolemize';
 import { Readable } from 'readable-stream';
 import { Stream, Quad, ResultStream, Bindings } from '@rdfjs/types';
 import { commonPrefixes } from '../utils/prefix.js';
@@ -237,7 +238,13 @@ export class Rdf2CsvwConvertor {
 
     for (let i = 0; i < columns.length; i++) {
       const columnDescription = tableDescription.tableSchema.columns[i];
-      const term = bindings.get(columns[i].queryVariable);
+      const skolemizedTerm = bindings.get(columns[i].queryVariable);
+      if (!skolemizedTerm) continue;
+      const term = deskolemizeTerm(
+        this.store.store.dataFactory as any,
+        skolemizedTerm,
+        '0',
+      );
 
       if (
         columnDescription.propertyUrl &&
