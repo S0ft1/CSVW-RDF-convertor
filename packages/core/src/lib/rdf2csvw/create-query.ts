@@ -190,11 +190,13 @@ function createSelectOfOptionalSubjects(
 
     const predicate = propertyUrl
       ? `<${expandIri(
-          parseTemplate(propertyUrl).expand({
-            _column: index + 1,
-            _sourceColumn: index + 1,
-            _name: columns[index].name,
-          }),
+          decodeURI(
+            parseTemplate(propertyUrl).expand({
+              _column: index + 1,
+              _sourceColumn: index + 1,
+              _name: columns[index].name,
+            }),
+          ),
         )}>`
       : `<${table.url}#${columns[index].name}>`;
 
@@ -203,11 +205,13 @@ function createSelectOfOptionalSubjects(
       valueUrl &&
       valueUrl.search(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/) === -1
     ) {
-      object = parseTemplate(valueUrl).expand({
-        _column: index + 1,
-        _sourceColumn: index + 1,
-        _name: columns[index].name,
-      });
+      object = decodeURI(
+        parseTemplate(valueUrl).expand({
+          _column: index + 1,
+          _sourceColumn: index + 1,
+          _name: columns[index].name,
+        }),
+      );
       if (predicate === `<${rdf}type>`) {
         object = `<${expandIri(object)}>`;
       } else if (datatype) {
@@ -270,16 +274,18 @@ function createSelectOfOptionalSubjects(
 
     if (aboutUrl && subject.startsWith('?')) {
       const templateUrl = expandIri(
-        parseTemplate(
-          aboutUrl.replaceAll(
-            /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-            '.*',
-          ),
-        ).expand({
-          _column: index + 1,
-          _sourceColumn: index + 1,
-          _name: columns[index].name,
-        }),
+        decodeURI(
+          parseTemplate(
+            aboutUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*',
+            ),
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          }),
+        ),
       );
       if (templateUrl !== '.*')
         lines.push(
@@ -289,16 +295,18 @@ function createSelectOfOptionalSubjects(
 
     if (valueUrl && object.startsWith('?')) {
       const templateUrl = expandIri(
-        parseTemplate(
-          valueUrl.replaceAll(
-            /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
-            '.*',
-          ),
-        ).expand({
-          _column: index + 1,
-          _sourceColumn: index + 1,
-          _name: columns[index].name,
-        }),
+        decodeURI(
+          parseTemplate(
+            valueUrl.replaceAll(
+              /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+              '.*',
+            ),
+          ).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          }),
+        ),
       );
       if (templateUrl !== '.*')
         lines.push(`        FILTER (REGEX(STR(${object}), "${templateUrl}$"))`);
@@ -347,11 +355,13 @@ function createTriplePatterns(
 
   const predicate = propertyUrl
     ? `<${expandIri(
-        parseTemplate(propertyUrl).expand({
-          _column: index + 1,
-          _sourceColumn: index + 1,
-          _name: columns[index].name,
-        }),
+        decodeURI(
+          parseTemplate(propertyUrl).expand({
+            _column: index + 1,
+            _sourceColumn: index + 1,
+            _name: columns[index].name,
+          }),
+        ),
       )}>`
     : `<${table.url}#${columns[index].name}>`;
 
@@ -364,11 +374,13 @@ function createTriplePatterns(
     // literal value can be used instead of the variable
     // only when the variable is not queryVar of the column (i.e. the predicate is rdf:type),
     // this prevents selection of unassigned variables
-    object = parseTemplate(valueUrl).expand({
-      _column: index + 1,
-      _sourceColumn: index + 1,
-      _name: columns[index].name,
-    });
+    object = decodeURI(
+      parseTemplate(valueUrl).expand({
+        _column: index + 1,
+        _sourceColumn: index + 1,
+        _name: columns[index].name,
+      }),
+    );
     object = `<${expandIri(object)}>`;
   }
 
@@ -419,13 +431,18 @@ function createTriplePatterns(
 
   if (aboutUrl && subject.startsWith('?')) {
     const templateUrl = expandIri(
-      parseTemplate(
-        aboutUrl.replaceAll(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/g, '.*'),
-      ).expand({
-        _column: index + 1,
-        _sourceColumn: index + 1,
-        _name: columns[index].name,
-      }),
+      decodeURI(
+        parseTemplate(
+          aboutUrl.replaceAll(
+            /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+            '.*',
+          ),
+        ).expand({
+          _column: index + 1,
+          _sourceColumn: index + 1,
+          _name: columns[index].name,
+        }),
+      ),
     );
     if (templateUrl !== '.*')
       lines.push(`  FILTER (REGEX(STR(${subject}), "${templateUrl}$"))`);
@@ -433,13 +450,18 @@ function createTriplePatterns(
 
   if (valueUrl && object.startsWith('?')) {
     const templateUrl = expandIri(
-      parseTemplate(
-        valueUrl.replaceAll(/\{(?!_column|_sourceColumn|_name)[^{}]*\}/g, '.*'),
-      ).expand({
-        _column: index + 1,
-        _sourceColumn: index + 1,
-        _name: columns[index].name,
-      }),
+      decodeURI(
+        parseTemplate(
+          valueUrl.replaceAll(
+            /\{(?!_column|_sourceColumn|_name)[^{}]*\}/g,
+            '.*',
+          ),
+        ).expand({
+          _column: index + 1,
+          _sourceColumn: index + 1,
+          _name: columns[index].name,
+        }),
+      ),
     );
     if (templateUrl !== '.*')
       lines.push(`  FILTER (REGEX(STR(${object}), "${templateUrl}$"))`);
