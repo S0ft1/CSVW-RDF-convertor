@@ -425,8 +425,9 @@ export async function loadExistingConversions(
   provider: CSVWActionsProvider,
 ): Promise<void> {
   const workspaceRoot = validateWorkspace();
-  if (!workspaceRoot) return;
-
+  if (!workspaceRoot) {
+    return;
+  }
   const extensionDir = vscode.Uri.joinPath(
     vscode.Uri.file(workspaceRoot),
     'csvw-rdf-conversions',
@@ -435,7 +436,6 @@ export async function loadExistingConversions(
   try {
     await vscode.workspace.fs.stat(extensionDir);
     const entries = await vscode.workspace.fs.readDirectory(extensionDir);
-
     for (const [name, type] of entries) {
       if (type === vscode.FileType.Directory) {
         await processConversionDirectory(provider, extensionDir, name);
@@ -446,6 +446,7 @@ export async function loadExistingConversions(
     const directoryCount = entries.filter(
       ([, type]) => type === vscode.FileType.Directory,
     ).length;
+
     showLoadingResult(directoryCount);
   } catch {
     // No existing conversions found - this is expected for new workspaces

@@ -142,7 +142,6 @@ export async function convertCSVW2RDF(
           reject(error);
         });
       });
-
       await fs.promises.writeFile(
         conversion.outputFilePath,
         outputText,

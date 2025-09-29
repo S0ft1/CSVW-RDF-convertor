@@ -290,7 +290,7 @@ export async function openFieldsForConversion(
   const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
   await ensureFileExists(
     rdfInputPath,
-    getDefaultRdfInputContent(conversion.name),
+    getDefaultRdfInputContent(),
   );
 
   // Open descriptor first
