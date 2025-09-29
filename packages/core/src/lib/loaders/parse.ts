@@ -3,11 +3,12 @@ import { JsonLdParser } from 'jsonld-streaming-parser';
 import { StreamParser } from 'n3';
 import { RdfXmlParser } from 'rdfxml-streaming-parser';
 import { Readable } from 'readable-stream';
+import { defaultResolveStreamFn } from '../req-resolve.js';
 
 export interface ParseOptions {
   /** for network requests */
   baseIri?: string;
-  resolveStreamFn: (
+  resolveStreamFn?: (
     url: string,
     baseIri: string,
   ) => Promise<ReadableStream<string>>;
@@ -21,8 +22,10 @@ export interface ParseOptions {
  */
 export async function parseRdf(
   url: string,
-  options: ParseOptions,
+  options?: ParseOptions,
 ): Promise<Stream<Quad>> {
+  options ??= {};
+  options.resolveStreamFn ??= defaultResolveStreamFn;
   const baseIri = options.baseIri ?? '';
   const readableStream = await options.resolveStreamFn(url, baseIri);
   let parser: StreamParser | JsonLdParser | RdfXmlParser;

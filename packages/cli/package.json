@@ -1,6 +1,6 @@
 {
   "name": "@csvw-rdf-convertor/cli",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "",
   "keywords": [
     "csv",
@@ -48,7 +48,14 @@
           "main": "packages/cli/src/index.ts",
           "tsConfig": "packages/cli/tsconfig.lib.json",
           "skipTypeCheck": true,
-          "stripLeadingPaths": true
+          "stripLeadingPaths": true,
+          "assets": [
+            {
+              "glob": "package.json",
+              "input": "{workspaceRoot}/packages/cli",
+              "output": ""
+            }
+          ]
         }
       }
     },
@@ -57,7 +64,7 @@
     ]
   },
   "dependencies": {
-    "@csvw-rdf-convertor/core": "1.1.0",
+    "@csvw-rdf-convertor/core": "1.0.0",
     "@inquirer/prompts": "^7.3.1",
     "@rdfjs/prefix-map": "^0.1.2",
     "@rdfjs/serializer-turtle": "^1.1.5",
@@ -65,6 +72,7 @@
     "@swc/helpers": "~0.5.11",
     "chalk": "^5.4.1",
     "csv": "^6.3.11",
+    "figures": "6.1.0",
     "fuzzysort": "^3.1.0",
     "inquirer-action-select": "^0.0.3",
     "minimatch": "^10.0.1",

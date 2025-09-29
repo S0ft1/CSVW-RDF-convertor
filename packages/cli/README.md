@@ -35,14 +35,17 @@ npx @csvw-rdf-convertor/cli@latest validate -i metadata.json
 
 ## Run CLI using docker
 
+The following commands should be run in the monorepo root directory.
+
 ```bash
-docker build -t csvw_cli .
+docker build --target cli -t csvw_cli .
 docker run -it --rm csvw_cli
 # example: convert local csvw to rdf
 docker run -it --rm -v $PWD:/app csvw_cli c2r -i /app/local-descriptor.json -o /app/output.ttl
 ```
 
-##Build and run yourself
+## Build and run yourself
+
 Requires Node.js 22. Run these commands in the monorepo root folder.
 
 ```bash

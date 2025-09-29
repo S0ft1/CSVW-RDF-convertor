@@ -1,6 +1,6 @@
 {
   "name": "@csvw-rdf-convertor/core",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "",
   "keywords": [
     "csv",
@@ -55,6 +55,8 @@
     }
   },
   "dependencies": {
+    "@comunica/actor-context-preprocess-query-source-skolemize": "^4.4.1",
+    "@comunica/utils-data-factory": "^4.0.1",
     "@date-fns/tz": "^1.2.0",
     "@rdfjs/prefix-map": "^0.1.2",
     "@rdfjs/serializer-turtle": "^1.1.5",

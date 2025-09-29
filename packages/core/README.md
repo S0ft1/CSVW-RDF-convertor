@@ -29,45 +29,49 @@ import fs from 'node:fs';
 
 const descriptor = JSON.parse(fs.readFileSync('metadata.json', 'utf8'));
 const options: Csvw2RdfOptions = {
-    templateIris: true,
-    minimal: false,
-    resolveJsonldFn: yourJsonLdLoaderFunction
+  templateIris: true,
+  minimal: false,
+  resolveJsonldFn: yourJsonLdLoaderFunction,
 };
+
+// create a RDF.js Stream of quads
 const rdfStream = csvwDescriptorToRdf(descriptor, options);
-
-// Process the RDF quads
-for await (const quad of rdfStream) {
-    console.log(quad.subject.value, quad.predicate.value, quad.object.value);
-}
-
-
 ```
 
 ### RDF to CSVW Conversion
 
 ```typescript
-import { rdfToCsvw, parseRdf, Rdf2CsvOptions } from '@csvw-rdf-convertor/core';
-import fs from 'node:fs';
+import {
+  rdfToCsvw,
+  parseRdf,
+  rdfToTableSchema,
+} from '@csvw-rdf-convertor/core';
 
 // Parse RDF data
-const rdfData = fs.readFileSync('data.ttl', 'utf8');
-const rdfStream = parseRdf(rdfData, 'text/turtle');
-const descriptorText = fs.readFileSync('descriptor.jsonld', 'utf8')
-// Convert to CSVW
-const options: Rdf2CsvOptions = {
-    descriptor: descriptorText
-};
+const getRdfStream = () => parseRdf('https://example.org/data.ttl');
+// In order to support the browser environment, the library can by default
+// only fetch from URLs. To load local files, you can use a custom resolveStreamFn option.
+// parseRdf('https://example.org/data.ttl', { resolveStreamFn: customResolveStreamFn });
 
-const csvwStream = await rdfToCsvw(rdfStream, options);
+// In the first pass, we infer the schema:
+const schema = await rdfToTableSchema(await getRdfStream());
+
+// Then, we convert the RDF data in the second pass:
+const csvwStream = rdfToCsvw(await getRdfStream(), { descriptor: schema });
 
 // Process the CSVW output
-csvwStream.pipe(process.stdout);
+for await (const { descriptor, table, row } of csvwStream) {
+  console.log({ descriptor, table, row });
+}
 ```
 
 ### CSVW Validation
 
 ```typescript
-import { validateCsvwFromDescriptor, Csvw2RdfOptions } from '@csvw-rdf-convertor/core';
+import {
+  validateCsvwFromDescriptor,
+  Csvw2RdfOptions,
+} from '@csvw-rdf-convertor/core';
 
 const descriptor = '{"@context": "http://www.w3.org/ns/csvw", ...}';
 const options: Csvw2RdfOptions = { baseIri: 'http://example.org/' };
@@ -76,7 +80,7 @@ const options: Csvw2RdfOptions = { baseIri: 'http://example.org/' };
 for await (const issue of validateCsvwFromDescriptor(descriptor, options)) {
   console.log(`${issue.type}: ${issue.message}`);
   if (issue.location) {
-    console.log(`  at ${issue.location.line}:${issue.location.column}`);
+    console.log(`  at ${issue.location.row}:${issue.location.column}`);
   }
 }
 ```
@@ -91,13 +95,13 @@ Options for CSVW to RDF conversion:
 interface Csvw2RdfOptions extends ConversionOptions {
   /** Use template IRIs instead of full URIs (default: false) */
   templateIris?: boolean;
-  
+
   /** Generate minimal RDF output, omitting optional metadata (default: false) */
   minimal?: boolean;
-  
+
   /** Function for loading CSV files */
   resolveCsvStreamFn?: ResolveCsvStreamFn;
-  
+
   /** Function for loading .well-known/csvm files */
   resolveWkfFn?: ResolveWkfFn;
 }
@@ -111,13 +115,13 @@ Options for RDF to CSVW conversion:
 interface Rdf2CsvOptions extends ConversionOptions {
   /** CSVW descriptor template for conversion */
   descriptor?: string | AnyCsvwDescriptor | TableGroupSchema;
-  
+
   /** Use vocabulary metadata to enrich conversion (default: false) */
   useVocabMetadata?: boolean;
-  
+
   /** Number of quads to process at once (default: auto) */
   windowSize?: number;
-  
+
   /** Function for loading remote RDF data */
   resolveRdfFn?: ResolveRdfFn;
 }
@@ -131,16 +135,16 @@ Base options for all conversions:
 interface ConversionOptions {
   /** Path replacement patterns [pattern, replacement] */
   pathOverrides?: [string | RegExp, string][];
-  
+
   /** Base IRI for resolving relative references */
   baseIri?: string;
-  
+
   /** Function for loading JSON-LD resources */
   resolveJsonldFn?: ResolveJsonldFn;
-  
+
   /** Logging level (Error=0, Warn=1, Debug=2) */
   logLevel?: LogLevel;
-  
+
   /** Caching interface for remote resources */
   cache?: FetchCacheInterface;
 }
@@ -148,15 +152,14 @@ interface ConversionOptions {
 
 ## Supported RDF Formats
 
-| Format | MIME Type | Extension | Streaming |
-|--------|-----------|-----------|-----------|
-| Turtle | `text/turtle` | `.ttl` | ✅ |
-| N-Triples | `application/n-triples` | `.nt` | ✅ |
-| N-Quads | `application/n-quads` | `.nq` | ✅ |
-| TriG | `application/trig` | `.trig` | ✅ |
-| JSON-LD | `application/ld+json` | `.jsonld` | ✅ |
-| RDF/XML | `application/rdf+xml` | `rdf`, `xml` | ✅ |
-
+| Format    | MIME Type               | Extension    | Streaming |
+| --------- | ----------------------- | ------------ | --------- |
+| Turtle    | `text/turtle`           | `.ttl`       | ✅        |
+| N-Triples | `application/n-triples` | `.nt`        | ✅        |
+| N-Quads   | `application/n-quads`   | `.nq`        | ✅        |
+| TriG      | `application/trig`      | `.trig`      | ✅        |
+| JSON-LD   | `application/ld+json`   | `.jsonld`    | ✅        |
+| RDF/XML   | `application/rdf+xml`   | `rdf`, `xml` | ✅        |
 
 ## Performance Considerations
 
@@ -169,5 +172,6 @@ interface ConversionOptions {
 The library is written in TypeScript and provides comprehensive type definitions:
 
 ## Documentation
+
 Developer documentation available here: [Dev doc](https://github.com/S0ft1/CSVW-RDF-convertor/edit/main/packages/core/devDoc.md)
 Full API documentation is available online: https://s0ft1.github.io/CSVW-RDF-convertor/

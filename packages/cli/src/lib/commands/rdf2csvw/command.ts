@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { CommandModule } from 'yargs';
 import { input } from '@inquirer/prompts';
 import { handler } from './handler.js';
+import { baseAtCwd } from '../../utils/base-at-cwd.js';
 
 export interface R2CArgs extends CommonArgs {
   outDir: string;
@@ -64,6 +65,14 @@ export const rdf2csvw: CommandModule<
     } else {
       defaultOptions(args);
     }
+
+    if (args.input) {
+      args.input = baseAtCwd(args.input);
+    }
+    if (args.descriptor) {
+      args.descriptor = baseAtCwd(args.descriptor);
+    }
+
     await handler(args);
   },
 };

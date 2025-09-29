@@ -16,8 +16,8 @@ Then, either run the webservice locally:
 
 `node packages/ws/dist/main.js`
 
-Or build and run a Docker image.
+Or build and run a Docker image (run the following in the monorepo root directory).
 
-`npx nx docker-build ws`
+`docker build -t csvw-rdf-convertor-ws --target ws .`
 
 `docker run -p 3000:3000 -t csvw-rdf-convertor-ws`

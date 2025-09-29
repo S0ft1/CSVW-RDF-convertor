@@ -1,4 +1,4 @@
-# CSVW RDF Converter - VS Code Extension
+# CSVW-RDF Convertor - VS Code Extension
 
 A VS Code extension for converting between CSV on the Web (CSVW) and RDF formats. This extension provides an intuitive interface for bidirectional conversion between tabular data and RDF, following W3C CSVW specifications.
 
@@ -17,7 +17,7 @@ A VS Code extension for converting between CSV on the Web (CSVW) and RDF formats
 
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X)
-3. Search for "CSVW RDF Converter"
+3. Search for "CSVW-RDF Convertor"
 4. Click Install
 5. Reload VS Code if prompted
 
@@ -25,7 +25,7 @@ A VS Code extension for converting between CSV on the Web (CSVW) and RDF formats
 
 ### Opening the Extension
 
-After installation, you'll see a new activity bar icon (📄) on the left side of VS Code. Click it to open the **CSVW RDF Converter** panel.
+After installation, you'll see a new activity bar icon (📄) on the left side of VS Code. Click it to open the **CSVW-RDF Convertor** panel.
 
 ### Creating Your First Conversion
 

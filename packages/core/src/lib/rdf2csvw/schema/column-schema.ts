@@ -1,7 +1,7 @@
 import {
   CsvwBuiltinDatatype,
   CsvwDatatype,
-} from 'src/lib/types/descriptor/datatype.js';
+} from '../../types/descriptor/datatype.js';
 import { CsvwColumnDescription } from '../../types/descriptor/column-description.js';
 
 export class ColumnSchema implements CsvwColumnDescription {

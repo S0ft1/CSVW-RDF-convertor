@@ -160,26 +160,22 @@ export async function convertCSVW2RDF(
 
 export async function findMetadata(csvUrl: string): Promise<string | null> {
   const csvDir = path.dirname(csvUrl);
-  const csvBasename = path.basename(csvUrl, path.extname(csvUrl));
   try {
     const dirUri = vscode.Uri.file(csvDir);
     const files = await vscode.workspace.fs.readDirectory(dirUri);
 
-    const csvMetadataFile = files.find(
-      ([name]) => name === 'csv-metadata.json',
+    let csvMetadataFile = files.find(
+      ([name]) => name === `${csvUrl}-metadata.json`,
     );
     if (csvMetadataFile) {
       return path.join(csvDir, csvMetadataFile[0]);
     }
 
-    const metadataFiles = files.filter(
-      ([name]) =>
-        (name.endsWith('.json') || name.endsWith('.jsonld')) &&
-        name.includes(csvBasename),
+    csvMetadataFile = files.find(
+      ([name]) => name === 'csv-metadata.json',
     );
-
-    if (metadataFiles.length > 0) {
-      return path.join(csvDir, metadataFiles[0][0]);
+    if (csvMetadataFile) {
+      return path.join(csvDir, csvMetadataFile[0]);
     }
 
     return null;

@@ -198,11 +198,13 @@ export class SchemaInferrer {
 
   private updateAboutUrl(table: TableSchema, quad: Quad) {
     const col = table.tableSchema.columns[0];
-    col.aboutUrl = this.commonUriTemplate(
-      col.aboutUrl || quad.subject.value,
-      quad.subject.value,
-      col.name,
-    );
+    if (quad.subject.termType !== 'BlankNode') {
+      col.aboutUrl = this.commonUriTemplate(
+        col.aboutUrl || quad.subject.value,
+        quad.subject.value,
+        col.name,
+      );
+    }
   }
 
   private updateValueUrl(col: ColumnSchema, quad: Quad) {
@@ -210,11 +212,13 @@ export class SchemaInferrer {
       quad.object.termType === 'NamedNode' ||
       quad.object.termType === 'BlankNode'
     ) {
-      col.valueUrl = this.commonUriTemplate(
-        col.valueUrl || quad.object.value,
-        quad.object.value,
-        col.name,
-      );
+      if (quad.object.termType !== 'BlankNode') {
+        col.valueUrl = this.commonUriTemplate(
+          col.valueUrl || quad.object.value,
+          quad.object.value,
+          col.name,
+        );
+      }
     }
   }
 

@@ -22,6 +22,7 @@ import { Queue } from 'mnemonist';
 import { DataFactory } from 'n3';
 import { Quadstore, StoreOpts } from 'quadstore';
 import { Engine } from 'quadstore-comunica';
+import { deskolemizeTerm } from '@comunica/actor-context-preprocess-query-source-skolemize';
 import { Readable } from 'readable-stream';
 import { Stream, Quad, ResultStream, Bindings } from '@rdfjs/types';
 import { commonPrefixes } from '../utils/prefix.js';
@@ -109,13 +110,16 @@ export class Rdf2CsvwConvertor {
     const outputStream = new Readable({
       objectMode: true,
       read: async () => {
+        console.log('Reading from output stream');
         while (outputQueue.size == 0) {
+          console.log('queue empty');
           // create SPARQL query and add new bindings to the queue
           const tables = this.wrapper.getTables();
 
           const queryRecords: QueryRecords[] = [];
 
           for (const table of tables) {
+            console.log('Processing table', table.url);
             // TODO: use IssueTracker
             if (!table.tableSchema?.columns) {
               if (this.options.logLevel >= LogLevel.Warn)
@@ -131,6 +135,7 @@ export class Rdf2CsvwConvertor {
                 );
               continue;
             }
+            console.log('not skipped');
 
             const tableWithRequiredColumns =
               table as CsvwTableDescriptionWithRequiredColumns;
@@ -147,11 +152,14 @@ export class Rdf2CsvwConvertor {
               tableWithRequiredColumns,
               this.wrapper,
             );
+            console.log('Generated query:');
             if (this.options.logLevel >= LogLevel.Debug) console.debug(query);
 
             const resultStream = await this.engine.queryBindings(query, {
               baseIRI: '.',
             });
+
+            console.log('Query executed');
 
             queryRecords.push({
               table: tableWithRequiredColumns,
@@ -164,6 +172,8 @@ export class Rdf2CsvwConvertor {
           previouslyAdded = added;
           [added, removed] = await this.store.moveWindow();
 
+          console.log('window moved');
+
           for (const record of queryRecords) {
             for await (const bindings of record.result as any) {
               if (
@@ -175,7 +185,7 @@ export class Rdf2CsvwConvertor {
                   added,
                   removed,
                 )
-              )
+              ) {
                 outputQueue.enqueue([
                   this.wrapper,
                   {
@@ -194,6 +204,7 @@ export class Rdf2CsvwConvertor {
                     this.issueTracker,
                   ),
                 ]);
+              }
             }
           }
 
@@ -227,7 +238,13 @@ export class Rdf2CsvwConvertor {
 
     for (let i = 0; i < columns.length; i++) {
       const columnDescription = tableDescription.tableSchema.columns[i];
-      const term = bindings.get(columns[i].queryVariable);
+      const skolemizedTerm = bindings.get(columns[i].queryVariable);
+      if (!skolemizedTerm) continue;
+      const term = deskolemizeTerm(
+        this.store.store.dataFactory as any,
+        skolemizedTerm,
+        '0',
+      );
 
       if (
         columnDescription.propertyUrl &&

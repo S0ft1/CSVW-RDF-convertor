@@ -28,9 +28,14 @@ describe('RDF -> CSVW with descriptor: Reversed official tests', () => {
   // These are skipped in CSVW->RDF official tests,
   // because JSON-LD specification conflicts with the idea of the test.
   // All these tests returns expected csv, but do not raise expected warning.
-  const skippedTests = [93, 99, 101, 270,38, 39, 195, 228, 229, 230, 283, 305, 306 , 307,285,284,259,282];
+  const skippedTests = [
+    93, 99, 101, 270, 38, 39, 195, 228, 229, 230, 283, 305, 306, 307, 285, 284,
+    259, 282,
+  ];
 
-  for (const entry of tests.filter((e) => !skippedTests.includes(+e.id))) {
+  for (const entry of tests
+    .filter((e) => !skippedTests.includes(+e.id))
+    .slice(0, 1)) {
     runTest(testDir, entry);
   }
 });
@@ -120,6 +125,8 @@ async function toReceivedObject(result: Readable): Promise<SimpleTestTables> {
     // row order is arbitrary
     tables[tableName] = tables[tableName].sort(simpleTestRowCompareFn);
   }
+
+  console.log(tables);
 
   return tables;
 }

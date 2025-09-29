@@ -6,6 +6,7 @@ import { ArgsWithDefaults, handler } from './handler.js';
 import { dotProps } from '../../utils/dot-props.js';
 import { confirm, input, select } from '@inquirer/prompts';
 import { getPrefixes } from '../interactive/get-path-overrides.js';
+import { baseAtCwd } from '../../utils/base-at-cwd.js';
 
 export type TurtleOptions = {
   base?: string;
@@ -105,6 +106,12 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
     } else {
       defaultOptions(args);
     }
+
+    if (args.input) {
+      args.input = baseAtCwd(args.input);
+      console.log('Using input file', args.input);
+    }
+
     await handler(args as ArgsWithDefaults);
   },
 };
@@ -148,6 +155,7 @@ async function interactiveOptions(args: C2RArgs): Promise<void> {
         'ntriples',
         'turtle',
         'trig',
+        'jsonld',
       ] satisfies RDFSerialization[],
       message: 'Output format [turtle]',
       default: 'turtle',
