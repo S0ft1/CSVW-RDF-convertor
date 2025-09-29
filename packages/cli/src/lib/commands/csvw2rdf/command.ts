@@ -109,7 +109,6 @@ export const csvw2rdf: CommandModule<CommonArgs, C2RArgs> = {
 
     if (args.input) {
       args.input = baseAtCwd(args.input);
-      console.log('Using input file', args.input);
     }
 
     await handler(args as ArgsWithDefaults);

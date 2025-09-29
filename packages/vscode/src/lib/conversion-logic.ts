@@ -4,9 +4,6 @@ import {
   csvwDescriptorToRdf,
   CsvwRow,
   CsvwTable,
-  defaultResolveJsonldFn,
-  defaultResolveStreamFn,
-  defaultResolveTextFn,
   parseRdf,
   Rdf2CsvOptions,
   rdfToCsvw,
@@ -14,14 +11,13 @@ import {
 } from '@csvw-rdf-convertor/core';
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core';
 import { ConversionItem, MiniOptions } from './types.js';
-import { isAbsolute, resolve } from 'node:path';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import * as csv from 'csv';
 import { Readable } from 'node:stream';
 import fs from 'node:fs';
 import * as path from 'path';
 import { Quad, Stream } from '@rdfjs/types';
+import { resolveJson, resolveText, resolveTextStream } from './resolvers.js';
 /**
  * Converts RDF data to CSVW format using CSVW metadata.
  * @param descriptorText - The CSVW metadata descriptor content.
@@ -49,7 +45,7 @@ export async function convertRDF2CSVW(
   const options: Rdf2CsvOptions = getRDFOptions(inputsDir, descriptorText);
 
   const rdfStream = await createRDFStreamInput(inputPath, inputsDir);
-  const stream = await rdfToCsvw(rdfStream, options);
+  const stream = rdfToCsvw(rdfStream, options);
 
   let latestDescriptor: CompactedCsvwDescriptor | undefined;
   const stringifiers: { [table: string]: csv.stringifier.Stringifier } = {};
@@ -171,9 +167,7 @@ export async function findMetadata(csvUrl: string): Promise<string | null> {
       return path.join(csvDir, csvMetadataFile[0]);
     }
 
-    csvMetadataFile = files.find(
-      ([name]) => name === 'csv-metadata.json',
-    );
+    csvMetadataFile = files.find(([name]) => name === 'csv-metadata.json');
     if (csvMetadataFile) {
       return path.join(csvDir, csvMetadataFile[0]);
     }
@@ -190,46 +184,13 @@ export function getCSVWOptions(
   optionsFromVS: MiniOptions,
   inputsDirPath: string,
 ): Csvw2RdfOptions {
-  const getUrl = (path: string, base: string) =>
-    URL.parse(path, base)?.href ?? URL.parse(path)?.href ?? resolve(base, path);
   return {
     templateIris: optionsFromVS.templateIris,
     minimal: optionsFromVS.minimal,
     baseIri: inputsDirPath,
-    resolveJsonldFn: async (path:string, base:string) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveJsonldFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
-    resolveWkfFn: async (path:string, base:string) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveTextFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
-    resolveCsvStreamFn: (path:string, base:string) => {
-      const url = getUrl(path, base);
-      if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
-        if (url.startsWith('file:')) {
-          return Promise.resolve(
-            Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
-          );
-        }
-        return defaultResolveStreamFn(url, base);
-      }
-      return Promise.resolve(
-        Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
-      );
-    },
+    resolveJsonldFn: resolveJson,
+    resolveWkfFn: resolveText,
+    resolveCsvStreamFn: resolveTextStream,
   };
 }
 function getRDFOptions(
@@ -239,19 +200,7 @@ function getRDFOptions(
   return {
     baseIri: inputsDirPath,
     descriptor: descriptorText,
-    resolveJsonldFn: async (path:string, base:string) => {
-      const url =
-        URL.parse(path, base)?.href ??
-        URL.parse(path)?.href ??
-        resolve(base, path);
-      if (!isAbsolute(url) && URL.canParse(url)) {
-        if (url.startsWith('file:')) {
-          return readFile(fileURLToPath(url), 'utf-8');
-        }
-        return defaultResolveJsonldFn(url, base);
-      }
-      return await readFile(url, 'utf-8');
-    },
+    resolveJsonldFn: resolveJson,
   };
 }
 
@@ -261,23 +210,7 @@ async function createRDFStreamInput(
 ): Promise<Stream<Quad>> {
   return await parseRdf(inputPath, {
     baseIri: inputsDir,
-    resolveStreamFn(path:string, base:string) {
-      const url =
-        URL.parse(path, base)?.href ??
-        URL.parse(path)?.href ??
-        resolve(base, path);
-      if (!isAbsolute(url) && (URL.canParse(url) || URL.canParse(url, base))) {
-        if (url.startsWith('file:')) {
-          return Promise.resolve(
-            Readable.toWeb(fs.createReadStream(fileURLToPath(url), 'utf-8')),
-          );
-        }
-        return defaultResolveStreamFn(url, base);
-      }
-      return Promise.resolve(
-        Readable.toWeb(fs.createReadStream(resolve(base, url), 'utf-8')),
-      );
-    },
+    resolveStreamFn: resolveTextStream,
   });
 }
 
