@@ -201,7 +201,6 @@ export class DiagramComponent implements AfterViewInit {
       if (result) {
         try {
           this.schema().removeTable(table);
-          console.log(this.schema());
         } catch (e) {
           this.showSnack(e as Error);
           return;

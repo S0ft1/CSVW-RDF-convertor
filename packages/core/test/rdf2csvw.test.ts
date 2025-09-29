@@ -33,9 +33,7 @@ describe('RDF -> CSVW with descriptor: Reversed official tests', () => {
     259, 282,
   ];
 
-  for (const entry of tests
-    .filter((e) => !skippedTests.includes(+e.id))
-    .slice(0, 1)) {
+  for (const entry of tests.filter((e) => !skippedTests.includes(+e.id))) {
     runTest(testDir, entry);
   }
 });
@@ -125,8 +123,6 @@ async function toReceivedObject(result: Readable): Promise<SimpleTestTables> {
     // row order is arbitrary
     tables[tableName] = tables[tableName].sort(simpleTestRowCompareFn);
   }
-
-  console.log(tables);
 
   return tables;
 }

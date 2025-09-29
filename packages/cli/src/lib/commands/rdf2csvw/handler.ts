@@ -26,7 +26,6 @@ import { once } from 'node:events';
 import { resolveJson, resolveTextStream } from '../../resolvers.js';
 
 export async function handler(args: R2CArgs): Promise<void> {
-  console.log('Converting RDF to CSV-W...', args);
   const options = await argsToOptions(args);
   const rdfStream = await parseRdf(args.input || '', {
     baseIri: options.baseIri!,
@@ -63,9 +62,7 @@ export async function handler(args: R2CArgs): Promise<void> {
   });
 
   await mkdir(args.outDir, { recursive: true });
-  console.log(`Saving CSV-W files to ${args.outDir}...`);
   await saveToOutdir(stream, args.outDir);
-  console.log(`CSV-W files saved to ${args.outDir}`);
 }
 
 async function argsToOptions(args: R2CArgs): Promise<Rdf2CsvOptions> {
@@ -105,7 +102,6 @@ async function saveToOutdir(
   const tableOptions: Record<string, csv.stringifier.Options> = {};
   let latestDescriptor: CompactedCsvwDescriptor;
   for await (const { descriptor, table, row } of stream) {
-    console.log(`Processing table: ${table.name}`);
     latestDescriptor = descriptor;
     let outStream = outStreams[table.name];
     if (!outStream) {

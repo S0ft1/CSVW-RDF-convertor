@@ -347,7 +347,6 @@ export class Csvw2RdfConvertor {
     }
     //4.6
     let rowNum = 0;
-    console.log('Processing table', ctx.table.url, this.options.baseIri);
     const csvStream = (
       await this.options.resolveCsvStreamFn(ctx.table.url, this.options.baseIri)
     ).pipeThrough(new CSVParser(ctx.dialect));
