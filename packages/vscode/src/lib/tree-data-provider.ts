@@ -136,8 +136,8 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
       const conversionActions = [
         `${element.id}:Open Fields`,
         `${element.id}:Close Fields`,
-        `${element.id}:Convert CSVW->RDF`,
-        `${element.id}:Convert RDF->CSVW`,
+        `${element.id}:Convert CSVW 🡢 RDF`,
+        `${element.id}:Convert RDF 🡢 CSVW`,
         `${element.id}:Add another input`,
         `${element.id}:Validate`,
         `${element.id}:Template IRIs`,
@@ -190,18 +190,18 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         };
         item.iconPath = new vscode.ThemeIcon('close-all');
         break;
-      case 'Convert CSVW->RDF':
+      case 'Convert CSVW 🡢 RDF':
         item.command = {
           command: 'csvwrdfconvertor.convertCsvwToRdf',
-          title: 'Convert CSVW->RDF',
+          title: 'Convert CSVW 🡢 RDF',
           arguments: [conversionId],
         };
         item.iconPath = new vscode.ThemeIcon('arrow-right');
         break;
-      case 'Convert RDF->CSVW':
+      case 'Convert RDF 🡢 CSVW':
         item.command = {
           command: 'csvwrdfconvertor.convertRdfToCsvw',
-          title: 'Convert RDF->CSVW',
+          title: 'Convert RDF 🡢 CSVW',
           arguments: [conversionId],
         };
         item.iconPath = new vscode.ThemeIcon('arrow-left');
@@ -425,8 +425,9 @@ export async function loadExistingConversions(
   provider: CSVWActionsProvider,
 ): Promise<void> {
   const workspaceRoot = validateWorkspace();
-  if (!workspaceRoot) return;
-
+  if (!workspaceRoot) {
+    return;
+  }
   const extensionDir = vscode.Uri.joinPath(
     vscode.Uri.file(workspaceRoot),
     'csvw-rdf-conversions',
@@ -435,7 +436,6 @@ export async function loadExistingConversions(
   try {
     await vscode.workspace.fs.stat(extensionDir);
     const entries = await vscode.workspace.fs.readDirectory(extensionDir);
-
     for (const [name, type] of entries) {
       if (type === vscode.FileType.Directory) {
         await processConversionDirectory(provider, extensionDir, name);
@@ -446,6 +446,7 @@ export async function loadExistingConversions(
     const directoryCount = entries.filter(
       ([, type]) => type === vscode.FileType.Directory,
     ).length;
+
     showLoadingResult(directoryCount);
   } catch {
     // No existing conversions found - this is expected for new workspaces
