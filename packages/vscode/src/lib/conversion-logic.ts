@@ -119,7 +119,7 @@ export async function convertCSVW2RDF(
         csvw2RdfOptions,
       );
       const result = await serializeRdf(rdfStream, {
-        format: 'turtle',
+        format: options.format,
         turtle: { streaming: false },
       });
       const typedResult = result as Readable;

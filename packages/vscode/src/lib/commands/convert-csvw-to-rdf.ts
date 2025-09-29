@@ -1,44 +1,62 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
 import { convertCSVW2RDF } from '../conversion-logic.js';
-import { ConversionItem } from '../types.js';
-import { 
-	validateConversionExists, 
-	ensureConversionPaths, 
-	readDescriptorContent, 
-	updateConversionState, 
-	openOutputFiles, 
-	handleConversionError 
+import { ConversionItem, MiniOptions } from '../types.js';
+import {
+  validateConversionExists,
+  ensureConversionPaths,
+  readDescriptorContent,
+  updateConversionState,
+  openOutputFiles,
+  handleConversionError,
 } from '../conversion-utils.js';
+import { RDFSerialization } from '@csvw-rdf-convertor/core';
 
 /**
  * Gets the conversion options from the conversion item
  * @param conversion - The conversion item containing template and minimal mode settings
  * @returns Object with templateIris and minimal boolean flags
  */
-function getConversionOptions(conversion: ConversionItem): { templateIris: boolean; minimal: boolean } {
-	return {
-		templateIris: conversion.templateIRIsChecked || false,
-		minimal: conversion.minimalModeChecked || false
-	};
+async function getConversionOptions(
+  conversion: ConversionItem,
+): Promise<MiniOptions> {
+  return {
+    format: ((await vscode.window.showQuickPick([
+      'turtle',
+      'ntriples',
+      'nquads',
+      'trig',
+      'jsonld',
+    ])) ?? 'turtle') as RDFSerialization,
+    templateIris: conversion.templateIRIsChecked || false,
+    minimal: conversion.minimalModeChecked || false,
+  };
 }
 
 /**
  * Performs the CSVW to RDF conversion process
  * @param conversion - The conversion item to process
  */
-async function performCsvwToRdfConversion(conversion: ConversionItem): Promise<void> {
-	ensureConversionPaths(conversion);
-	
-	const descriptorContent = await readDescriptorContent(conversion);
-	const conversionOptions = getConversionOptions(conversion);
-	
-	const outputFilePaths = await convertCSVW2RDF(descriptorContent, conversionOptions, conversion);
-	
-	updateConversionState(conversion, outputFilePaths);
-	await openOutputFiles(outputFilePaths);
-	
-	vscode.window.showInformationMessage(`✅ CSVW→RDF conversion completed for: ${conversion.name}`);
+async function performCsvwToRdfConversion(
+  conversion: ConversionItem,
+): Promise<void> {
+  ensureConversionPaths(conversion);
+
+  const descriptorContent = await readDescriptorContent(conversion);
+  const conversionOptions = await getConversionOptions(conversion);
+
+  const outputFilePaths = await convertCSVW2RDF(
+    descriptorContent,
+    conversionOptions,
+    conversion,
+  );
+
+  updateConversionState(conversion, outputFilePaths);
+  await openOutputFiles(outputFilePaths);
+
+  vscode.window.showInformationMessage(
+    `✅ CSVW→RDF conversion completed for: ${conversion.name}`,
+  );
 }
 
 /**
@@ -46,20 +64,22 @@ async function performCsvwToRdfConversion(conversion: ConversionItem): Promise<v
  * @param csvwActionsProvider - The tree data provider for conversions
  * @returns Disposable for the registered command
  */
-export function registerConvertCsvwToRdf(csvwActionsProvider: CSVWActionsProvider): vscode.Disposable {
-	return vscode.commands.registerCommand(
-		'csvwrdfconvertor.convertCsvwToRdf',
-		async (conversionId: string) => {
-			const conversion = csvwActionsProvider.getConversion(conversionId);
-			if (!validateConversionExists(conversion)) {
-				return;
-			}
+export function registerConvertCsvwToRdf(
+  csvwActionsProvider: CSVWActionsProvider,
+): vscode.Disposable {
+  return vscode.commands.registerCommand(
+    'csvwrdfconvertor.convertCsvwToRdf',
+    async (conversionId: string) => {
+      const conversion = csvwActionsProvider.getConversion(conversionId);
+      if (!validateConversionExists(conversion)) {
+        return;
+      }
 
-			try {
-				await performCsvwToRdfConversion(conversion);
-			} catch (error) {
-				await handleConversionError(conversion, error, 'CSVW→RDF');
-			}
-		}
-	);
+      try {
+        await performCsvwToRdfConversion(conversion);
+      } catch (error) {
+        await handleConversionError(conversion, error, 'CSVW→RDF');
+      }
+    },
+  );
 }
