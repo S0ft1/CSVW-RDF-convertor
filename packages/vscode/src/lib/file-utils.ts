@@ -24,12 +24,12 @@ export async function ensureFileExists(
  * Generates default CSVW descriptor content for new conversions.
  * @returns A JSON string containing a basic CSVW table group structure.
  */
-export function getDefaultDescriptorContent(): string {
+export function getDefaultDescriptorContent(tableUrl: string = "csvInput.csv"): string {
   return `{
   "@context": "http://www.w3.org/ns/csvw",
   "@type": "TableGroup",
   "tables": [{
-    "url": "csvInput.csv",
+    "url": "${tableUrl}",
     "tableSchema": {
       "columns": [{
         "name": "id",
