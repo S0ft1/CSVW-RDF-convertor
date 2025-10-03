@@ -1,6 +1,6 @@
 {
   "name": "@csvw-rdf-convertor/vscode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/extension.js",
   "module": "./dist/extension.js",
@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@swc/helpers": "~0.5.11",
-    "@csvw-rdf-convertor/core": "1.0.0",
+    "@csvw-rdf-convertor/core": "1.0.1",
     "n3": "^1.23.1",
     "csv": "^6.3.11",
     "@rdfjs/types": "^2.0.1"

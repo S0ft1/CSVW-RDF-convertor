@@ -1,7 +1,7 @@
 {
   "name": "@csvw-rdf-convertor/webapp",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "repository": "S0ft1/CSVW-RDF-convertor",
   "private": true,
@@ -17,7 +17,7 @@
     "@angular/platform-browser": "^20.0.3",
     "@angular/platform-browser-dynamic": "^20.0.3",
     "@angular/router": "^20.0.3",
-    "@csvw-rdf-convertor/core": "1.0.0",
+    "@csvw-rdf-convertor/core": "1.0.1",
     "@dagrejs/dagre": "^1.1.5",
     "@rdfjs/prefix-map": "^0.1.2",
     "@rdfjs/serializer-turtle": "^1.1.5",
