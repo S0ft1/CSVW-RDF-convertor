@@ -98,6 +98,7 @@ paths:
                         - ntriples
                         - turtle
                         - trig
+                        - jsonld
                     includeWarnings:
                       type: boolean
                       description: Include warnings in the output. Defaults to false.
