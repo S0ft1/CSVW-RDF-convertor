@@ -71,7 +71,7 @@ node packages/cli/dist/index.js c2r -i local-descriptor.json -o output.ttl
 - `-i, --input <file>` - Input file or URL
 - `-o, --output <directory>` - Output directory
 - `--baseIri <IRI>` - Sets base IRI
-- `--templateIris <bool>` - Use template IRIs instead of URIs (e.g. https://example.com/{name} could result in https://example.com/Adéla instead of https://example.com/Ad%C3%A9la)
+- `--templateIris <bool>` - Use template IRIs instead of URIs (non-ASCII characters will not be escaped, e.g. https://slovník.cz/čeština vs https://xn--slovnk-7va.cz/%C4%8De%C5%A1tina)
 - `--minimal` - Use minimal conversion mode
 - `--interactive` - Interactive mode
 - `--pathOverrides <path1 value1 path2 value2 ...>` - Overrides paths in a descriptor
@@ -140,14 +140,14 @@ The CLI supports multiple input sources:
 
 ## Supported RDF Formats
 
-| Format    | Extension     | MIME Type               |
-| --------- | ------------- | ----------------------- |
-| Turtle    | `.ttl`        | `text/turtle`           |
-| N-Triples | `.nt`         | `application/n-triples` |
-| N-Quads   | `.nq`         | `application/n-quads`   |
-| TriG      | `.trig`       | `application/trig`      |
-| JSON-LD   | `.jsonld`     | `application/ld+json`   |
-| RDF/XML   | `.rdf`, `xml` | `application/rdf+xml`   |
+| Format    | Extension      | MIME Type               |
+| --------- | -------------- | ----------------------- |
+| Turtle    | `.ttl`         | `text/turtle`           |
+| N-Triples | `.nt`          | `application/n-triples` |
+| N-Quads   | `.nq`          | `application/n-quads`   |
+| TriG      | `.trig`        | `application/trig`      |
+| JSON-LD   | `.jsonld`      | `application/ld+json`   |
+| RDF/XML   | `.rdf`, `.xml` | `application/rdf+xml`   |
 
 ## Logging
 

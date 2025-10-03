@@ -1,3 +1,5 @@
+<img src="favicon.svg" style="float: right; height: 200px; margin: 0 0 15px 15px;">
+
 # CSVW-RDF-Convertor
 
 A comprehensive toolkit for bidirectional conversion, validation, and integration of CSV on the Web (CSVW) and RDF data. This monorepo provides robust solutions for command-line, web, VS Code, and programmatic environments, all built on a shared, standards-compliant core.
