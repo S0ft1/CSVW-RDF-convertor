@@ -8,9 +8,6 @@ import { collectInputFilePaths, collectOutputFilePaths, findTabsToClose } from '
  * @param conversion - The conversion item to reset
  */
 function clearConversionState(conversion: ConversionItem): void {
-	conversion.descriptorEditor = undefined;
-	conversion.inputEditor = undefined;
-	conversion.outputEditor = undefined;
 	conversion.additionalInputFilePaths = [];
 	conversion.errorFilePath = undefined;
 	conversion.outputFilePath = undefined;

@@ -1,5 +1,4 @@
 import { RDFSerialization } from '@csvw-rdf-convertor/core';
-import * as vscode from 'vscode';
 
 /**
  * Enum representing the types of conversions supported.
@@ -29,9 +28,6 @@ export interface ConversionItem {
   id: string;
   name: string;
   folderPath: string;
-  descriptorEditor?: vscode.TextEditor;
-  inputEditor?: vscode.TextEditor;
-  outputEditor?: vscode.TextEditor;
   descriptorFilePath?: string;
   inputFilePath: string;
   rdfInputFilePath: string;

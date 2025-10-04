@@ -345,11 +345,10 @@ export async function openFieldsForConversion(
   await createInputFilesFromDescriptor(directories.inputsDir, conversion, descriptorText);
   await setupRdfInputFile(directories.inputsDir, conversion);
 
-  const descriptorEditor = await vscode.window.showTextDocument(
+  await vscode.window.showTextDocument(
     descriptorDocument,
     vscode.ViewColumn.One,
   );
-  conversion.descriptorEditor = descriptorEditor;
 
   await scanAndLoadAdditionalInputs(conversion);
   await openAllInputFiles(conversion);
@@ -455,7 +454,7 @@ async function setupRdfInputFile(
  */
 async function openAllInputFiles(conversion: ConversionItem): Promise<void> {
   if (conversion.inputFilePath) {
-    await openSingleInputFile(conversion.inputFilePath, conversion, true);
+    await openSingleInputFile(conversion.inputFilePath, true);
   }
 
   if (conversion.rdfInputFilePath) {
@@ -472,25 +471,19 @@ async function openAllInputFiles(conversion: ConversionItem): Promise<void> {
 /**
  * Opens a single input file in the editor.
  * @param filePath - The file path to open
- * @param conversion - The conversion item (for main input file)
  * @param isMainInput - Whether this is the main input file
  */
 async function openSingleInputFile(
   filePath: string,
-  conversion?: ConversionItem,
   isMainInput = false,
 ): Promise<void> {
   try {
     const document = await vscode.workspace.openTextDocument(filePath);
-    const editor = await vscode.window.showTextDocument(document, {
+    await vscode.window.showTextDocument(document, {
       viewColumn: vscode.ViewColumn.Two,
       preserveFocus: true,
       preview: false,
     });
-
-    if (isMainInput && conversion) {
-      conversion.inputEditor = editor;
-    }
   } catch (error) {
     const fileType = isMainInput ? 'main input' : 'input';
     console.warn(`Could not open ${fileType} file ${filePath}:`, error);
@@ -575,7 +568,7 @@ async function tryOpenExistingOutputFile(
       await ensureFileExists(outputPath, getDefaultOutputContent(conversion.name));
 
       const outputDocument = await vscode.workspace.openTextDocument(outputPath);
-      const outputEditor = await vscode.window.showTextDocument(
+      await vscode.window.showTextDocument(
         outputDocument,
         {
           viewColumn: vscode.ViewColumn.Three,
@@ -584,7 +577,6 @@ async function tryOpenExistingOutputFile(
         }
       );
 
-      conversion.outputEditor = outputEditor;
       conversion.outputFilePath = outputPath.fsPath;
       return true; // Only open the first output file found
     }
@@ -606,7 +598,7 @@ async function createAndOpenDefaultOutputFile(
   await ensureFileExists(outputPath, getDefaultOutputContent(conversion.name));
 
   const outputDocument = await vscode.workspace.openTextDocument(outputPath);
-  const outputEditor = await vscode.window.showTextDocument(
+  await vscode.window.showTextDocument(
     outputDocument,
     {
       viewColumn: vscode.ViewColumn.Three,
@@ -615,7 +607,6 @@ async function createAndOpenDefaultOutputFile(
     }
   );
 
-  conversion.outputEditor = outputEditor;
   conversion.outputFilePath = outputPath.fsPath;
 }
 
