@@ -25,7 +25,7 @@ A VS Code extension for converting between CSV on the Web (CSVW) and RDF formats
 
 ### Opening the Extension
 
-After installation, you'll see a new activity bar icon (📄) on the left side of VS Code. Click it to open the **CSVW-RDF Convertor** panel.
+After installation, you'll see a new activity bar icon on the left side of VS Code. Click it to open the **CSVW-RDF Convertor** panel.
 
 ### Creating Your First Conversion
 
@@ -128,13 +128,13 @@ Read about it here: https://www.w3.org/ns/csvw
 ## 🔧 Configuration Options
 
 ### Template IRIs
-When enabled, generates consistent URI patterns:
+When enabled, non-ASCII characters will not be escaped:
 ```
 # Template IRI enabled
-<http://example.org/person/1>
+https://slovník.cz/čeština/přístroj
 
-# Template IRI disabled  
-<http://example.org/person#1>
+# Template IRI disabled
+https://xn--slovnk-7va.cz/%C4%8De%C5%A1tina/p%C5%99%C3%ADstroj
 ```
 
 ### Minimal Mode

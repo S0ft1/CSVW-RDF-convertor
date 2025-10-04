@@ -172,7 +172,7 @@ async function interactiveOptions(args: C2RArgs): Promise<void> {
   });
   args.templateIris ??= await confirm({
     message:
-      'Use template IRIs instead of URIs (e.g. https://example.com/{name} could result in https://example.com/Adéla instead of https://example.com/Ad%C3%A9la)',
+      'Use template IRIs instead of URIs (non-ASCII characters will not be escaped, e.g. https://slovník.cz/čeština vs https://xn--slovnk-7va.cz/%C4%8De%C5%A1tina)',
     default: false,
   });
   if (args.format === 'turtle' || args.format === 'trig') {

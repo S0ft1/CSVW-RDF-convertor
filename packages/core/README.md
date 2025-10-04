@@ -1,6 +1,6 @@
 # @csvw-rdf-convertor/core
 
-The core library for bidirectional conversion between CSV-W (CSV on the Web) and RDF formats, with full W3C CSVW specification support and validation capabilities.
+The core library for bidirectional conversion between CSVW (CSV on the Web) and RDF formats, with full W3C CSVW specification support and validation capabilities.
 
 ## Features
 
@@ -93,7 +93,7 @@ Options for CSVW to RDF conversion:
 
 ```typescript
 interface Csvw2RdfOptions extends ConversionOptions {
-  /** Use template IRIs instead of full URIs (default: false) */
+  /** Use template IRIs instead of URIs (default: false) */
   templateIris?: boolean;
 
   /** Generate minimal RDF output, omitting optional metadata (default: false) */
@@ -113,7 +113,7 @@ Options for RDF to CSVW conversion:
 
 ```typescript
 interface Rdf2CsvOptions extends ConversionOptions {
-  /** CSVW descriptor template for conversion */
+  /** CSVW descriptor for conversion configuration */
   descriptor?: string | AnyCsvwDescriptor | TableGroupSchema;
 
   /** Use vocabulary metadata to enrich conversion (default: false) */
@@ -122,7 +122,7 @@ interface Rdf2CsvOptions extends ConversionOptions {
   /** Number of quads to process at once (default: auto) */
   windowSize?: number;
 
-  /** Function for loading remote RDF data */
+  /** Function for loading RDF data */
   resolveRdfFn?: ResolveRdfFn;
 }
 ```
@@ -152,14 +152,14 @@ interface ConversionOptions {
 
 ## Supported RDF Formats
 
-| Format    | MIME Type               | Extension    | Streaming |
-| --------- | ----------------------- | ------------ | --------- |
-| Turtle    | `text/turtle`           | `.ttl`       | ✅        |
-| N-Triples | `application/n-triples` | `.nt`        | ✅        |
-| N-Quads   | `application/n-quads`   | `.nq`        | ✅        |
-| TriG      | `application/trig`      | `.trig`      | ✅        |
-| JSON-LD   | `application/ld+json`   | `.jsonld`    | ✅        |
-| RDF/XML   | `application/rdf+xml`   | `rdf`, `xml` | ✅        |
+| Format    | MIME Type               | Extension      | Streaming |
+| --------- | ----------------------- | -------------- | --------- |
+| Turtle    | `text/turtle`           | `.ttl`         | ✅        |
+| N-Triples | `application/n-triples` | `.nt`          | ✅        |
+| N-Quads   | `application/n-quads`   | `.nq`          | ✅        |
+| TriG      | `application/trig`      | `.trig`        | ✅        |
+| JSON-LD   | `application/ld+json`   | `.jsonld`      | ✅        |
+| RDF/XML   | `application/rdf+xml`   | `.rdf`, `.xml` | ✅        |
 
 ## Performance Considerations
 
