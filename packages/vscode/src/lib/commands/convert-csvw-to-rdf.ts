@@ -21,8 +21,8 @@ async function getConversionOptions(
 ): Promise<MiniOptions> {
   return {
     rdfSerialization: conversion.rdfSerialization ?? 'turtle',
-    templateIris: conversion.templateIRIsChecked ?? true,
-    minimal: conversion.minimalModeChecked ?? true,
+    templateIris: conversion.templateIRIsChecked ?? false,
+    minimal: conversion.minimalModeChecked ?? false,
   };
 }
 
