@@ -143,7 +143,7 @@ export async function convertCSVW2RDF(
   const csvw2RdfOptions: Csvw2RdfOptions = getCSVWOptions(options, inputsDir);
   try {
     const outputsDir = path.join(conversion.folderPath, 'outputs');
-    const fileExtension = getRdfFileExtension(options.format);
+    const fileExtension = getRdfFileExtension(options.rdfSerialization);
     const outputFilePath = resolve(outputsDir, `output${fileExtension}`);
     conversion.outputFilePath = outputFilePath;
     if (conversion.descriptorFilePath && conversion.outputFilePath) {
@@ -152,7 +152,7 @@ export async function convertCSVW2RDF(
         csvw2RdfOptions,
       );
       const result = await serializeRdf(rdfStream, {
-        format: options.format,
+        format: options.rdfSerialization,
         turtle: { streaming: false },
       });
       const typedResult = result as Readable;

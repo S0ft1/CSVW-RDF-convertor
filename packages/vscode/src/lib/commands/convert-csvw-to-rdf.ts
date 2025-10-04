@@ -10,7 +10,6 @@ import {
   openOutputFiles,
   handleConversionError,
 } from '../conversion-utils.js';
-import { RDFSerialization } from '@csvw-rdf-convertor/core';
 
 /**
  * Gets the conversion options from the conversion item
@@ -20,21 +19,10 @@ import { RDFSerialization } from '@csvw-rdf-convertor/core';
 async function getConversionOptions(
   conversion: ConversionItem,
 ): Promise<MiniOptions> {
-  let format: RDFSerialization;
-  
-  const selectedFormat = await vscode.window.showQuickPick([
-    'turtle',
-    'ntriples',
-    'nquads',
-    'trig',
-    'jsonld',
-  ]);
-  format = (selectedFormat ?? 'turtle') as RDFSerialization;
-  conversion.rdfSerialization = format;
   return {
-    format: format,
-    templateIris: conversion.templateIRIsChecked || false,
-    minimal: conversion.minimalModeChecked || false,
+    rdfSerialization: conversion.rdfSerialization ?? 'turtle',
+    templateIris: conversion.templateIRIsChecked ?? true,
+    minimal: conversion.minimalModeChecked ?? true,
   };
 }
 

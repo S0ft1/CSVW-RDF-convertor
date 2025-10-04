@@ -9,6 +9,7 @@ import {
 } from './file-utils.js';
 import { createInputFilesFromDescriptor } from './command-handlers.js';
 import { getOutputFileExtension } from './conversion-logic.js';
+import { serializationLabels } from '@csvw-rdf-convertor/core';
 
 /**
  * Tree data provider for the CSVW Actions view in VS Code.
@@ -139,8 +140,9 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         `${element.id}:Close Fields`,
         `${element.id}:Convert CSVW 🡢 RDF`,
         `${element.id}:Convert RDF 🡢 CSVW`,
-        `${element.id}:Add another input`,
         `${element.id}:Validate`,
+        `${element.id}:Add another input`,
+        `${element.id}:Output RDF Serialization`,
         `${element.id}:Template IRIs`,
         `${element.id}:Minimal Mode`,
       ];
@@ -207,14 +209,6 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         };
         item.iconPath = new vscode.ThemeIcon('arrow-left');
         break;
-      case 'Add another input':
-        item.command = {
-          command: 'csvwrdfconvertor.addAnotherInput',
-          title: 'Add another input',
-          arguments: [conversionId],
-        };
-        item.iconPath = new vscode.ThemeIcon('add');
-        break;
       case 'Validate':
         item.command = {
           command: 'csvwrdfconvertor.validateSpecific',
@@ -223,9 +217,29 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         };
         item.iconPath = new vscode.ThemeIcon('check');
         break;
+      case 'Add another input':
+        item.command = {
+          command: 'csvwrdfconvertor.addAnotherInput',
+          title: 'Add another input',
+          arguments: [conversionId],
+        };
+        item.iconPath = new vscode.ThemeIcon('new-file');
+        break;
+      case 'Output RDF Serialization': {
+        const conversion = this.getConversion(conversionId);
+        const selectedRdfSerialization = conversion?.rdfSerialization ?? 'turtle';
+        item.command = {
+          command: 'csvwrdfconvertor.selectRdfSerialization',
+          title: 'Output RDF Serialization',
+          arguments: [conversionId],
+        };
+        item.iconPath = new vscode.ThemeIcon('file-code');
+        item.label = `RDF Serialization: ${serializationLabels[selectedRdfSerialization]}`;
+        break;
+      }
       case 'Template IRIs': {
         const conversion = this.getConversion(conversionId);
-        const templateIRIsChecked = conversion?.templateIRIsChecked ?? false;
+        const templateIRIsChecked = conversion?.templateIRIsChecked ?? true;
         item.command = {
           command: 'csvwrdfconvertor.toggleTemplateIRIs',
           title: 'Toggle Template IRIs',
@@ -245,7 +259,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
       }
       case 'Minimal Mode': {
         const conv = this.getConversion(conversionId);
-        const minimalModeChecked = conv?.minimalModeChecked ?? false;
+        const minimalModeChecked = conv?.minimalModeChecked ?? true;
         item.command = {
           command: 'csvwrdfconvertor.toggleMinimalMode',
           title: 'Toggle Minimal Mode',

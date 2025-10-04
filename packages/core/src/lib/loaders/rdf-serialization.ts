@@ -25,6 +25,15 @@ export const fileExtensions: Record<RDFSerialization, string> = {
   turtle: 'ttl',
 };
 
+export const serializationLabels: Record<RDFSerialization, string> = {
+  jsonld: 'JSON-LD',
+  nquads: 'N-Quads',
+  ntriples: 'N-Triples',
+  rdfxml: 'RDF/XML',
+  trig: 'TriG',
+  turtle: 'Turtle',
+}
+
 export type RDFSerialization =
   | 'jsonld'
   | 'nquads'

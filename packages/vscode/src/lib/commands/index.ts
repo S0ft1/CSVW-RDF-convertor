@@ -6,6 +6,7 @@ export { registerConvertRdfToCsvw } from './convert-rdf-to-csvw.js';
 export { registerValidateSpecific } from './validate-specific.js';
 export { registerAddAnotherInput } from './add-another-input.js';
 export { registerDeleteConversion } from './delete-conversion.js';
+export { registerSelectRdfSerialization } from './select-rdf-serialization.js';
 export { registerToggleTemplateIRIs } from './toggle-template-iris.js';
 export { registerToggleMinimalMode } from './toggle-minimal-mode.js';
 export { registerClearRedUnderlines } from './clear-red-underlines.js';

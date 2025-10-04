@@ -13,7 +13,7 @@ export enum ConversionType {
  */
 export interface MiniOptions {
   /** Output RDF Serialization */
-  format: RDFSerialization;
+  rdfSerialization: RDFSerialization;
   /** Whether to use template IRIs in the conversion */
   templateIris: boolean;
   /** Whether to use minimal mode for reduced output */
