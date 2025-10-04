@@ -47,7 +47,7 @@ Each conversion creates a folder structure in your workspace:
 ```
 csvw-rdf-conversions/
 └── YourConversionName/
-    ├── descriptor.jsonld    # CSVW metadata descriptor
+    ├── descriptor.json      # CSVW metadata descriptor
     ├── inputs/
     │   ├── csvInput.csv     # Primary CSV data
     │   ├── rdfInput.ttl     # RDF input for reverse conversion
@@ -122,7 +122,7 @@ new file with this name is created, but sometimes the old one doesn't close.
 
 ## 📖 Working with CSVW Descriptors
 
-The `descriptor.jsonld` file is the heart of CSVW conversion. 
+The `descriptor.json` file is the heart of CSVW conversion. 
 Read about it here: https://www.w3.org/ns/csvw
 
 ## 🔧 Configuration Options

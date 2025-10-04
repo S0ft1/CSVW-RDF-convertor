@@ -20,14 +20,19 @@ import { RDFSerialization } from '@csvw-rdf-convertor/core';
 async function getConversionOptions(
   conversion: ConversionItem,
 ): Promise<MiniOptions> {
+  let format: RDFSerialization;
+  
+  const selectedFormat = await vscode.window.showQuickPick([
+    'turtle',
+    'ntriples',
+    'nquads',
+    'trig',
+    'jsonld',
+  ]);
+  format = (selectedFormat ?? 'turtle') as RDFSerialization;
+  conversion.rdfSerialization = format;
   return {
-    format: ((await vscode.window.showQuickPick([
-      'turtle',
-      'ntriples',
-      'nquads',
-      'trig',
-      'jsonld',
-    ])) ?? 'turtle') as RDFSerialization,
+    format: format,
     templateIris: conversion.templateIRIsChecked || false,
     minimal: conversion.minimalModeChecked || false,
   };

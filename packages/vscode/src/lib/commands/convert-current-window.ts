@@ -7,6 +7,15 @@ import { openFieldsForConversion, sanitizeFolderName } from '../command-handlers
 import type { ConversionItem } from '../types.js';
 
 /**
+ * Enumeration of supported file types for conversion recognition.
+ */
+enum FileType {
+	CSV = 'CSV',
+	RDF = 'RDF',
+	DESCRIPTOR = 'DESCRIPTOR'
+}
+
+/**
  * Validates that there is an active editor with content available for conversion.
  * Checks for both editor availability and non-empty content.
  * @returns Object containing the active editor and content, or null if validation fails
@@ -107,83 +116,159 @@ async function findAssociatedMetadata(filePath: string): Promise<string | null> 
  * Creates the descriptor file based on file type and metadata availability.
  * For CSV files, attempts to use associated metadata or falls back to default descriptor.
  * For RDF files, creates an empty descriptor that will be populated during conversion.
+ * For DESCRIPTOR files, copies the original content to the descriptor file.
  * @param conversion - The conversion item to update with descriptor file path
  * @param conversionDir - The main conversion directory URI
- * @param isRdf - True if the source file is an RDF file, false for CSV files
+ * @param fileType - The type of the source file
  * @param filePath - The path to the source file for metadata lookup
+ * @param originalContent - The original content from the editor (used for DESCRIPTOR files)
+ * @param baseName - The base name of the original file (without extension)
  * @returns Promise that resolves when the descriptor file has been created
  */
 async function createDescriptorFile(
 	conversion: ConversionItem,
 	conversionDir: vscode.Uri,
-	isRdf: boolean,
+	fileType: FileType,
 	filePath: string,
+	originalContent?: string,
 	baseName?: string
 ): Promise<void> {
-	const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.jsonld');
+	const descriptorPath = vscode.Uri.joinPath(conversionDir, 'descriptor.json');
 	conversion.descriptorFilePath = descriptorPath.fsPath;
 
-	if (isRdf) {
+	if (fileType === FileType.RDF) {
 		await ensureFileExists(descriptorPath, "");
-	} else {
+	} else if (fileType === FileType.CSV) {
 		const foundMetadata = await findAssociatedMetadata(filePath);
 		const tableUrl = baseName ? `${baseName}.csv` : "csvInput.csv";
 		const descriptorContent = foundMetadata ?? getDefaultDescriptorContent(tableUrl);
 		await ensureFileExists(descriptorPath, descriptorContent);
+	} else if (fileType === FileType.DESCRIPTOR && originalContent) {
+		await copyDescriptorContent(descriptorPath, originalContent);
 	}
 }
 
 /**
  * Creates input files based on the content type and original file content.
- * Delegates to specialized functions based on whether the source is RDF or CSV.
+ * Delegates to specialized functions based on the file type.
  * @param conversion - The conversion item to update with input file paths
  * @param inputsDir - The inputs directory URI where files will be created
- * @param isRdf - True if the source file is an RDF file, false for CSV files
+ * @param fileType - The type of the source file
  * @param originalContent - The original content from the active editor
  * @param baseName - The base name of the original file (without extension)
+ * @param originalFileName - The full original filename (for preserving RDF extensions)
  * @returns Promise that resolves when all input files have been created
  */
 async function createInputFiles(
 	conversion: ConversionItem,
 	inputsDir: vscode.Uri,
-	isRdf: boolean,
+	fileType: FileType,
 	originalContent: string,
-	baseName: string
+	baseName: string,
+	originalFileName?: string
 ): Promise<void> {
-	if (isRdf) {
-		await createInputFilesForRDF(inputsDir, originalContent, conversion);
-	} else {
+	if (fileType === FileType.RDF) {
+		await createInputFilesForRDF(inputsDir, originalContent, conversion, originalFileName);
+	} else if (fileType === FileType.CSV) {
 		await createInputFilesForCSVW(inputsDir, originalContent, baseName, conversion);
+	} else if (fileType === FileType.DESCRIPTOR) {
+		await createDefaultInputFiles(inputsDir, conversion);
 	}
 }
 
 /**
- * Determines if the file is an RDF file based on its extension.
- * Uses file extension analysis to classify files as RDF or CSV.
+ * Recognizes the file type based on its extension.
+ * Classifies files as CSV, RDF, or DESCRIPTOR based on their file extensions.
  * @param fileName - The file name or path to analyze
- * @returns True if the file is considered an RDF file (not .csv), false for CSV files
+ * @returns FileType enum value indicating the recognized file type
  */
-function isRdfFile(fileName: string): boolean {
+function recognizeFile(fileName: string): FileType {
 	const fileExtension = path.extname(fileName).toLowerCase();
-	return fileExtension !== '.csv';
+	
+	if (fileExtension === '.csv') {
+		return FileType.CSV;
+	}
+	
+	if (['.json', '.jsonld'].includes(fileExtension)) {
+		return FileType.DESCRIPTOR;
+	}
+	
+	if (['.nq', '.trig', '.rdf', '.ttl', '.nt'].includes(fileExtension)) {
+		return FileType.RDF;
+	}
+	
+	return FileType.RDF;
+}
+
+/**
+ * Creates default CSV input file for conversions.
+ * @param inputsDir - The inputs directory URI where files will be created
+ * @param conversion - The conversion item to update with file paths
+ * @returns Promise that resolves when the CSV input file has been created
+ */
+async function createDefaultCsvInputFile(inputsDir: vscode.Uri, conversion: ConversionItem): Promise<void> {
+	const csvInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
+	await ensureFileExists(csvInputPath, getDefaultInputContent());
+	conversion.inputFilePath = csvInputPath.fsPath;
+}
+
+/**
+ * Creates default RDF input file for conversions.
+ * @param inputsDir - The inputs directory URI where files will be created
+ * @param conversion - The conversion item to update with file paths
+ * @returns Promise that resolves when the RDF input file has been created
+ */
+async function createDefaultRdfInputFile(inputsDir: vscode.Uri, conversion: ConversionItem): Promise<void> {
+	const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
+	await ensureFileExists(rdfInputPath, getDefaultRdfInputContent());
+	conversion.rdfInputFilePath = rdfInputPath.fsPath;
+}
+
+/**
+ * Creates default input files for descriptor conversions.
+ * Creates both default CSV and RDF input files.
+ * @param inputsDir - The inputs directory URI where files will be created
+ * @param conversion - The conversion item to update with file paths
+ * @returns Promise that resolves when both input files have been created
+ */
+async function createDefaultInputFiles(inputsDir: vscode.Uri, conversion: ConversionItem): Promise<void> {
+	await createDefaultCsvInputFile(inputsDir, conversion);
+	await createDefaultRdfInputFile(inputsDir, conversion);
+}
+
+/**
+ * Copies descriptor content to the descriptor.json file.
+ * @param descriptorPath - The path to the descriptor file
+ * @param descriptorContent - The descriptor content to copy
+ * @returns Promise that resolves when the file has been written
+ */
+async function copyDescriptorContent(descriptorPath: vscode.Uri, descriptorContent: string): Promise<void> {
+	await vscode.workspace.fs.writeFile(descriptorPath, new TextEncoder().encode(descriptorContent));
 }
 
 /**
  * Creates input files specifically for RDF file conversions.
- * Sets up the rdfInput.ttl file with the original RDF content and creates a default CSV input file.
+ * Sets up the RDF input file with the original content preserving the file extension and creates a default CSV input file.
  * @param inputsDir - The inputs directory URI where files will be created
  * @param originalContent - The original RDF content from the active editor
  * @param conversion - The conversion item to update with file paths
+ * @param originalFileName - The original filename to preserve the extension
  * @returns Promise that resolves when both input files have been created
  */
-async function createInputFilesForRDF(inputsDir: vscode.Uri, originalContent: string, conversion: ConversionItem): Promise<void> {
-	const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
+async function createInputFilesForRDF(inputsDir: vscode.Uri, originalContent: string, conversion: ConversionItem, originalFileName?: string): Promise<void> {
+	let rdfFileName = 'rdfInput.ttl';
+	
+	if (originalFileName) {
+		const extension = path.extname(originalFileName);
+		const baseName = path.basename(originalFileName, extension);
+		rdfFileName = `${baseName}${extension}`;
+	}
+	
+	const rdfInputPath = vscode.Uri.joinPath(inputsDir, rdfFileName);
 	await vscode.workspace.fs.writeFile(rdfInputPath, new TextEncoder().encode(originalContent));
 	conversion.rdfInputFilePath = rdfInputPath.fsPath;
 
-	const csvInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
-	await ensureFileExists(csvInputPath, getDefaultInputContent());
-	conversion.inputFilePath = csvInputPath.fsPath;
+	await createDefaultCsvInputFile(inputsDir, conversion);
 }
 
 /**
@@ -199,12 +284,9 @@ async function createInputFilesForCSVW(inputsDir: vscode.Uri, originalContent: s
 	const csvInputPath = vscode.Uri.joinPath(inputsDir, baseName + ".csv");
 	await vscode.workspace.fs.writeFile(csvInputPath, new TextEncoder().encode(originalContent));
 	conversion.inputFilePath = csvInputPath.fsPath;
-	const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
-	await ensureFileExists(rdfInputPath, getDefaultRdfInputContent());
-	conversion.rdfInputFilePath = rdfInputPath.fsPath;
-}
-
-/**
+	
+	await createDefaultRdfInputFile(inputsDir, conversion);
+}/**
  * Creates a conversion from the currently active window/file.
  * Supports both CSV and RDF file types with automatic metadata detection for CSV files.
  * @param csvwActionsProvider - The tree data provider managing conversions
@@ -228,15 +310,16 @@ export function registerConvertCurrentWindow(csvwActionsProvider: CSVWActionsPro
 				const conversion = csvwActionsProvider.addConversion(conversionName);
 				const { conversionDir, inputsDir } = await createConversionDirectories(conversion);
 
-				const isRdf = isRdfFile(fileName);
-				const baseName = fileName.split(/[/\\]/).pop()?.replace(/\.[^/.]+$/, "") || "CurrentWindow";
+				const fileType = recognizeFile(fileName);
+				const originalFileName = fileName.split(/[/\\]/).pop() || "CurrentWindow";
+				const baseName = originalFileName.replace(/\.[^/.]+$/, "") || "CurrentWindow";
 
-				await createInputFiles(conversion, inputsDir, isRdf, content, baseName);
-				await createDescriptorFile(conversion, conversionDir, isRdf, editor.document.uri.path, baseName);
+				await createInputFiles(conversion, inputsDir, fileType, content, baseName, originalFileName);
+				await createDescriptorFile(conversion, conversionDir, fileType, editor.document.uri.path, content, baseName);
 				await openFieldsForConversion(conversion);
 
-				const fileType = isRdf ? 'RDF' : 'CSV';
-				vscode.window.showInformationMessage(`✅ Created conversion "${conversion.name}" from ${fileType} file!`);
+				const fileTypeStr = fileType === FileType.RDF ? 'RDF' : fileType === FileType.CSV ? 'CSV' : 'DESCRIPTOR';
+				vscode.window.showInformationMessage(`✅ Created conversion "${conversion.name}" from ${fileTypeStr} file!`);
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : 'Unknown conversion error';
 				vscode.window.showErrorMessage(`❌ Failed to create conversion: ${errorMessage}`);

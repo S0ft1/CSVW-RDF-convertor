@@ -150,7 +150,7 @@
       "editor/title": [
         {
           "command": "csvwrdfconvertor.convertCurrentWindow",
-          "when": "resourceExtname == .csv || resourceExtname == .rdf || resourceExtname == .ttl || resourceExtname == .jsonld",
+          "when": "resourceExtname == .csv || resourceExtname == .rdf || resourceExtname == .ttl || resourceExtname == .jsonld || resourceExtname == .json || resourceExtname == .nt || resourceExtname == .nq ||resourceExtname == .trig",
           "group": "navigation"
         }
       ],

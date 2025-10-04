@@ -117,13 +117,13 @@ export async function handleConversionError(
 /**
  * Ensures required file paths are set for a conversion with default values
  * @param conversion - The conversion item to update
- * @param descriptorFileName - Default descriptor filename (defaults to 'descriptor.jsonld')
+ * @param descriptorFileName - Default descriptor filename (defaults to 'descriptor.json')
  * @param inputFileName - Default input filename (defaults to 'csvInput.csv')
  * @param rdfInputFileName - Default RDF input filename (defaults to 'rdfInput.ttl')
  */
 export function ensureConversionPaths(
   conversion: ConversionItem,
-  descriptorFileName = 'descriptor.jsonld',
+  descriptorFileName = 'descriptor.json',
   inputFileName = 'csvInput.csv',
   rdfInputFileName = 'rdfInput.ttl',
 ): void {

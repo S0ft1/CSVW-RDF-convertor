@@ -15,11 +15,8 @@ function collectAllFilePaths(conversion: any): string[] {
 		pathsToClose.push(conversion.outputFilePath);
 	}
 
-	if (conversion.folderPath) {
-		const rdfInputPath = vscode.Uri.joinPath(vscode.Uri.file(conversion.folderPath), 'inputs', 'rdfInput.ttl');
-		if (!pathsToClose.includes(rdfInputPath.fsPath)) {
-			pathsToClose.push(rdfInputPath.fsPath);
-		}
+	if (conversion.rdfInputFilePath && !pathsToClose.includes(conversion.rdfInputFilePath)) {
+		pathsToClose.push(conversion.rdfInputFilePath);
 	}
 
 	return pathsToClose;

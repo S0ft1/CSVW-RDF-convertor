@@ -85,7 +85,7 @@ All user interactions are handled through VS Code commands.
 ```
 csvw-rdf-conversions/
 └── YourConversionName/
-    ├── descriptor.jsonld    # CSVW metadata descriptor
+    ├── descriptor.json      # CSVW metadata descriptor
     ├── inputs/
     │   ├── csvInput.csv     # Primary CSV data
     │   ├── rdfInput.ttl     # RDF input for reverse conversion

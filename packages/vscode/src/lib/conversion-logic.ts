@@ -18,6 +18,38 @@ import fs from 'node:fs';
 import * as path from 'path';
 import { Quad, Stream } from '@rdfjs/types';
 import { resolveJson, resolveText, resolveTextStream } from './resolvers.js';
+import { RDFSerialization } from '@csvw-rdf-convertor/core';
+
+/**
+ * Gets the appropriate file extension for a conversion's output file based on saved RDF serialization preference.
+ * @param conversion - The conversion item which may have a saved RDF serialization format
+ * @returns The appropriate file extension, defaulting to '.ttl' if no preference is saved
+ */
+export function getOutputFileExtension(conversion: ConversionItem): string {
+  if (conversion.rdfSerialization) {
+    return getRdfFileExtension(conversion.rdfSerialization);
+  }
+  return '.ttl'; // Default to turtle format
+}
+
+/**
+ * Maps RDF serialization formats to their corresponding file extensions.
+ * @param format - The RDF serialization format
+ * @returns The appropriate file extension for the format
+ */
+function getRdfFileExtension(format: RDFSerialization): string {
+  const extensionMap: Record<RDFSerialization, string> = {
+    'turtle': '.ttl',
+    'ntriples': '.nt', 
+    'nquads': '.nq',
+    'trig': '.trig',
+    'jsonld': '.jsonld',
+    'rdfxml': '.rdf'
+  };
+  
+  return extensionMap[format] || '.ttl';
+}
+
 /**
  * Converts RDF data to CSVW format using CSVW metadata.
  * @param descriptorText - The CSVW metadata descriptor content.
@@ -111,8 +143,9 @@ export async function convertCSVW2RDF(
   const csvw2RdfOptions: Csvw2RdfOptions = getCSVWOptions(options, inputsDir);
   try {
     const outputsDir = path.join(conversion.folderPath, 'outputs');
-    const outputTtlPath = resolve(outputsDir, 'output.ttl');
-    conversion.outputFilePath = outputTtlPath;
+    const fileExtension = getRdfFileExtension(options.format);
+    const outputFilePath = resolve(outputsDir, `output${fileExtension}`);
+    conversion.outputFilePath = outputFilePath;
     if (conversion.descriptorFilePath && conversion.outputFilePath) {
       const rdfStream: Stream<Quad> = csvwDescriptorToRdf(
         descriptorText,

@@ -40,6 +40,7 @@ export interface ConversionItem {
   additionalInputFilePaths?: string[];
   templateIRIsChecked?: boolean;
   minimalModeChecked?: boolean;
+  rdfSerialization?: RDFSerialization;
   errorFilePath?: string;
   lastConversionType?: ConversionType;
   lastShownOutputFiles?: string[];

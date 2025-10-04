@@ -8,6 +8,7 @@ import {
   getDefaultRdfInputContent,
 } from './file-utils.js';
 import { createInputFilesFromDescriptor } from './command-handlers.js';
+import { getOutputFileExtension } from './conversion-logic.js';
 
 /**
  * Tree data provider for the CSVW Actions view in VS Code.
@@ -318,7 +319,7 @@ async function setupDescriptorFile(
 ): Promise<string> {
   const descriptorPath = vscode.Uri.joinPath(
     conversionDir,
-    'descriptor.jsonld',
+    'descriptor.json',
   );
   conversion.descriptorFilePath = descriptorPath.fsPath;
 
@@ -354,9 +355,11 @@ async function createConversionInputFiles(
     conversion.inputFilePath = fallbackInputPath.fsPath;
   }
 
-  const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
-  await ensureFileExists(rdfInputPath, getDefaultRdfInputContent());
-  conversion.rdfInputFilePath = rdfInputPath.fsPath;
+  if (!conversion.rdfInputFilePath) {
+    const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
+    await ensureFileExists(rdfInputPath, getDefaultRdfInputContent());
+    conversion.rdfInputFilePath = rdfInputPath.fsPath;
+  }
 }
 
 /**
@@ -371,7 +374,8 @@ async function setupOutputFiles(
   conversion: ConversionItem,
   conversionName: string,
 ): Promise<void> {
-  const outputPath = vscode.Uri.joinPath(outputsDir, 'output.ttl');
+  const fileExtension = getOutputFileExtension(conversion);
+  const outputPath = vscode.Uri.joinPath(outputsDir, `output${fileExtension}`);
   conversion.outputFilePath = outputPath.fsPath;
   await ensureFileExists(outputPath, getDefaultOutputContent(conversionName));
 }
