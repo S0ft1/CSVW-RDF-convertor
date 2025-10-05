@@ -22,12 +22,9 @@ export interface ConversionItem {
   outputFilePath?: string;
   outputFilePaths?: string[];
   additionalInputFilePaths?: string[];
-  rdfSerialization?: RDFSerialization;
-  templateIRIs?: boolean;
-  minimalMode?: boolean;
-  errorFilePath?: string;
-  lastConversionType?: ConversionType;
-  lastShownOutputFiles?: string[];
+  rdfSerialization: RDFSerialization;
+  templateIRIs: boolean;
+  minimalMode: boolean;
 }
 
 /**

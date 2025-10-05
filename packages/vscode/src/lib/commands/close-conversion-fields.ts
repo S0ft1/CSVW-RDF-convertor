@@ -9,7 +9,6 @@ import { collectInputFilePaths, collectOutputFilePaths, findTabsToClose } from '
  */
 function clearConversionState(conversion: ConversionItem): void {
 	conversion.additionalInputFilePaths = [];
-	conversion.errorFilePath = undefined;
 	conversion.outputFilePath = undefined;
 	conversion.outputFilePaths = undefined;
 }

@@ -120,9 +120,6 @@ function updateConversionOutputs(
     conversion.outputFilePath = filteredOutputPaths[0];
   }
 
-  conversion.errorFilePath = undefined;
-  conversion.lastShownOutputFiles = [...filteredOutputPaths];
-
   return filteredOutputPaths;
 }
 
@@ -192,7 +189,6 @@ async function handleConversionError(
       vscode.ViewColumn.Three,
     );
 
-    conversion.errorFilePath = errorPath.fsPath;
   } catch {
     const conversionDirection = isRdfToCSVW ? 'RDF→CSVW' : 'CSVW→RDF';
     vscode.window.showErrorMessage(

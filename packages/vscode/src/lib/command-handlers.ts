@@ -529,11 +529,11 @@ async function openExistingOutputFiles(
  * @returns True if files were successfully opened, false otherwise
  */
 async function tryOpenLastShownOutputFiles(conversion: ConversionItem): Promise<boolean> {
-  if (!conversion.lastShownOutputFiles || conversion.lastShownOutputFiles.length === 0) {
+  if (!conversion.outputFilePaths || conversion.outputFilePaths.length === 0) {
     return false;
   }
 
-  for (const outputFilePath of conversion.lastShownOutputFiles) {
+  for (const outputFilePath of conversion.outputFilePaths) {
     try {
       await vscode.workspace.fs.stat(vscode.Uri.file(outputFilePath));
       const outputDocument = await vscode.workspace.openTextDocument(outputFilePath);

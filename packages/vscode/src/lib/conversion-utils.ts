@@ -63,8 +63,6 @@ export function updateConversionState(
   if (outputFilePaths.length === 1) {
     conversion.outputFilePath = outputFilePaths[0];
   }
-  conversion.errorFilePath = undefined;
-  conversion.lastShownOutputFiles = [...outputFilePaths];
 }
 
 /**
@@ -103,10 +101,8 @@ export async function handleConversionError(
       vscode.ViewColumn.Three,
     );
 
-    conversion.errorFilePath = errorPath.fsPath;
     conversion.outputFilePath = undefined;
     conversion.outputFilePaths = undefined;
-    conversion.lastShownOutputFiles = [errorPath.fsPath];
   } catch {
     vscode.window.showErrorMessage(
       `❌ ${conversionDirection} conversion failed: ${error instanceof Error ? error.message : String(error)}`,
