@@ -184,10 +184,4 @@ Full API documentation is available online: https://s0ft1.github.io/CSVW-RDF-con
 
 ---
 
-## 🏷️ Version Information
-
-**Extension Version**: 1.0.0
-
----
-
 *Happy converting! 🎉*
