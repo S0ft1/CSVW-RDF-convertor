@@ -408,6 +408,7 @@ async function createConversionDirectories(directories: {
     await vscode.workspace.fs.createDirectory(directories.inputsDir);
     await vscode.workspace.fs.createDirectory(directories.outputsDir);
   } catch {
+    // Directory already exists
   }
 }
 

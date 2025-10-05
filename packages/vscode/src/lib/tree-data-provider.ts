@@ -185,7 +185,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
           title: 'Open Fields',
           arguments: [conversionId],
         };
-        item.iconPath = new vscode.ThemeIcon('split-horizontal');
+        item.iconPath = new vscode.ThemeIcon('chrome-restore');
         break;
       case 'Close Fields':
         item.command = {
@@ -236,7 +236,9 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
           arguments: [conversionId],
         };
         item.iconPath = new vscode.ThemeIcon('file-code');
-        item.label = `RDF Serialization: ${serializationLabels[selectedRdfSerialization]}`;
+        item.label = 'RDF Serialization:';
+        item.description = `${serializationLabels[selectedRdfSerialization]} ⌵`;
+        item.tooltip = `RDF Serialization: ${serializationLabels[selectedRdfSerialization]}`;
         break;
       }
       case 'Template IRIs': {
