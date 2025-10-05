@@ -46,8 +46,8 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
       folderPath: '',
       inputFilePath: '',
       rdfInputFilePath: '',
-      templateIRIsChecked: true,
-      minimalModeChecked: true,
+      templateIRIs: true,
+      minimalMode: true,
     };
     this.conversions.push(conversion);
     this.conversionCounter++;
@@ -243,7 +243,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
       }
       case 'Template IRIs': {
         const conversion = this.getConversion(conversionId);
-        const templateIRIsChecked = conversion?.templateIRIsChecked ?? false;
+        const templateIRIsChecked = conversion?.templateIRIs ?? false;
         item.command = {
           command: 'csvwrdfconvertor.toggleTemplateIRIs',
           title: 'Toggle Template IRIs',
@@ -263,7 +263,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
       }
       case 'Minimal Mode': {
         const conv = this.getConversion(conversionId);
-        const minimalModeChecked = conv?.minimalModeChecked ?? false;
+        const minimalModeChecked = conv?.minimalMode ?? false;
         item.command = {
           command: 'csvwrdfconvertor.toggleMinimalMode',
           title: 'Toggle Minimal Mode',

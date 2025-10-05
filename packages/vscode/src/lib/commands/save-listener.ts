@@ -92,12 +92,8 @@ async function performConversion(
       conversion,
     );
   } else {
-    const rdfSerialization = conversion.rdfSerialization || 'turtle';
-    const templateIRIs = conversion.templateIRIsChecked || false;
-    const minimalMode = conversion.minimalModeChecked || false;
     return await convertCSVW2RDF(
       descriptorContent,
-      { rdfSerialization: rdfSerialization, templateIris: templateIRIs, minimal: minimalMode },
       conversion,
     );
   }

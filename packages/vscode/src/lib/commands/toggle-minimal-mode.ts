@@ -16,7 +16,7 @@ export function registerToggleMinimalMode(csvwActionsProvider: CSVWActionsProvid
 				return;
 			}
 
-			conversion.minimalModeChecked = !conversion.minimalModeChecked;
+			conversion.minimalMode = !conversion.minimalMode;
 			csvwActionsProvider.refresh();
 		}
 	);

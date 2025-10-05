@@ -10,7 +10,7 @@ import {
   serializeRdf,
 } from '@csvw-rdf-convertor/core';
 import { Csvw2RdfOptions } from '@csvw-rdf-convertor/core';
-import { ConversionItem, MiniOptions } from './types.js';
+import { ConversionItem } from './types.js';
 import { resolve } from 'node:path';
 import * as csv from 'csv';
 import { Readable } from 'node:stream';
@@ -130,20 +130,19 @@ export async function convertRDF2CSVW(
 /**
  * Converts CSV data to RDF format using CSVW metadata and specified options.
  * @param descriptorText - The CSVW metadata descriptor content.
- * @param options - Conversion options including template IRIs and minimal mode settings.
  * @param conversion - The conversion object containing file paths and additional context.
  * @returns Promise resolving to array containing the output file path.
  */
 export async function convertCSVW2RDF(
   descriptorText: string,
-  options: MiniOptions,
   conversion: ConversionItem,
 ): Promise<string[]> {
+  conversion.rdfSerialization ??= 'turtle';
   const inputsDir = path.join(conversion.folderPath, 'inputs');
-  const csvw2RdfOptions: Csvw2RdfOptions = getCSVWOptions(options, inputsDir);
+  const csvw2RdfOptions: Csvw2RdfOptions = getCSVWOptions(conversion, inputsDir);
   try {
     const outputsDir = path.join(conversion.folderPath, 'outputs');
-    const fileExtension = getRdfFileExtension(options.rdfSerialization);
+    const fileExtension = getRdfFileExtension(conversion.rdfSerialization);
     const outputFilePath = resolve(outputsDir, `output${fileExtension}`);
     conversion.outputFilePath = outputFilePath;
     if (conversion.descriptorFilePath && conversion.outputFilePath) {
@@ -152,7 +151,7 @@ export async function convertCSVW2RDF(
         csvw2RdfOptions,
       );
       const result = await serializeRdf(rdfStream, {
-        format: options.rdfSerialization,
+        format: conversion.rdfSerialization,
         turtle: { streaming: false },
       });
       const typedResult = result as Readable;
@@ -214,12 +213,12 @@ export async function findMetadata(csvUrl: string): Promise<string | null> {
 }
 
 export function getCSVWOptions(
-  optionsFromVS: MiniOptions,
+  conversion: ConversionItem,
   inputsDirPath: string,
 ): Csvw2RdfOptions {
   return {
-    templateIris: optionsFromVS.templateIris,
-    minimal: optionsFromVS.minimal,
+    templateIris: conversion.templateIRIs,
+    minimal: conversion.minimalMode,
     baseIri: inputsDirPath,
     resolveJsonldFn: resolveJson,
     resolveWkfFn: resolveText,

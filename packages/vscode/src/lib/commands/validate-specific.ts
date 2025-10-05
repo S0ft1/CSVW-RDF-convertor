@@ -28,7 +28,7 @@ async function validateDocument(conversion: ConversionItem) {
   }
   const inputsDir = path.join(conversion.folderPath, 'inputs');
   const csvw2RdfOptions: Csvw2RdfOptions = getCSVWOptions(
-    { minimal: false, templateIris: false },
+    conversion,
     inputsDir,
   );
   clearRedUnderlines(descriptorEditor);

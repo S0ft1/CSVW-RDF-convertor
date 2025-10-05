@@ -16,7 +16,7 @@ export function registerToggleTemplateIRIs(csvwActionsProvider: CSVWActionsProvi
 				return;
 			}
 
-			conversion.templateIRIsChecked = !conversion.templateIRIsChecked;
+			conversion.templateIRIs = !conversion.templateIRIs;
 			csvwActionsProvider.refresh();
 		}
 	);

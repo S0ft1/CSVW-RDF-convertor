@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
 import { convertCSVW2RDF } from '../conversion-logic.js';
-import { ConversionItem, MiniOptions } from '../types.js';
+import { ConversionItem } from '../types.js';
 import {
   validateConversionExists,
   ensureConversionPaths,
@@ -10,21 +10,6 @@ import {
   openOutputFiles,
   handleConversionError,
 } from '../conversion-utils.js';
-
-/**
- * Gets the conversion options from the conversion item
- * @param conversion - The conversion item containing template and minimal mode settings
- * @returns Object with templateIris and minimal boolean flags
- */
-async function getConversionOptions(
-  conversion: ConversionItem,
-): Promise<MiniOptions> {
-  return {
-    rdfSerialization: conversion.rdfSerialization ?? 'turtle',
-    templateIris: conversion.templateIRIsChecked ?? false,
-    minimal: conversion.minimalModeChecked ?? false,
-  };
-}
 
 /**
  * Performs the CSVW to RDF conversion process
@@ -36,11 +21,9 @@ async function performCsvwToRdfConversion(
   ensureConversionPaths(conversion);
 
   const descriptorContent = await readDescriptorContent(conversion);
-  const conversionOptions = await getConversionOptions(conversion);
 
   const outputFilePaths = await convertCSVW2RDF(
     descriptorContent,
-    conversionOptions,
     conversion,
   );
 
