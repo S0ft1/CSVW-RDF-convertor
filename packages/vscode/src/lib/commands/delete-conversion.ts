@@ -41,7 +41,7 @@ export function registerDeleteConversion(csvwActionsProvider: CSVWActionsProvide
 			}
 
 			const choice = await vscode.window.showWarningMessage(
-				`⚠️ Are you sure you want to delete the conversion "${conversion.name}"?\n\nThis will permanently delete all files and cannot be undone.`,
+				`Are you sure you want to delete the conversion "${conversion.name}"?\n\nThis will permanently delete all files and cannot be undone.`,
 				{ modal: true },
 				'Delete Conversion'
 			);

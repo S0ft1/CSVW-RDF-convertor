@@ -50,7 +50,6 @@
   "dependencies": {
     "@swc/helpers": "~0.5.11",
     "@csvw-rdf-convertor/core": "1.0.1",
-    "n3": "^1.23.1",
     "csv": "^6.3.11",
     "@rdfjs/types": "^2.0.1"
   },
@@ -141,8 +140,9 @@
       "csvw-rdf-convertor": [
         {
           "id": "csvw-rdf-actions",
-          "name": "Actions",
-          "type": "tree"
+          "name": "Conversions list",
+          "type": "tree",
+          "icon": "resources/favicon.svg"
         }
       ]
     },
