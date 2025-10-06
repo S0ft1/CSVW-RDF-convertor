@@ -191,9 +191,9 @@ export async function findMetadata(csvUrl: string): Promise<string | null> {
   try {
     const dirUri = vscode.Uri.file(csvDir);
     const files = await vscode.workspace.fs.readDirectory(dirUri);
-
+    const fileName = path.basename(csvUrl);
     let csvMetadataFile = files.find(
-      ([name]) => name === `${csvUrl}-metadata.json`,
+      ([name]) => name === `${fileName}-metadata.json`,
     );
     if (csvMetadataFile) {
       return path.join(csvDir, csvMetadataFile[0]);
@@ -203,7 +203,7 @@ export async function findMetadata(csvUrl: string): Promise<string | null> {
     if (csvMetadataFile) {
       return path.join(csvDir, csvMetadataFile[0]);
     }
-
+    
     return null;
   } catch (error) {
     throw new Error(
