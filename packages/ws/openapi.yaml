@@ -123,10 +123,11 @@ paths:
         '200':
           description: Successful operation.
           content:
-            application/rdf+xml: {}
-            text/turtle: {}
-            text/n3: {}
+            application/ld+json: {}
+            application/n-quads: {}
             application/n-triples: {}
+            application/trig: {}
+            application/turtle: {}
   /rdf2csvw:
     post:
       description: Convert RDF to CSVW
