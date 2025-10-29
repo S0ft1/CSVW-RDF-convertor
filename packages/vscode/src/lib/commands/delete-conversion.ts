@@ -1,26 +1,8 @@
 import * as vscode from 'vscode';
 import type { CSVWActionsProvider } from '../tree-data-provider.js';
-import { collectInputFilePaths, closeTabsForPaths } from '../conversion-file-utils.js';
+import { ConversionItem } from '../types.js';
 
-/**
- * Collects all file paths that need to be closed before deletion.
- * Includes input files, output files, and ensures rdfInput.ttl is included.
- * @param conversion - The conversion item to collect paths for
- * @returns Array of file paths to close
- */
-function collectAllFilePaths(conversion: any): string[] {
-	const pathsToClose = collectInputFilePaths(conversion);
-
-	if (conversion.outputFilePath) {
-		pathsToClose.push(conversion.outputFilePath);
-	}
-
-	if (conversion.rdfInputFilePath && !pathsToClose.includes(conversion.rdfInputFilePath)) {
-		pathsToClose.push(conversion.rdfInputFilePath);
-	}
-
-	return pathsToClose;
-}
+export const DELETE_CONVERSION_COMMAND = 'csvwrdfconvertor.deleteConversion';
 
 /**
  * Deletes a conversion and all its associated files.
@@ -28,45 +10,27 @@ function collectAllFilePaths(conversion: any): string[] {
  * @param csvwActionsProvider - The tree data provider for conversions
  * @returns Disposable for the registered command
  */
-export function registerDeleteConversion(csvwActionsProvider: CSVWActionsProvider): vscode.Disposable {
-	return vscode.commands.registerCommand(
-		'csvwrdfconvertor.deleteConversion',
-		async (conversionItem: any) => {
-			const conversionId = conversionItem?.id || conversionItem;
-			const conversion = csvwActionsProvider.getConversion(conversionId);
+export function registerDeleteConversion(
+  csvwActionsProvider: CSVWActionsProvider,
+): vscode.Disposable {
+  return vscode.commands.registerCommand(
+    DELETE_CONVERSION_COMMAND,
+    async (conversion: ConversionItem) => {
+      const choice = await vscode.window.showWarningMessage(
+        `Are you sure you want to delete the conversion "${conversion.name}"?`,
+        { modal: true },
+        'Delete Conversion',
+      );
 
-			if (!conversion) {
-				vscode.window.showErrorMessage('❌ Conversion not found');
-				return;
-			}
+      if (choice !== 'Delete Conversion') {
+        return;
+      }
 
-			const choice = await vscode.window.showWarningMessage(
-				`Are you sure you want to delete the conversion "${conversion.name}"?\n\nThis will permanently delete all files and cannot be undone.`,
-				{ modal: true },
-				'Delete Conversion'
-			);
+      csvwActionsProvider.removeConversion(conversion.id);
 
-			if (choice !== 'Delete Conversion') {
-				return;
-			}
-
-			try {
-				const pathsToClose = collectAllFilePaths(conversion);
-
-				await closeTabsForPaths(pathsToClose);
-
-				if (conversion.folderPath) {
-					const folderUri = vscode.Uri.file(conversion.folderPath);
-					await vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: false });
-				}
-
-				csvwActionsProvider.removeConversion(conversion.id);
-
-				vscode.window.showInformationMessage(`✅ Deleted conversion: ${conversion.name}`);
-
-			} catch (error) {
-				vscode.window.showErrorMessage(`❌ Failed to delete conversion: ${error}`);
-			}
-		}
-	);
+      vscode.window.showInformationMessage(
+        `✅ Deleted conversion: ${conversion.name}`,
+      );
+    },
+  );
 }
