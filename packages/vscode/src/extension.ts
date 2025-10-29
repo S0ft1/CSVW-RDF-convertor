@@ -1,14 +1,10 @@
 import * as vscode from 'vscode';
-import {
-  CSVWActionsProvider,
-  loadExistingConversions,
-} from './lib/tree-data-provider.js';
+import { CSVWActionsProvider } from './lib/tree-data-provider.js';
 import { registerCommands } from './lib/command-handlers.js';
-import { registerSaveListener } from './lib/commands/index.js';
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('CSVW to RDF Convertor activated');
-  const csvwActionsProvider = new CSVWActionsProvider();
+  const csvwActionsProvider = new CSVWActionsProvider(context);
 
   vscode.window.createTreeView('csvw-rdf-actions', {
     treeDataProvider: csvwActionsProvider,
@@ -21,11 +17,6 @@ export async function activate(context: vscode.ExtensionContext) {
     csvwActionsProvider.refresh,
   );
 
-  await loadExistingConversions(csvwActionsProvider);
-
   registerCommands(context, csvwActionsProvider);
-
-  const saveListener = registerSaveListener(csvwActionsProvider);
-  context.subscriptions.push(saveListener);
 }
 export function deactivate() {}

@@ -62,7 +62,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "csvwrdfconvertor.addNewConversion",
+        "command": "csvwrdfconvertor.createConversion",
         "title": "Add Conversion",
         "icon": "$(add)"
       },

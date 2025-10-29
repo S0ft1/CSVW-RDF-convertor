@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
 import { ConversionItem, TreeItem } from './types.js';
 import {
-  ensureFileExists,
-  getDefaultDescriptorContent,
-  getDefaultInputContent,
-  getDefaultOutputContent,
-  getDefaultRdfInputContent,
-} from './file-utils.js';
-import { createInputFilesFromDescriptor } from './command-handlers.js';
-import { getOutputFileExtension } from './conversion-logic.js';
-import { serializationLabels } from '@csvw-rdf-convertor/core';
+  RDFSerialization,
+  serializationLabels,
+} from '@csvw-rdf-convertor/core';
+import { CREATE_CONVERSION_COMMAND } from './commands/add-new-conversion.js';
+
+const CONVERSIONS_STATE_KEY = 'csvw-rdf-conversions';
+const COUNTER_STATE_KEY = 'csvw-rdf-conversion-counter';
 
 /**
  * Tree data provider for the CSVW Actions view in VS Code.
@@ -23,35 +21,72 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
     TreeItem | undefined | null | void
   > = this._onDidChangeTreeData.event;
 
-  private conversions: ConversionItem[] = [];
-  public conversionCounter = 1;
+  private context: vscode.ExtensionContext;
+  private counter: number;
+  private conversions: ConversionItem[];
+
+  constructor(context: vscode.ExtensionContext) {
+    this.context = context;
+    this.loadWorkspaceState();
+  }
+
+  /**
+   * Loads existing conversions and conversions counter from the workspace state.
+   */
+  private loadWorkspaceState(): void {
+    this.counter =
+      this.context.workspaceState.get<number>(COUNTER_STATE_KEY) ?? 1;
+
+    this.conversions =
+      this.context.workspaceState.get<ConversionItem[]>(
+        CONVERSIONS_STATE_KEY,
+      ) ?? [];
+
+    this.refresh();
+
+    vscode.window.showInformationMessage(
+      `📁 Loaded ${this.conversions.length} existing conversion(s)`,
+    );
+  }
 
   /**
    * Refreshes the tree view to reflect any changes in the data.
    */
   refresh(): void {
+    this.context.workspaceState.update(COUNTER_STATE_KEY, this.counter);
+    this.context.workspaceState.update(CONVERSIONS_STATE_KEY, this.conversions);
     this._onDidChangeTreeData.fire();
   }
 
   /**
-   * Adds a new conversion item to the tree view.
-   * @param name - Optional name for the conversion. If not provided, a default name will be generated.
+   * Creates and adds a new conversion item to the tree view.
+   * @param name Name of the conversion that will be displayed in the tree view
+   * @param descriptorFilePath URI of the descriptor file
+   * @param csvFilePaths URIs of csv files in an array
+   * @param rdfFilePaths URIs of rdf files in multiple serilizations
    * @returns The newly created conversion item.
    */
-  addConversion(name?: string): ConversionItem {
-    const conversionName = name || `Conversion ${this.conversionCounter}`;
+  addConversion(
+    name: string,
+    descriptorFilePath: vscode.Uri,
+    csvFilePaths: [vscode.Uri, ...vscode.Uri[]],
+    rdfFilePaths: Partial<Record<RDFSerialization, vscode.Uri>>,
+  ): ConversionItem {
     const conversion: ConversionItem = {
-      id: `conversion-${this.conversionCounter}`,
-      name: conversionName,
-      folderPath: '',
-      inputFilePath: '',
-      rdfInputFilePath: '',
+      id: `conversion-${this.counter}`,
+      name: name,
+      descriptorFilePath: descriptorFilePath,
+      csvFilePaths: csvFilePaths,
+      rdfFilePaths: rdfFilePaths,
+      rdfSerialization: 'turtle',
       templateIRIs: true,
       minimalMode: true,
     };
+
     this.conversions.push(conversion);
-    this.conversionCounter++;
+    this.counter++;
     this.refresh();
+
     return conversion;
   }
 
@@ -99,7 +134,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         switch (element) {
           case 'Add Conversion':
             item.command = {
-              command: 'csvwrdfconvertor.addNewConversion',
+              command: CREATE_CONVERSION_COMMAND,
               title: 'Add New Conversion',
             };
             item.iconPath = new vscode.ThemeIcon('add');
@@ -229,7 +264,8 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         break;
       case 'Output RDF Serialization': {
         const conversion = this.getConversion(conversionId);
-        const selectedRdfSerialization = conversion?.rdfSerialization ?? 'turtle';
+        const selectedRdfSerialization =
+          conversion?.rdfSerialization ?? 'turtle';
         item.command = {
           command: 'csvwrdfconvertor.selectRdfSerialization',
           title: 'Output RDF Serialization',
@@ -284,193 +320,5 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     return item;
-  }
-}
-
-/**
- * Validates workspace availability for loading conversions.
- * @returns The workspace root path or null if no workspace is available
- */
-function validateWorkspace(): string | null {
-  if (
-    !vscode.workspace.workspaceFolders ||
-    vscode.workspace.workspaceFolders.length === 0
-  ) {
-    return null;
-  }
-  return vscode.workspace.workspaceFolders[0].uri.fsPath;
-}
-
-/**
- * Ensures required directories exist for a conversion.
- * Creates inputs and outputs directories if they don't exist.
- * @param conversionDir - The main conversion directory URI
- * @returns Promise resolving to inputs and outputs directory URIs
- */
-async function ensureConversionDirectories(conversionDir: vscode.Uri): Promise<{
-  inputsDir: vscode.Uri;
-  outputsDir: vscode.Uri;
-}> {
-  const inputsDir = vscode.Uri.joinPath(conversionDir, 'inputs');
-  const outputsDir = vscode.Uri.joinPath(conversionDir, 'outputs');
-
-  try {
-    await vscode.workspace.fs.createDirectory(inputsDir);
-    await vscode.workspace.fs.createDirectory(outputsDir);
-  } catch {
-    // Directories might already exist
-  }
-
-  return { inputsDir, outputsDir };
-}
-
-/**
- * Sets up the descriptor file for a conversion.
- * Ensures the descriptor exists and returns its content.
- * @param conversionDir - The main conversion directory URI
- * @param conversion - The conversion item to update with descriptor path
- * @returns Promise resolving to the descriptor content as text
- */
-async function setupDescriptorFile(
-  conversionDir: vscode.Uri,
-  conversion: ConversionItem,
-): Promise<string> {
-  const descriptorPath = vscode.Uri.joinPath(
-    conversionDir,
-    'descriptor.json',
-  );
-  conversion.descriptorFilePath = descriptorPath.fsPath;
-
-  await ensureFileExists(descriptorPath, getDefaultDescriptorContent());
-
-  const descriptorBytes = await vscode.workspace.fs.readFile(descriptorPath);
-  return new TextDecoder().decode(descriptorBytes);
-}
-
-/**
- * Creates input files for a conversion based on descriptor content.
- * Handles both descriptor-based and fallback input file creation.
- * @param inputsDir - The inputs directory URI
- * @param conversion - The conversion item to update with input file paths
- * @param descriptorText - The descriptor content to parse for table URLs
- * @param conversionName - The name of the conversion for fallback file creation
- */
-async function createConversionInputFiles(
-  inputsDir: vscode.Uri,
-  conversion: ConversionItem,
-  descriptorText: string,
-  conversionName: string,
-): Promise<void> {
-  try {
-    await createInputFilesFromDescriptor(inputsDir, conversion, descriptorText);
-  } catch (error) {
-    console.warn(
-      `Could not create input files from descriptor for ${conversionName}:`,
-      error,
-    );
-    const fallbackInputPath = vscode.Uri.joinPath(inputsDir, 'csvInput.csv');
-    await ensureFileExists(fallbackInputPath, getDefaultInputContent());
-    conversion.inputFilePath = fallbackInputPath.fsPath;
-  }
-
-  if (!conversion.rdfInputFilePath) {
-    const rdfInputPath = vscode.Uri.joinPath(inputsDir, 'rdfInput.ttl');
-    await ensureFileExists(rdfInputPath, getDefaultRdfInputContent());
-    conversion.rdfInputFilePath = rdfInputPath.fsPath;
-  }
-}
-
-/**
- * Sets up output files for a conversion.
- * Ensures the default output file exists.
- * @param outputsDir - The outputs directory URI
- * @param conversion - The conversion item to update with output file path
- * @param conversionName - The name of the conversion for output file content
- */
-async function setupOutputFiles(
-  outputsDir: vscode.Uri,
-  conversion: ConversionItem,
-  conversionName: string,
-): Promise<void> {
-  const fileExtension = getOutputFileExtension(conversion);
-  const outputPath = vscode.Uri.joinPath(outputsDir, `output${fileExtension}`);
-  conversion.outputFilePath = outputPath.fsPath;
-  await ensureFileExists(outputPath, getDefaultOutputContent(conversionName));
-}
-
-/**
- * Processes a single conversion directory and creates a conversion item.
- * Handles all aspects of conversion setup including directories, files, and configuration.
- * @param provider - The tree data provider to add the conversion to
- * @param extensionDir - The main extensions directory URI
- * @param conversionName - The name of the conversion directory
- */
-async function processConversionDirectory(
-  provider: CSVWActionsProvider,
-  extensionDir: vscode.Uri,
-  conversionName: string,
-): Promise<void> {
-  const conversionDir = vscode.Uri.joinPath(extensionDir, conversionName);
-  const conversion = provider.addConversion(conversionName);
-  conversion.folderPath = conversionDir.fsPath;
-
-  const { inputsDir, outputsDir } =
-    await ensureConversionDirectories(conversionDir);
-  const descriptorText = await setupDescriptorFile(conversionDir, conversion);
-  await createConversionInputFiles(
-    inputsDir,
-    conversion,
-    descriptorText,
-    conversionName,
-  );
-  await setupOutputFiles(outputsDir, conversion, conversionName);
-}
-
-/**
- * Shows success message after loading conversions.
- * @param directoryCount - Number of conversion directories found
- */
-function showLoadingResult(directoryCount: number): void {
-  if (directoryCount > 0) {
-    vscode.window.showInformationMessage(
-      `📁 Loaded ${directoryCount} existing conversion(s)`,
-    );
-  }
-}
-
-/**
- * Loads existing conversions from the workspace and populates the tree view.
- * Scans the csvw-rdf-conversions directory for existing conversion folders and sets up each conversion.
- * @param provider - The tree data provider to populate with existing conversions
- */
-export async function loadExistingConversions(
-  provider: CSVWActionsProvider,
-): Promise<void> {
-  const workspaceRoot = validateWorkspace();
-  if (!workspaceRoot) {
-    return;
-  }
-  const extensionDir = vscode.Uri.joinPath(
-    vscode.Uri.file(workspaceRoot),
-    'csvw-rdf-conversions',
-  );
-
-  try {
-    await vscode.workspace.fs.stat(extensionDir);
-    const entries = await vscode.workspace.fs.readDirectory(extensionDir);
-    for (const [name, type] of entries) {
-      if (type === vscode.FileType.Directory) {
-        await processConversionDirectory(provider, extensionDir, name);
-      }
-    }
-
-    provider.refresh();
-    const directoryCount = entries.filter(
-      ([, type]) => type === vscode.FileType.Directory,
-    ).length;
-
-    showLoadingResult(directoryCount);
-  } catch {
-    // No existing conversions found - this is expected for new workspaces
   }
 }

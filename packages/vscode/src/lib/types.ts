@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { RDFSerialization } from '@csvw-rdf-convertor/core';
 
 /**
@@ -13,15 +14,13 @@ export enum ConversionType {
  * Contains all necessary information and references for managing a conversion.
  */
 export interface ConversionItem {
-  id: string;
+  readonly id: string;
   name: string;
-  folderPath: string;
-  descriptorFilePath?: string;
-  inputFilePath: string;
-  rdfInputFilePath: string;
-  outputFilePath?: string;
-  outputFilePaths?: string[];
-  additionalInputFilePaths?: string[];
+
+  descriptorFilePath: vscode.Uri;
+  csvFilePaths: [vscode.Uri, ...vscode.Uri[]];
+  rdfFilePaths: Partial<Record<RDFSerialization, vscode.Uri>>;
+
   rdfSerialization: RDFSerialization;
   templateIRIs: boolean;
   minimalMode: boolean;
