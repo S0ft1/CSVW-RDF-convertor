@@ -5,10 +5,9 @@ import { ConversionItem } from '../types.js';
 export const DELETE_CONVERSION_COMMAND = 'csvwrdfconvertor.deleteConversion';
 
 /**
- * Deletes a conversion and all its associated files.
- * Closes open tabs, deletes the conversion folder, and removes from tree view.
+ * Registers the command that deletes a conversion.
  * @param csvwActionsProvider - The tree data provider for conversions
- * @returns Disposable for the registered command
+ * @returns Disposable which unregisters the command on disposal
  */
 export function registerDeleteConversion(
   csvwActionsProvider: CSVWActionsProvider,

@@ -1,4 +1,4 @@
-export { registerAddNewConversion } from './add-new-conversion.js';
+export { registerCreateConversion } from './create-conversion.js';
 export { registerOpenConversionFields } from './open-conversion-fields.js';
 export { registerCloseConversionFields } from './close-conversion-fields.js';
 export { registerConvertCsvwToRdf } from './convert-csvw-to-rdf.js';

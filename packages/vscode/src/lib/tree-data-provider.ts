@@ -4,7 +4,10 @@ import {
   RDFSerialization,
   serializationLabels,
 } from '@csvw-rdf-convertor/core';
-import { CREATE_CONVERSION_COMMAND } from './commands/add-new-conversion.js';
+import { CREATE_CONVERSION_COMMAND } from './commands/create-conversion.js';
+import { TOGGLE_MINIMAL_MODE_COMMAND } from './commands/toggle-minimal-mode.js';
+import { TOGGLE_TEMPLATE_IRIS_COMMAND } from './commands/toggle-template-iris.js';
+import { SELECT_RDF_SERIALIZATION_COMMAND } from './commands/select-rdf-serialization.js';
 
 const CONVERSIONS_STATE_KEY = 'csvw-rdf-conversions';
 const COUNTER_STATE_KEY = 'csvw-rdf-conversion-counter';
@@ -169,7 +172,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
    */
   getChildren(element?: TreeItem): Thenable<TreeItem[]> {
     if (!element) {
-      const mainActions = ['Add Conversion', 'Convert Current Window'];
+      const mainActions = ['Create Conversion', 'Convert Current Window'];
       return Promise.resolve([...mainActions, ...this.conversions]);
     } else if (typeof element !== 'string') {
       const conversionActions = [
@@ -208,6 +211,8 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
    */
   createActionTreeItem(action: string): vscode.TreeItem {
     const [conversionId, actionName] = action.split(':');
+    const conversion = this.getConversion(conversionId) as ConversionItem;
+
     const item = new vscode.TreeItem(
       actionName,
       vscode.TreeItemCollapsibleState.None,
@@ -218,7 +223,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         item.command = {
           command: 'csvwrdfconvertor.openConversionFields',
           title: 'Open Fields',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon('chrome-restore');
         break;
@@ -226,7 +231,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         item.command = {
           command: 'csvwrdfconvertor.closeConversionFields',
           title: 'Close Fields',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon('close-all');
         break;
@@ -234,7 +239,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         item.command = {
           command: 'csvwrdfconvertor.convertCsvwToRdf',
           title: 'Convert CSVW 🡢 RDF',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon('arrow-right');
         break;
@@ -242,7 +247,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         item.command = {
           command: 'csvwrdfconvertor.convertRdfToCsvw',
           title: 'Convert RDF 🡢 CSVW',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon('arrow-left');
         break;
@@ -250,7 +255,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         item.command = {
           command: 'csvwrdfconvertor.validateSpecific',
           title: 'Validate',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon('check');
         break;
@@ -258,18 +263,16 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         item.command = {
           command: 'csvwrdfconvertor.addAnotherInput',
           title: 'Add another input',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon('new-file');
         break;
       case 'Output RDF Serialization': {
-        const conversion = this.getConversion(conversionId);
-        const selectedRdfSerialization =
-          conversion?.rdfSerialization ?? 'turtle';
+        const selectedRdfSerialization = conversion.rdfSerialization;
         item.command = {
-          command: 'csvwrdfconvertor.selectRdfSerialization',
+          command: SELECT_RDF_SERIALIZATION_COMMAND,
           title: 'Output RDF Serialization',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon('file-code');
         item.label = 'RDF Serialization:';
@@ -278,12 +281,11 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         break;
       }
       case 'Template IRIs': {
-        const conversion = this.getConversion(conversionId);
-        const templateIRIsChecked = conversion?.templateIRIs ?? false;
+        const templateIRIsChecked = conversion.templateIRIs;
         item.command = {
-          command: 'csvwrdfconvertor.toggleTemplateIRIs',
+          command: TOGGLE_TEMPLATE_IRIS_COMMAND,
           title: 'Toggle Template IRIs',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon(
           templateIRIsChecked ? 'pass-filled' : 'circle-large-outline',
@@ -298,12 +300,11 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
         break;
       }
       case 'Minimal Mode': {
-        const conv = this.getConversion(conversionId);
-        const minimalModeChecked = conv?.minimalMode ?? false;
+        const minimalModeChecked = conversion.minimalMode;
         item.command = {
-          command: 'csvwrdfconvertor.toggleMinimalMode',
+          command: TOGGLE_MINIMAL_MODE_COMMAND,
           title: 'Toggle Minimal Mode',
-          arguments: [conversionId],
+          arguments: [conversion],
         };
         item.iconPath = new vscode.ThemeIcon(
           minimalModeChecked ? 'pass-filled' : 'circle-large-outline',

@@ -7,12 +7,12 @@ import { validateWorkspace } from '../command-handlers.js';
 export const CREATE_CONVERSION_COMMAND = 'csvwrdfconvertor.createConversion';
 
 /**
- * Adds a new conversion,
+ * Registers the command that creates a new conversion,
  * input box is shown to provide its name.
- * @param csvwActionsProvider CSVW Actions tree data provider
+ * @param csvwActionsProvider Tree data provider for conversions
  * @returns Disposable which unregisters the command on disposal
  */
-export function registerAddNewConversion(
+export function registerCreateConversion(
   csvwActionsProvider: CSVWActionsProvider,
 ): vscode.Disposable {
   return vscode.commands.registerCommand(

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from './tree-data-provider.js';
 import {
-  registerAddNewConversion,
+  registerCreateConversion,
   registerOpenConversionFields,
   registerCloseConversionFields,
   registerConvertCsvwToRdf,
@@ -28,7 +28,7 @@ export function registerCommands(
   csvwActionsProvider: CSVWActionsProvider,
 ) {
   context.subscriptions.push(
-    registerAddNewConversion(csvwActionsProvider),
+    registerCreateConversion(csvwActionsProvider),
     registerOpenConversionFields(csvwActionsProvider),
     registerCloseConversionFields(csvwActionsProvider),
     registerConvertCsvwToRdf(csvwActionsProvider),
