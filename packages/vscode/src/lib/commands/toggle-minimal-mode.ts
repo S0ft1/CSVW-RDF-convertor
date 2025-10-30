@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
-import { ConversionItem } from '../types.js';
+import { Conversion } from '../types.js';
 
 export const TOGGLE_MINIMAL_MODE_COMMAND = 'csvwrdfconvertor.toggleMinimalMode';
 
@@ -14,7 +14,7 @@ export function registerToggleMinimalMode(
 ): vscode.Disposable {
   return vscode.commands.registerCommand(
     TOGGLE_MINIMAL_MODE_COMMAND,
-    async (conversion: ConversionItem) => {
+    async (conversion: Conversion) => {
       conversion.minimalMode = !conversion.minimalMode;
       csvwActionsProvider.refresh();
     },

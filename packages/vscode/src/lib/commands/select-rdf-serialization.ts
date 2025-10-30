@@ -4,7 +4,7 @@ import {
   RDFSerialization,
   serializationLabels,
 } from '@csvw-rdf-convertor/core';
-import { ConversionItem } from '../types.js';
+import { Conversion } from '../types.js';
 
 export const SELECT_RDF_SERIALIZATION_COMMAND =
   'csvwrdfconvertor.selectRdfSerialization';
@@ -29,7 +29,7 @@ export function registerSelectRdfSerialization(
 ): vscode.Disposable {
   return vscode.commands.registerCommand(
     SELECT_RDF_SERIALIZATION_COMMAND,
-    async (conversion: ConversionItem) => {
+    async (conversion: Conversion) => {
       const selectedFormat =
         await vscode.window.showQuickPick<RDFSerializationItem>([
           new RDFSerializationItem('turtle'),

@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { CSVWActionsProvider } from '../tree-data-provider.js';
 import { getAvailableFilePath, sanitizePathSegment } from '../file-utils.js';
 import { fileExtensions, RDFSerialization } from '@csvw-rdf-convertor/core';
-import { validateWorkspace } from '../command-handlers.js';
 
 export const CREATE_CONVERSION_COMMAND = 'csvwrdfconvertor.createConversion';
 
@@ -17,12 +16,7 @@ export function registerCreateConversion(
 ): vscode.Disposable {
   return vscode.commands.registerCommand(
     CREATE_CONVERSION_COMMAND,
-    async () => {
-      const workspaceFolder = validateWorkspace();
-      if (workspaceFolder === undefined) {
-        return;
-      }
-
+    async (workspaceFolder: vscode.Uri) => {
       // TODO: Make public getter for tree-data-provider counter and make value dynamic
       const conversionName = await vscode.window.showInputBox({
         prompt: 'Enter a name for the new conversion',
@@ -38,13 +32,13 @@ export function registerCreateConversion(
 
       const conversion = csvwActionsProvider.addConversion(
         conversionName,
-        await createDefaultDescriptorFile(workspaceFolder.uri, sanitizedName),
-        await createDefaultCsvFiles(workspaceFolder.uri, sanitizedName),
-        await createDefaultRdfFiles(workspaceFolder.uri, sanitizedName),
+        await createDefaultDescriptorFile(workspaceFolder, sanitizedName),
+        await createDefaultCsvFiles(workspaceFolder, sanitizedName),
+        await createDefaultRdfFiles(workspaceFolder, sanitizedName),
       );
 
       vscode.window.showInformationMessage(
-        `✅ Created new conversion: ${conversion.name}`,
+        `✅ Created new conversion: ${conversion.conversionName}`,
       );
     },
   );

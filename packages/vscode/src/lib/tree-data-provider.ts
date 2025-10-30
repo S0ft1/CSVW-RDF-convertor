@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ConversionItem, TreeItem } from './types.js';
+import { Conversion, TreeItem, isSimpleItem } from './types.js';
 import {
   RDFSerialization,
   serializationLabels,
@@ -26,7 +26,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
 
   private context: vscode.ExtensionContext;
   private counter: number;
-  private conversions: ConversionItem[];
+  private conversions: Conversion[];
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -41,9 +41,8 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
       this.context.workspaceState.get<number>(COUNTER_STATE_KEY) ?? 1;
 
     this.conversions =
-      this.context.workspaceState.get<ConversionItem[]>(
-        CONVERSIONS_STATE_KEY,
-      ) ?? [];
+      this.context.workspaceState.get<Conversion[]>(CONVERSIONS_STATE_KEY) ??
+      [];
 
     this.refresh();
 
@@ -74,10 +73,10 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
     descriptorFilePath: vscode.Uri,
     csvFilePaths: [vscode.Uri, ...vscode.Uri[]],
     rdfFilePaths: Partial<Record<RDFSerialization, vscode.Uri>>,
-  ): ConversionItem {
-    const conversion: ConversionItem = {
-      id: `conversion-${this.counter}`,
-      name: name,
+  ): Conversion {
+    const conversion: Conversion = {
+      conversionId: `conversion-${this.counter}`,
+      conversionName: name,
       descriptorFilePath: descriptorFilePath,
       csvFilePaths: csvFilePaths,
       rdfFilePaths: rdfFilePaths,
@@ -98,7 +97,7 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
    * @param id - The ID of the conversion to remove.
    */
   removeConversion(id: string): void {
-    this.conversions = this.conversions.filter((c) => c.id !== id);
+    this.conversions = this.conversions.filter((c) => c.conversionId !== id);
     this.refresh();
   }
 
@@ -107,16 +106,151 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
    * @param id - The ID of the conversion to retrieve.
    * @returns The conversion item if found, undefined otherwise.
    */
-  getConversion(id: string): ConversionItem | undefined {
-    return this.conversions.find((c) => c.id === id);
+  getConversion(id: string): Conversion | undefined {
+    return this.conversions.find((c) => c.conversionId === id);
   }
 
   /**
    * Gets all conversion items.
    * @returns Array of all conversion items.
    */
-  getAllConversions(): ConversionItem[] {
+  getAllConversions(): Conversion[] {
     return this.conversions;
+  }
+
+  /**
+   * Gets the children of a tree item for hierarchical display.
+   * @param element - The parent element to get children for. If undefined, returns root items.
+   * @returns Promise resolving to an array of child tree items.
+   */
+  getChildren(element?: TreeItem): vscode.ProviderResult<TreeItem[]> {
+    if (element === undefined) {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.at(0);
+      if (workspaceFolder === undefined) {
+        return [
+          {
+            label: 'No workspace folder open',
+            iconPath: new vscode.ThemeIcon(
+              'error',
+              new vscode.ThemeColor('errorForeground'),
+            ),
+          },
+        ];
+      } else {
+        return [
+          {
+            label: 'Create Conversion',
+            iconPath: new vscode.ThemeIcon('add'),
+            command: {
+              title: 'Create Conversion',
+              command: CREATE_CONVERSION_COMMAND,
+              arguments: [workspaceFolder.uri],
+            },
+          },
+          {
+            label: 'Convert Current Window',
+            iconPath: new vscode.ThemeIcon('arrow-right'),
+          },
+          ...this.conversions,
+        ];
+      }
+    } else if (isSimpleItem(element)) {
+      return [];
+    } else {
+      return [
+        {
+          conversion: element,
+          label: 'Open Fields',
+          iconPath: new vscode.ThemeIcon('chrome-restore'),
+        },
+        {
+          conversion: element,
+          label: 'Close Fields',
+          iconPath: new vscode.ThemeIcon('close-all'),
+        },
+        {
+          conversion: element,
+          label: 'Convert CSVW 🡢 RDF',
+          iconPath: new vscode.ThemeIcon('arrow-right'),
+        },
+        {
+          conversion: element,
+          label: 'Convert RDF 🡢 CSVW',
+          iconPath: new vscode.ThemeIcon('arrow-left'),
+        },
+        {
+          conversion: element,
+          label: 'Validate',
+          iconPath: new vscode.ThemeIcon('check'),
+        },
+        {
+          conversion: element,
+          label: 'Add another input',
+          iconPath: new vscode.ThemeIcon('new-file'),
+        },
+        {
+          conversion: element,
+          label: 'RDF Serialization:',
+          iconPath: new vscode.ThemeIcon('file-code'),
+          command: {
+            command: SELECT_RDF_SERIALIZATION_COMMAND,
+            title: 'Select RDF Serialization',
+            arguments: [element],
+          },
+          description: `${serializationLabels[element.rdfSerialization]} ⌵`,
+          tooltip: `RDF Serialization: ${serializationLabels[element.rdfSerialization]}`,
+        },
+        {
+          conversion: element,
+          label: 'Template IRIs',
+          iconPath: new vscode.ThemeIcon(
+            element.templateIRIs ? 'pass-filled' : 'circle-large-outline',
+            element.templateIRIs
+              ? new vscode.ThemeColor('testing.iconPassed')
+              : new vscode.ThemeColor('testing.iconQueued'),
+          ),
+          command: {
+            command: TOGGLE_TEMPLATE_IRIS_COMMAND,
+            title: 'Toggle Template IRIs',
+            arguments: [element],
+          },
+          tooltip: element.templateIRIs
+            ? 'Template IRIs enabled'
+            : 'Template IRIs disabled',
+        },
+        {
+          conversion: element,
+          label: 'Minimal Mode',
+          iconPath: new vscode.ThemeIcon(
+            element.minimalMode ? 'pass-filled' : 'circle-large-outline',
+            element.minimalMode
+              ? new vscode.ThemeColor('testing.iconPassed')
+              : new vscode.ThemeColor('testing.iconQueued'),
+          ),
+          command: {
+            command: TOGGLE_MINIMAL_MODE_COMMAND,
+            title: 'Toggle Minimal Mode',
+            arguments: [element],
+          },
+          tooltip: element.minimalMode
+            ? 'Minimal Mode enabled'
+            : 'Minimal Mode disabled',
+        },
+      ];
+    }
+  }
+
+  /**
+   * Gets the parent of a tree item for navigation purposes.
+   * @param element - The element to get the parent for.
+   * @returns The parent tree item or undefined if no parent exists.
+   */
+  getParent(element: TreeItem): vscode.ProviderResult<TreeItem | undefined> {
+    if (isSimpleItem(element)) {
+      return element.conversion;
+    } else {
+      return undefined;
+    }
   }
 
   /**
@@ -125,201 +259,15 @@ export class CSVWActionsProvider implements vscode.TreeDataProvider<TreeItem> {
    * @returns A VS Code tree item configured for display.
    */
   getTreeItem(element: TreeItem): vscode.TreeItem {
-    if (typeof element === 'string') {
-      if (element.includes(':')) {
-        return this.createActionTreeItem(element);
-      } else {
-        const item = new vscode.TreeItem(
-          element,
-          vscode.TreeItemCollapsibleState.None,
-        );
-
-        switch (element) {
-          case 'Add Conversion':
-            item.command = {
-              command: CREATE_CONVERSION_COMMAND,
-              title: 'Add New Conversion',
-            };
-            item.iconPath = new vscode.ThemeIcon('add');
-            break;
-          case 'Convert Current Window':
-            item.command = {
-              command: 'csvwrdfconvertor.convertCurrentWindow',
-              title: 'Convert Current Window',
-            };
-            item.iconPath = new vscode.ThemeIcon('arrow-right');
-            break;
-        }
-
-        return item;
-      }
+    if (isSimpleItem(element)) {
+      return element;
     } else {
       const item = new vscode.TreeItem(
-        element.name,
+        element.conversionName,
         vscode.TreeItemCollapsibleState.Expanded,
       );
-      item.iconPath = new vscode.ThemeIcon('folder');
       item.contextValue = 'conversion';
-      item.id = element.id;
+      item.id = element.conversionId;
       return item;
     }
   }
-
-  /**
-   * Gets the children of a tree item for hierarchical display.
-   * @param element - The parent element to get children for. If undefined, returns root items.
-   * @returns Promise resolving to an array of child tree items.
-   */
-  getChildren(element?: TreeItem): Thenable<TreeItem[]> {
-    if (!element) {
-      const mainActions = ['Create Conversion', 'Convert Current Window'];
-      return Promise.resolve([...mainActions, ...this.conversions]);
-    } else if (typeof element !== 'string') {
-      const conversionActions = [
-        `${element.id}:Open Fields`,
-        `${element.id}:Close Fields`,
-        `${element.id}:Convert CSVW 🡢 RDF`,
-        `${element.id}:Convert RDF 🡢 CSVW`,
-        `${element.id}:Validate`,
-        `${element.id}:Add another input`,
-        `${element.id}:Output RDF Serialization`,
-        `${element.id}:Template IRIs`,
-        `${element.id}:Minimal Mode`,
-      ];
-      return Promise.resolve(conversionActions);
-    }
-    return Promise.resolve([]);
-  }
-
-  /**
-   * Gets the parent of a tree item for navigation purposes.
-   * @param element - The element to get the parent for.
-   * @returns The parent tree item or null if no parent exists.
-   */
-  getParent(element: TreeItem): vscode.ProviderResult<TreeItem> {
-    if (typeof element === 'string' && element.includes(':')) {
-      const conversionId = element.split(':')[0];
-      return this.getConversion(conversionId);
-    }
-    return null;
-  }
-
-  /**
-   * Creates a tree item for conversion actions with appropriate commands and icons.
-   * @param action - The action string in format "conversionId:actionName".
-   * @returns A configured tree item for the specific action.
-   */
-  createActionTreeItem(action: string): vscode.TreeItem {
-    const [conversionId, actionName] = action.split(':');
-    const conversion = this.getConversion(conversionId) as ConversionItem;
-
-    const item = new vscode.TreeItem(
-      actionName,
-      vscode.TreeItemCollapsibleState.None,
-    );
-
-    switch (actionName) {
-      case 'Open Fields':
-        item.command = {
-          command: 'csvwrdfconvertor.openConversionFields',
-          title: 'Open Fields',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon('chrome-restore');
-        break;
-      case 'Close Fields':
-        item.command = {
-          command: 'csvwrdfconvertor.closeConversionFields',
-          title: 'Close Fields',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon('close-all');
-        break;
-      case 'Convert CSVW 🡢 RDF':
-        item.command = {
-          command: 'csvwrdfconvertor.convertCsvwToRdf',
-          title: 'Convert CSVW 🡢 RDF',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon('arrow-right');
-        break;
-      case 'Convert RDF 🡢 CSVW':
-        item.command = {
-          command: 'csvwrdfconvertor.convertRdfToCsvw',
-          title: 'Convert RDF 🡢 CSVW',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon('arrow-left');
-        break;
-      case 'Validate':
-        item.command = {
-          command: 'csvwrdfconvertor.validateSpecific',
-          title: 'Validate',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon('check');
-        break;
-      case 'Add another input':
-        item.command = {
-          command: 'csvwrdfconvertor.addAnotherInput',
-          title: 'Add another input',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon('new-file');
-        break;
-      case 'Output RDF Serialization': {
-        const selectedRdfSerialization = conversion.rdfSerialization;
-        item.command = {
-          command: SELECT_RDF_SERIALIZATION_COMMAND,
-          title: 'Output RDF Serialization',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon('file-code');
-        item.label = 'RDF Serialization:';
-        item.description = `${serializationLabels[selectedRdfSerialization]} ⌵`;
-        item.tooltip = `RDF Serialization: ${serializationLabels[selectedRdfSerialization]}`;
-        break;
-      }
-      case 'Template IRIs': {
-        const templateIRIsChecked = conversion.templateIRIs;
-        item.command = {
-          command: TOGGLE_TEMPLATE_IRIS_COMMAND,
-          title: 'Toggle Template IRIs',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon(
-          templateIRIsChecked ? 'pass-filled' : 'circle-large-outline',
-          templateIRIsChecked
-            ? new vscode.ThemeColor('testing.iconPassed')
-            : new vscode.ThemeColor('testing.iconQueued'),
-        );
-        item.label = `Template IRIs`;
-        item.tooltip = templateIRIsChecked
-          ? 'Template IRIs enabled - Click to disable'
-          : 'Template IRIs disabled - Click to enable';
-        break;
-      }
-      case 'Minimal Mode': {
-        const minimalModeChecked = conversion.minimalMode;
-        item.command = {
-          command: TOGGLE_MINIMAL_MODE_COMMAND,
-          title: 'Toggle Minimal Mode',
-          arguments: [conversion],
-        };
-        item.iconPath = new vscode.ThemeIcon(
-          minimalModeChecked ? 'pass-filled' : 'circle-large-outline',
-          minimalModeChecked
-            ? new vscode.ThemeColor('testing.iconPassed')
-            : new vscode.ThemeColor('testing.iconQueued'),
-        );
-        item.label = `Minimal Mode`;
-        item.tooltip = minimalModeChecked
-          ? 'Minimal Mode enabled - Click to disable'
-          : 'Minimal Mode disabled - Click to enable';
-        break;
-      }
-    }
-
-    return item;
-  }
-}

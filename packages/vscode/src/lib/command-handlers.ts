@@ -44,20 +44,3 @@ export function registerCommands(
     registerSaveListener(csvwActionsProvider),
   );
 }
-
-/**
- * Validates that a workspace is open.
- * @returns first opened workspace if valid, undefined otherwise
- */
-export function validateWorkspace(): vscode.WorkspaceFolder | undefined {
-  if (
-    !vscode.workspace.workspaceFolders ||
-    vscode.workspace.workspaceFolders.length === 0
-  ) {
-    vscode.window.showErrorMessage(
-      '❌ No workspace folder open. Please open a folder first.',
-    );
-    return undefined;
-  }
-  return vscode.workspace.workspaceFolders[0];
-}

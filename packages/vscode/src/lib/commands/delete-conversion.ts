@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { CSVWActionsProvider } from '../tree-data-provider.js';
-import { ConversionItem } from '../types.js';
+import { Conversion } from '../types.js';
 
 export const DELETE_CONVERSION_COMMAND = 'csvwrdfconvertor.deleteConversion';
 
@@ -14,9 +14,9 @@ export function registerDeleteConversion(
 ): vscode.Disposable {
   return vscode.commands.registerCommand(
     DELETE_CONVERSION_COMMAND,
-    async (conversion: ConversionItem) => {
+    async (conversion: Conversion) => {
       const choice = await vscode.window.showWarningMessage(
-        `Are you sure you want to delete the conversion "${conversion.name}"?`,
+        `Are you sure you want to delete the conversion "${conversion.conversionName}"?`,
         { modal: true },
         'Delete Conversion',
       );
@@ -25,10 +25,10 @@ export function registerDeleteConversion(
         return;
       }
 
-      csvwActionsProvider.removeConversion(conversion.id);
+      csvwActionsProvider.removeConversion(conversion.conversionId);
 
       vscode.window.showInformationMessage(
-        `✅ Deleted conversion: ${conversion.name}`,
+        `✅ Deleted conversion: ${conversion.conversionName}`,
       );
     },
   );

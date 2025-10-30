@@ -1,21 +1,17 @@
 import * as vscode from 'vscode';
 import { RDFSerialization } from '@csvw-rdf-convertor/core';
 
-/**
- * Enum representing the types of conversions supported.
- */
-export enum ConversionType {
-  CSVW_TO_RDF = 'csvw2rdf',
-  RDF_TO_CSVW = 'rdf2csvw',
+export interface SimpleItem extends vscode.TreeItem {
+  conversion?: Conversion;
 }
 
 /**
  * Represents a single conversion item in the tree view.
  * Contains all necessary information and references for managing a conversion.
  */
-export interface ConversionItem {
-  readonly id: string;
-  name: string;
+export interface Conversion {
+  readonly conversionId: string;
+  conversionName: string;
 
   descriptorFilePath: vscode.Uri;
   csvFilePaths: [vscode.Uri, ...vscode.Uri[]];
@@ -26,8 +22,12 @@ export interface ConversionItem {
   minimalMode: boolean;
 }
 
+export function isSimpleItem(item: TreeItem): item is SimpleItem {
+  return !('conversionId' in item);
+}
+
 /**
  * Union type representing items that can be displayed in the tree view.
  * Can be either a string (for actions) or a ConversionItem.
  */
-export type TreeItem = string | ConversionItem;
+export type TreeItem = SimpleItem | Conversion;
